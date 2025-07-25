@@ -9,13 +9,13 @@ import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 
-export type DeviationNode = Node<{
+export type GuideWordNode = Node<{
   content: string;
 }>;
 
 
 
-export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
+export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
   const { updateNodeData, setNodes } = useReactFlow();
 
 
@@ -29,7 +29,7 @@ export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
     <BaseNode className="w-40 border-violet-200 bg-violet-50">
       <NodeHeader
         icon={Rocket}
-        title="Deviation"
+        title="Function"
         bgColor="bg-violet-200"
         textColor="text-violet-900"
         onDelete={handleDelete}
@@ -45,4 +45,4 @@ export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
     </BaseNode>
   );
 }
-DeviationNode.displayName = "DeviationNode";
+GuideWordNode.displayName = "GuideWordNode";

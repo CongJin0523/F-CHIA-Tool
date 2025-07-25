@@ -1,14 +1,14 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { ButtonHandle } from "@/components/button-handle";
 import { Button } from "@/components/ui/button";
 import {
   BaseNode,
   BaseNodeContent,
-  BaseNodeHeader,
-  BaseNodeHeaderTitle,
 } from "@/components/base-node";
-import { Rocket, Plus, Trash2 } from "lucide-react";
+import { NodeHeader } from "@/components/nodes/subComponents/node-header";
+import { Rocket, Plus } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState, useConnection } from '@xyflow/react';
+import { EditableText } from './subComponents/editable-text';
 
 export type ZoneNode = Node<{
   content: string;
@@ -31,30 +31,24 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
   }, [id, setNodes]);
 
+
+  const [content, setContent] = useState(data.content);
+
+
   return (
     <BaseNode className="w-40 border-violet-200 bg-violet-50">
-      <BaseNodeHeader className='h-9'>
-        <div className="flex items-center gap-1 rounded-tl-sm rounded-br-sm bg-violet-200 px-2 py-1 text-violet-900">
-          <Rocket className="size-4" />
-          <BaseNodeHeaderTitle>Zone</BaseNodeHeaderTitle>
-        </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="nodrag rounded-full size-6 px-1"
-          aria-label="Node Actions"
-          title="Node Actions"
-          onClick={handleDelete}
-        >
-          <Trash2 className="size-3" />
-        </Button>
-
-      </BaseNodeHeader>
+      <NodeHeader
+        icon={Rocket}
+        title="Zone"
+        bgColor="bg-violet-200"
+        textColor="text-violet-900"
+        onDelete={handleDelete}
+      />
       <BaseNodeContent>
-        <p className="text-sm text-gray-700 text-center">
-          {data.content}
-        </p>
+        <EditableText
+          content={content}
+          onChange={(value) => setContent(value)}
+        />
         <ButtonHandle
           type="target"
           position={Position.Bottom}
