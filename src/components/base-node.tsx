@@ -37,7 +37,7 @@ export const BaseNodeHeader = forwardRef<
     ref={ref}
     {...props}
     className={cn(
-      "mx-0 my-0 -mb-1 flex flex-row items-center justify-between gap-2 px-3 py-2",
+      "mx-0 -my-1.5 -mb-2 flex flex-row items-center justify-between gap-0.5  text-shadow-2xs text-xs",
       // Remove or modify these classes if you modify the padding in the
       // `<BaseNode />` component.
       className,
@@ -54,10 +54,10 @@ export const BaseNodeHeaderTitle = forwardRef<
   HTMLHeadingElement,
   HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
-  <h3
+  <div
     ref={ref}
     data-slot="base-node-title"
-    className={cn("user-select-none flex-1 font-semibold", className)}
+    className={cn("user-select-none flex-1 font-medium leading-tight ", className)}
     {...props}
   />
 ));

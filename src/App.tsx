@@ -13,60 +13,24 @@ import {
  
 import { NumNode } from '@/components/nodes/num-node';
 import { SumNode } from '@/components/nodes/sum-node';
- 
-import { DataEdge } from '@/components/data-edge';
+import { ZoneNode } from '@/components/nodes/zone-node';
 import { useCallback } from 'react';
+import { TaskNode } from './components/nodes/task-node';
  
 const nodeTypes = {
   num: NumNode,
   sum: SumNode,
+  zone: ZoneNode, 
+  task: TaskNode,
 };
  
 const initialNodes: Node[] = [
-  { id: 'a', type: 'num', data: { value: 0 }, position: { x: 0, y: 0 } },
-  { id: 'b', type: 'num', data: { value: 0 }, position: { x: 0, y: 200 } },
-  { id: 'c', type: 'sum', data: { value: 0 }, position: { x: 300, y: 100 } },
-  { id: 'd', type: 'num', data: { value: 0 }, position: { x: 0, y: 400 } },
-  { id: 'e', type: 'sum', data: { value: 0 }, position: { x: 600, y: 400 } },
+  { id: 'a', type: 'zone', data: { content: 'apple, river, glow' }, position: { x: 0, y: 0 } },
+  { id: 'b', type: 'task', data: { content: 'task node' }, position: { x: 200, y: 0 } },
 ];
- 
-const edgeTypes = {
-  data: DataEdge,
-};
- 
+
 const initialEdges: Edge[] = [
-  {
-    id: 'a->c',
-    type: 'data',
-    data: { key: 'value' },
-    source: 'a',
-    target: 'c',
-    targetHandle: 'x',
-  },
-  {
-    id: 'b->c',
-    type: 'data',
-    data: { key: 'value' },
-    source: 'b',
-    target: 'c',
-    targetHandle: 'y',
-  },
-  {
-    id: 'c->e',
-    type: 'data',
-    data: { key: 'value' },
-    source: 'c',
-    target: 'e',
-    targetHandle: 'x',
-  },
-  {
-    id: 'd->e',
-    type: 'data',
-    data: { key: 'value' },
-    source: 'd',
-    target: 'e',
-    targetHandle: 'y',
-  },
+  
 ];
  
 function App() {
@@ -74,12 +38,10 @@ function App() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
  
   const onConnect: OnConnect = useCallback(
-    (params) => {
-      setEdges((edges) =>
-        addEdge({ type: 'data', data: { key: 'value' }, ...params }, edges),
-      );
-    },
-    [setEdges],
+    (params) => 
+      setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot))
+    ,
+    [],
   );
  
   return (
@@ -91,7 +53,6 @@ function App() {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
         fitView
       />
     </div>
