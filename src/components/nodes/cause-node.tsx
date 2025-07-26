@@ -4,7 +4,7 @@ import {
   BaseNode,
   BaseNodeContent,
 } from "@/components/base-node";
-import { Rocket } from "lucide-react";
+import { Zap } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
@@ -24,12 +24,12 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
   const [content, setContent] = useState(data.content);
 
   return (
-    <BaseNode className="w-40 border-violet-200 bg-violet-50">
+    <BaseNode className="w-40 border-red-200 bg-red-50">
       <NodeHeader
-        icon={Rocket}
+        icon={Zap}
         title="Cause"
-        bgColor="bg-violet-200"
-        textColor="text-violet-900"
+        bgColor="bg-red-200"
+        textColor="text-red-900"
         onDelete={handleDelete}
       />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Top} className="nodrag" /> 

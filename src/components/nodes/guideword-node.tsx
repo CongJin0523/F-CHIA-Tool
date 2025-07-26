@@ -4,7 +4,7 @@ import {
   BaseNode,
   BaseNodeContent,
 } from "@/components/base-node";
-import { Rocket } from "lucide-react";
+import { Quote } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
@@ -26,12 +26,12 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
   const [content, setContent] = useState(data.content);
 
   return (
-    <BaseNode className="w-40 border-violet-200 bg-violet-50">
+    <BaseNode className="w-40 border-fuchsia-200 bg-fuchsia-50">
       <NodeHeader
-        icon={Rocket}
-        title="Function"
-        bgColor="bg-violet-200"
-        textColor="text-violet-900"
+        icon={Quote}
+        title="Guide Word"
+        bgColor="bg-fuchsia-200"
+        textColor="text-fuchsia-900"
         onDelete={handleDelete}
       />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Top} className="nodrag" /> 

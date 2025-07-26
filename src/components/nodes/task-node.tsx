@@ -4,7 +4,7 @@ import {
   BaseNode,
   BaseNodeContent,
 } from "@/components/base-node";
-import { Rocket } from "lucide-react";
+import { ClipboardCheck } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
@@ -26,12 +26,12 @@ export function TaskNode({ id, data }: NodeProps<TaskNode>) {
   const [content, setContent] = useState(data.content);
 
   return (
-    <BaseNode className="w-40 border-violet-200 bg-violet-50">
+    <BaseNode className="w-40 border-green-200 bg-green-50">
       <NodeHeader
-        icon={Rocket}
+        icon={ClipboardCheck}
         title="Task"
-        bgColor="bg-violet-200"
-        textColor="text-violet-900"
+        bgColor="bg-green-200"
+        textColor="text-green-900"
         onDelete={handleDelete}
       />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Top} className="nodrag" /> 

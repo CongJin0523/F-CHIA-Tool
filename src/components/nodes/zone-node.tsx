@@ -6,7 +6,7 @@ import {
   BaseNodeContent,
 } from "@/components/base-node";
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { Rocket, Plus } from "lucide-react";
+import { Globe, Plus } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState, useConnection } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 
@@ -38,7 +38,7 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
   return (
     <BaseNode className="w-40 border-violet-200 bg-violet-50">
       <NodeHeader
-        icon={Rocket}
+        icon={Globe}
         title="Zone"
         bgColor="bg-violet-200"
         textColor="text-violet-900"
