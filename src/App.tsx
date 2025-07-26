@@ -15,18 +15,8 @@ import {
   useReactFlow,
 } from '@xyflow/react';
 
+import { nodeTypes } from '@/common/node-type';
 
-
-import { ZoneNode } from '@/components/nodes/zone-node';
-import { TaskNode } from '@/components/nodes/task-node';
-import { FunctionNode } from '@/components/nodes/function-node';
-import { RealizationNode } from '@/components/nodes/realization-node';
-import { PropertiesNode } from '@/components/nodes/properties';
-import { GuideWordNode } from '@/components/nodes/guideword-node';
-import { DeviationNode } from '@/components/nodes/deviation-node';
-import { CauseNode } from '@/components/nodes/cause-node';
-import { ConsequenceNode } from '@/components/nodes/consequence-node';
-import { RequirementNode } from '@/components/nodes/requirement-node';
 
 import ELK from 'elkjs/lib/elk.bundled.js';
 import React, { useCallback, useLayoutEffect } from 'react';
@@ -71,18 +61,7 @@ const getLayoutedElements = (nodes, edges, options = {}) => {
     .catch(console.error);
 };
 
-const nodeTypes = {
-  zone: ZoneNode,
-  task: TaskNode,
-  function: FunctionNode,
-  realization: RealizationNode,
-  properties: PropertiesNode,
-  guideword: GuideWordNode,
-  deviation: DeviationNode,
-  cause: CauseNode,
-  consequence: ConsequenceNode,
-  requirement: RequirementNode,
-};
+
 
 const initialNodes: Node[] = [
   { id: 'a', type: 'zone', data: { content: 'apple, river, glow' }, position: { x: 0, y: 0 } },
