@@ -34,7 +34,7 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
         textColor="text-rose-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Top} className="nodrag" /> 
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
           content={content}

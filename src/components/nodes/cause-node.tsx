@@ -32,14 +32,14 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
         textColor="text-red-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Top} className="nodrag" /> 
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
           content={content}
           onChange={(value) => setContent(value)}
         /> 
       </BaseNodeContent>
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Bottom} className="nodrag" />
+      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </BaseNode>
   );
 }

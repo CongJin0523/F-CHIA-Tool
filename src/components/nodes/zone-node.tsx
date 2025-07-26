@@ -9,6 +9,7 @@ import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 import { Globe, Plus } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState, useConnection } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
+import { BaseHandle } from '../base-handle';
 
 export type ZoneNode = Node<{
   content: string;
@@ -49,7 +50,7 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
           content={content}
           onChange={(value) => setContent(value)}
         />
-        <ButtonHandle
+        {/* <ButtonHandle
           type="target"
           position={Position.Bottom}
           showButton={!connectionInProgress}
@@ -62,7 +63,8 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
           >
             <Plus size={10} />
           </Button>
-        </ButtonHandle>
+        </ButtonHandle> */}
+        <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
       </BaseNodeContent>
     </BaseNode>
   );
