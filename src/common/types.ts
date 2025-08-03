@@ -29,3 +29,46 @@ export interface AppState {
   updateNodeText: (nodeId: string, text: string) => void;
 };
 
+export interface FormValue {
+  zoneName: string;
+    tasks: {
+      taskName: string;
+      functions: {
+        functionName: string;
+        realizations: {
+          realizationName: string;
+          properties: {
+            propertyName: string;
+            guideWords: {
+              guideWord: string;
+              deviations: string[];
+              causes: string[];
+              consequences: string[];
+              requirements: string[];
+            }[];
+          }[];
+        }[];
+      }[];
+    }[];
+}
+
+export interface Task {
+  taskName: string;
+      functions: {
+        functionName: string;
+        realizations: {
+          realizationName: string;
+          properties: {
+            propertyName: string;
+            guideWords: {
+              guideWord: string;
+              deviations: string[];
+              causes: string[];
+              consequences: string[];
+              requirements: string[];
+            }[];
+          }[];
+        }[];
+      }[];
+}
+
