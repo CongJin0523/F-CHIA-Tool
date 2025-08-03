@@ -115,7 +115,7 @@ function LayoutFlow() {
         nodeTypes={nodeTypes}
         fitView
       >
-      <Panel position="top-right">
+      <Panel position="bottom-right">
         <Button
           className="xy-theme__button"
           onClick={() => onLayout({ direction: 'DOWN' })}

@@ -3,12 +3,16 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import './index.css'
 import App from './App.tsx'
-import Table from './path/Table.tsx'
+import Table from '@/components/Table.tsx'
+import Diagram from '@/components/Diagram.tsx'
+import { AppNav } from '@/components/AppNav.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      <AppNav />
       <Routes>
         <Route path="/" element={<App />} />
+        <Route path="/diagram" element={<Diagram />} />
         <Route path="/table" element={<Table />} />
       </Routes>
     </BrowserRouter>

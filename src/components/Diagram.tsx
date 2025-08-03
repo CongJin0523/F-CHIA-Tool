@@ -19,7 +19,7 @@ import { nodeTypes } from '@/common/node-type';
 
 import ELK from 'elkjs/lib/elk.bundled.js';
 import React, { useCallback, useLayoutEffect } from 'react';
-import { Button } from './components/ui/button';
+import { Button } from '@/components/ui/button';
 import useStore from '@/common/store';
 
 
@@ -115,7 +115,7 @@ function LayoutFlow() {
         nodeTypes={nodeTypes}
         fitView
       >
-      <Panel position="top-right">
+      <Panel position="bottom-right">
         <Button
           className="xy-theme__button"
           onClick={() => onLayout({ direction: 'DOWN' })}
