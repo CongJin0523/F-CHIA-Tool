@@ -52,23 +52,38 @@ export interface FormValue {
     }[];
 }
 
-export interface Task {
+export interface Task  {
   taskName: string;
-      functions: {
-        functionName: string;
-        realizations: {
-          realizationName: string;
-          properties: {
-            propertyName: string;
-            guideWords: {
-              guideWord: string;
-              deviations: string[];
-              causes: string[];
-              consequences: string[];
-              requirements: string[];
-            }[];
-          }[];
-        }[];
-      }[];
+  rowSpan?: number;
+  functions: Func[];
 }
+
+export interface Func {
+  functionName: string;
+  rowSpan?: number;
+  realizations: Realization[];
+}
+export interface Realization {
+  realizationName: string;
+  rowSpan?: number;
+  properties: Property[];
+}
+export interface Property {
+  properties: string[];
+  rowSpan?: number;
+  interpretations: Interpretation[];
+}
+export interface Interpretation {
+  guideWord: "Part of" | "Other than" | "No";
+  deviations: string[];
+  causes: string[];
+  consequences: string[];
+  requirements: string[];
+}
+
+export interface FormValues {
+  tasks: Task[];
+}
+
+
 

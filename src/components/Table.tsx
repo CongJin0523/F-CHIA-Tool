@@ -1,105 +1,118 @@
-"use client";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { initialTasks } from "@/common/initialTasks"
+const tasks = initialTasks;
+// const tasks = [
+//   {
+//     taskName: "switch between the autonomous mode and the manual mode",
+//     functions: [
+//       {
+//         functionName: "Function 1",
+//         realizations: [
+//           { realizationName: "Realization 1" },
+//           { realizationName: "Realization 2" },
+//         ],
+//       },
+//       {
+//         functionName: "Function 2",
+//         realizations: [
+//           { realizationName: "Realization 3" },
+//           { realizationName: "Realization 4" },
+//         ],
+//       },
+//     ],
+//   },
+//   {
+//     taskName: "autonomous navigate on the field",
+//     functions: [
+//       {
+//         functionName: "Function 3",
+//         realizations: [
+//           { realizationName: "Realization 5" },
+//           { realizationName: "Realization 6" },
+//         ],
+//       },
+//       {
+//         functionName: "Function 4",
+//         realizations: [
+//           { realizationName: "Realization 7" },
+//           { realizationName: "Realization 8" },
+//         ],
+//       },
+//     ],
+//   },
+//   {
+//     taskName: "control the tractor mobile base in the manual mode",
+//     functions: [],
+//   }
+// ]
 
-import { useForm, useFieldArray } from "react-hook-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-
-import { type FormValue } from "@/common/types";
-import { initialFormValues } from "@/common/demoReasult";
-
-
-
-export default function EditableTable() {
-  const { control, register, handleSubmit } = useForm<FormValue>({
-    defaultValues: initialFormValues,
-  });
-
-  const {
-    fields: taskFields,
-    append: appendTask,
-    remove: removeTask,
-  } = useFieldArray({ control, name: "tasks" });
-
-  const onSubmit = (data: FormValue) => {
-    console.log("Submitted:", data);
-  };
+export default function TableDemo() {
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 p-4">
-      <div>
-        <label className="font-semibold">Zone Name:</label>
-        <Input {...register("zoneName")} className="mt-1" />
-      </div>
+    <Table className="w-3/4 mx-auto my-20">
+      <TableCaption>Task</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">Task</TableHead>
+          <TableHead>Function</TableHead>
+          <TableHead>Realizations</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {tasks.map((task) => {
+          const taskRowCount = task.functions.reduce(
+            (sum, fn) => sum + fn.realizations.length,
+            0
+          );
 
-      {taskFields.map((task, taskIndex) => {
-        const {
-          fields: functionFields,
-          append: appendFunction,
-          remove: removeFunction,
-        } = useFieldArray({
-          control,
-          name: `tasks.${taskIndex}.functions`,
-        });
+          let taskRowRendered = false; // to control when to render task cell
 
-        return (
-          <div
-            key={task.id}
-            className="border rounded p-4 space-y-4 bg-gray-50"
-          >
-            <div className="flex items-center gap-2">
-              <Input
-                placeholder="Task Name"
-                {...register(`tasks.${taskIndex}.taskName`)}
-              />
-              <Button
-                variant="destructive"
-                type="button"
-                onClick={() => removeTask(taskIndex)}
-              >
-                Delete Task
-              </Button>
-            </div>
+          return task.functions.map((fn) => {
+            const functionRowCount = fn.realizations.length;
 
-            {functionFields.map((func, funcIndex) => (
-              <div key={func.id} className="ml-4">
-                <Input
-                  placeholder="Function Name"
-                  {...register(
-                    `tasks.${taskIndex}.functions.${funcIndex}.functionName`
-                  )}
-                />
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => removeFunction(funcIndex)}
-                  className="text-red-500"
-                >
-                  Delete Function
-                </Button>
-              </div>
-            ))}
+            let functionRowRendered = false; // to control when to render function cell
 
-            <Button
-              type="button"
-              onClick={() => appendFunction({ functionName: "" })}
-            >
-              + Add Function
-            </Button>
-          </div>
-        );
-      })}
+            return fn.realizations.map((realization) => (
+              <TableRow key={`${task.taskName}-${fn.functionName}-${realization.realizationName}`}>
+                {/* Task cell */}
+                {!taskRowRendered && (
+                  <TableCell rowSpan={taskRowCount} className="font-medium align-top">
+                    {task.taskName}
+                  </TableCell>
+                )}
+                {/* Function cell */}
+                {!functionRowRendered && (
+                  <TableCell rowSpan={functionRowCount} className="align-top">
+                    {fn.functionName}
+                  </TableCell>
+                )}
+                {/* Realization cell */}
+                <TableCell>{realization.realizationName}</TableCell>
 
-      <Button
-        type="button"
-        onClick={() => appendTask({ taskName: "", functions: [] })}
-      >
-        + Add Task
-      </Button>
-
-      <Button type="submit" className="mt-4">
-        Submit
-      </Button>
-    </form>
-  );
+                {(() => {
+                  taskRowRendered = true;
+                  functionRowRendered = true;
+                })()}
+              </TableRow>
+            ));
+          });
+        })}
+      </TableBody>
+      {/* <TableFooter>
+        <TableRow>
+          <TableCell colSpan={3}>Total</TableCell>
+          <TableCell className="text-right">$2,500.00</TableCell>
+        </TableRow>
+      </TableFooter> */}
+    </Table>
+  )
 }
