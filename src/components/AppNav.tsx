@@ -15,7 +15,7 @@ export function AppNav() {
         Home
       </NavLink>
 
-      <NavLink
+      {/* <NavLink
         to="/table"
         end
         className={({ isActive }) =>
@@ -25,7 +25,7 @@ export function AppNav() {
         }
       >
         Table
-      </NavLink>
+      </NavLink> */}
 
       <NavLink
         to="/diagram"

@@ -24,8 +24,8 @@ export const initialTasks: FormValues = {
                       causes: ["Software error"],
                       consequences: ["The tractor cannot move. Time loss."],
                       requirements: [
-                        "Set up at least two distinct accesses (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
-                        "Provide 100% knowable instructions on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds."
+                        "1.Set up at least two distinct accesses (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
+                        "2.Provide 100% knowable instructions on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds."
                       ],
                     },
                     {
@@ -34,8 +34,8 @@ export const initialTasks: FormValues = {
                       causes: ["Software error"],
                       consequences: ["Extra injury to the operator when the collision happens"],
                       requirements: [
-                        "Set up at least two distinct accesses (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
-                        "Provide 100% knowable instructions on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds."
+                        "3.Set up at least two distinct accesses (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
+                        "4.Provide 100% knowable instructions on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds."
                       ],
                     },
                   ],
@@ -69,8 +69,8 @@ export const initialTasks: FormValues = {
                       causes: ["Blurry image due to the instability of the tractor", "Weak brightness", "Severe weather conditions"],
                       consequences: ["The tractor cannot move. Time loss."],
                       requirements: [
-                        "Set up at least two distinct accesses (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
-                        "Provide 100% knowable instructions on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds."
+                        "5.Set up at least two distinct accesses (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
+                        "6.Provide 100% knowable instructions on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds."
                       ],
                     },
                     {
@@ -79,8 +79,8 @@ export const initialTasks: FormValues = {
                       causes: ["low-quality camera", "unreliable detection algorithm", "limited camera angle"],
                       consequences: ["Extra injury to the operator when the collision happens"],
                       requirements: [
-                        "Set up at least two distinct accesses (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
-                        "Provide 100% knowable instructions on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds"
+                        "7.(for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel) to the mode switch while also minimizing the effect of complexity from multiple systemic accesses.",
+                        "8.on how to switch the mode (for good decision support in the situation of autonomous mode failing to start to reduce possible human errors) in the user manual, considering the diverse educational level of the intended users. Two necessary formats of instructions can be diagram instructions showing appearances and positions of accesses and language instructions to describe operations in detail. Note that multiple languages and definitions of terminologies are expected to be provided to meet the needs of people from different educational backgrounds"
                       ],
                     },
                   ],

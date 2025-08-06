@@ -2,10 +2,11 @@
 
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { initialTasks } from "@/common/initialTasks";
 import { type FormValues } from "@/common/types";
+import { Textarea } from "@/components/ui/textarea";
 // export interface Realization {
 //   realizationName: string;
 // }
@@ -84,19 +85,19 @@ export default function EditableNestedTable() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Table>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-20">
+      <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow>
-            <TableHead>Task</TableHead>
-            <TableHead>Function</TableHead>
-            <TableHead>Realization</TableHead>
-            <TableHead>Property</TableHead>
-            <TableHead>Guide Word</TableHead>
+            <TableHead className="w-1/16">Task</TableHead>
+            <TableHead className="w-1/12">Function</TableHead>
+            <TableHead className="w-1/12">Realization</TableHead>
+            <TableHead className="w-1/12">Property</TableHead>
+            <TableHead className="w-1/16">Guide Word</TableHead>
             <TableHead>Deviations</TableHead>
             <TableHead>Causes</TableHead>
-            <TableHead>Consequences</TableHead>
-            <TableHead>Requirements</TableHead>
+            <TableHead >Consequences</TableHead>
+            <TableHead className="w-1/3">Requirements</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -105,7 +106,7 @@ export default function EditableNestedTable() {
             const functionFields = task.functions;
 
             let taskRendered = false;
-            {/* Render functions for each task */}
+            {/* Render functions for each task */ }
             return functionFields.map((fn, functionIndex) => {
               let functionRendered = false;
 
@@ -123,7 +124,7 @@ export default function EditableNestedTable() {
                             <Controller
                               control={control}
                               name={`tasks.${taskIndex}.taskName`}
-                              render={({ field }) => <Input {...field} />}
+                              render={({ field }) => <Textarea {...field} />}
                             />
                           </TableCell>
                         )}
@@ -134,7 +135,7 @@ export default function EditableNestedTable() {
                             <Controller
                               control={control}
                               name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
-                              render={({ field }) => <Input {...field} />}
+                              render={({ field }) => <Textarea {...field} />}
                             />
                           </TableCell>
                         )}
@@ -145,7 +146,7 @@ export default function EditableNestedTable() {
                             <Controller
                               control={control}
                               name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
-                              render={({ field }) => <Input {...field} />}
+                              render={({ field }) => <Textarea {...field} />}
                             />
                           </TableCell>
                         )}
@@ -156,7 +157,31 @@ export default function EditableNestedTable() {
                             <Controller
                               control={control}
                               name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
-                              render={({ field }) => <Input {...field} />}
+                              render={({ field }) => (
+                                <ul>
+                                  {field.value.map((prop, idx) => (
+                                    <li key={idx}>
+                                      <Textarea
+                                        value={prop}
+                                        onChange={(e) => {
+                                          const newProperties = [...field.value];
+                                          newProperties[idx] = e.target.value;
+                                          field.onChange(newProperties);
+                                        }}
+                                      />
+                                    </li>
+                                  ))}
+                                  <Button
+                                    type="button"
+                                    onClick={() => {
+                                      const newProperties = [...field.value, ""];
+                                      field.onChange(newProperties);
+                                    }}
+                                  >
+                                    Add Property
+                                  </Button>
+                                </ul>
+                              )}
                             />
                           </TableCell>
                         )}
@@ -166,7 +191,21 @@ export default function EditableNestedTable() {
                           <Controller
                             control={control}
                             name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.guideWord`}
-                            render={({ field }) => <Input {...field} />}
+                            render={({ field }) => (
+                              <Select
+                                onValueChange={field.onChange}
+                                value={field.value}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue>{field.value}</SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="Part of">Part of</SelectItem>
+                                  <SelectItem value="Other than">Other than</SelectItem>
+                                  <SelectItem value="No">No</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            )}
                           />
                         </TableCell>
 
@@ -175,7 +214,31 @@ export default function EditableNestedTable() {
                           <Controller
                             control={control}
                             name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.deviations`}
-                            render={({ field }) => <Input {...field} />}
+                            render={({ field }) => (
+                              <ul>
+                                {field.value.map((prop, idx) => (
+                                  <li key={idx}>
+                                    <Textarea
+                                      value={prop}
+                                      onChange={(e) => {
+                                        const newProperties = [...field.value];
+                                        newProperties[idx] = e.target.value;
+                                        field.onChange(newProperties);
+                                      }}
+                                    />
+                                  </li>
+                                ))}
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    const newProperties = [...field.value, ""];
+                                    field.onChange(newProperties);
+                                  }}
+                                >
+                                  Add deviation
+                                </Button>
+                              </ul>
+                            )}
                           />
                         </TableCell>
 
@@ -184,7 +247,31 @@ export default function EditableNestedTable() {
                           <Controller
                             control={control}
                             name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.causes`}
-                            render={({ field }) => <Input {...field} />}
+                            render={({ field }) => (
+                              <ul>
+                                {field.value.map((prop, idx) => (
+                                  <li key={idx}>
+                                    <Textarea
+                                      value={prop}
+                                      onChange={(e) => {
+                                        const newProperties = [...field.value];
+                                        newProperties[idx] = e.target.value;
+                                        field.onChange(newProperties);
+                                      }}
+                                    />
+                                  </li>
+                                ))}
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    const newProperties = [...field.value, ""];
+                                    field.onChange(newProperties);
+                                  }}
+                                >
+                                  Add causes
+                                </Button>
+                              </ul>
+                            )}
                           />
                         </TableCell>
                         {/* Consequences */}
@@ -192,7 +279,32 @@ export default function EditableNestedTable() {
                           <Controller
                             control={control}
                             name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.consequences`}
-                            render={({ field }) => <Input {...field} />}
+                            render={({ field }) => (
+                              <ul>
+                                {field.value.map((prop, idx) => (
+                                  <li key={idx}>
+                                    {idx + 1}
+                                    <Textarea
+                                      value={prop}
+                                      onChange={(e) => {
+                                        const newProperties = [...field.value];
+                                        newProperties[idx] = e.target.value;
+                                        field.onChange(newProperties);
+                                      }}
+                                    />
+                                  </li>
+                                ))}
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    const newProperties = [...field.value, ""];
+                                    field.onChange(newProperties);
+                                  }}
+                                >
+                                  Add consequences
+                                </Button>
+                              </ul>
+                            )}
                           />
                         </TableCell>
                         {/* Requirements */}
@@ -200,7 +312,31 @@ export default function EditableNestedTable() {
                           <Controller
                             control={control}
                             name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
-                            render={({ field }) => <Input {...field} />}
+                            render={({ field }) => (
+                              <ul>
+                                {field.value.map((prop, idx) => (
+                                  <li key={idx}>
+                                    <Textarea
+                                      value={prop}
+                                      onChange={(e) => {
+                                        const newProperties = [...field.value];
+                                        newProperties[idx] = e.target.value;
+                                        field.onChange(newProperties);
+                                      }}
+                                    />
+                                  </li>
+                                ))}
+                                <Button
+                                  type="button"
+                                  onClick={() => {
+                                    const newProperties = [...field.value, ""];
+                                    field.onChange(newProperties);
+                                  }}
+                                >
+                                  Add Requirements
+                                </Button>
+                              </ul>
+                            )}
                           />
                         </TableCell>
                         {/* Set rendered flags after rendering the row */}
@@ -211,13 +347,15 @@ export default function EditableNestedTable() {
                       </TableRow>
                     );
                   });
-               });
+                });
               });
             })
           })}
         </TableBody>
       </Table>
-
+      <div className="mt-4">
+        <Button>add task</Button>
+      </div>
       <div className="mt-4">
         <Button type="submit">Save Changes</Button>
       </div>
