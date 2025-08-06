@@ -4,69 +4,27 @@ import {
   Background,
   ReactFlowProvider,
   ReactFlow,
-  type OnConnect,
   Panel,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-  type Edge,
-  type Node,
   useReactFlow,
 } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes } from '@/common/node-type';
 
 
-import ELK from 'elkjs/lib/elk.bundled.js';
 import React, { useCallback, useLayoutEffect } from 'react';
 import { Button } from './components/ui/button';
 import useStore from '@/common/store';
 
 
-const elk = new ELK();
-const elkOptions = {
-  'elk.algorithm': 'layered',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-  'elk.spacing.nodeNode': '80',
-};
-const getLayoutedElements = (nodes, edges, options = {}) => {
-  const isHorizontal = options?.['elk.direction'] === 'RIGHT';
-  const graph = {
-    id: 'root',
-    layoutOptions: options,
-    children: nodes.map((node) => ({
-      ...node,
-      // Adjust the target and source handle positions based on the layout
-      // direction.
-      targetPosition: isHorizontal ? 'left' : 'top',
-      sourcePosition: isHorizontal ? 'right' : 'bottom',
-
-      // Hardcode a width and height for elk to use when layouting.
-      width: 150,
-      height: 50,
-    })),
-    edges: edges,
-  };
-  return elk
-    .layout(graph)
-    .then((layoutedGraph) => ({
-      nodes: layoutedGraph.children.map((node) => ({
-        ...node,
-        // React Flow expects a position property on the node instead of `x`
-        // and `y` fields.
-        position: { x: node.x, y: node.y },
-      })),
-
-      edges: layoutedGraph.edges,
-    }))
-    .catch(console.error);
-};
 
 
 
 
+import { elkOptions, getLayoutedElements } from '@/common/layout-func';
+import type { AppState } from '@/common/types';
 
-const selector = (state) => ({
+
+const selector = (state: AppState) => ({
   nodes: state.nodes,
   edges: state.edges,
   onNodesChange: state.onNodesChange,

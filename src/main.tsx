@@ -14,7 +14,7 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<EditableNestedTable />} />
         <Route path="/diagram" element={<Diagram />} />
-        <Route path="/table" element={<TableDemo />} />
+        <Route path="/demo" element={<App />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
