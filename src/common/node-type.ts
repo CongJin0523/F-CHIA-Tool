@@ -23,4 +23,29 @@ const nodeTypes = {
   requirement: RequirementNode,
 } satisfies NodeTypes;
 
-export { nodeTypes };
+// 显式定义顺序
+const nodeOrder = [
+  "zone",
+  "task",
+  "function",
+  "realization",
+  "properties",
+  "guideword",
+  "deviation",
+  "cause",
+  "consequence",
+  "requirement",
+] as const;
+
+type NodeKey = typeof nodeOrder[number];
+
+function getNextNodeType(current: NodeKey): NodeKey | null {
+  const index = nodeOrder.indexOf(current);
+  if (index >= 0 && index < nodeOrder.length - 1) {
+    return nodeOrder[index + 1];
+  }
+  return null;
+}
+
+
+export { nodeTypes, getNextNodeType, type NodeKey };

@@ -9,7 +9,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
-import { nodeTypes } from '@/common/node-type';
+import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 
 
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
@@ -75,12 +75,14 @@ function LayoutFlow() {
       // when a connection is dropped on the pane it's not valid
       if (!connectionState.isValid) {
         // we need to remove the wrapper bounds, in order to get the correct position
+        const targetType: NodeKey = getNextNodeType(connectionState.fromNode.type);
+        console.log('sourceType', targetType);
         const id = getId();
         const { clientX, clientY } =
           'changedTouches' in event ? event.changedTouches[0] : event;
         const newNode: AppNode = {
           id,
-          type: 'task',
+          type: targetType,
           position: screenToFlowPosition({
             x: clientX,
             y: clientY,

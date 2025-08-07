@@ -7,7 +7,7 @@ import { initialEdges } from './initialEdges';
 import type {  AppState, AppNode } from './types';
 
 const useStore = create<AppState>()(
-  (set) => ({
+  immer((set) => ({
     nodes: initialNodes,
     edges: initialEdges,
     onNodesChange: (changes) => set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) })),
@@ -21,7 +21,7 @@ const useStore = create<AppState>()(
         node.data.content = text;
       }
       }),
-  })
+  }))
 );
 
 export default useStore;
