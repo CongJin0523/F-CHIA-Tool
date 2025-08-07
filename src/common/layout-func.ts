@@ -33,15 +33,25 @@ export const getLayoutedElements = (nodes : AppNode[], edges: Edge[], options = 
   };
   return elk
     .layout(graph)
-    .then((layoutedGraph) => ({
-      nodes: layoutedGraph.children.map((node) => ({
-        ...node,
-        // React Flow expects a position property on the node instead of `x`
-        // and `y` fields.
-        position: { x: node.x, y: node.y },
-      })),
+    .then((layoutedGraph) => {
+      console.log('ELK layout result:', layoutedGraph);
+        return ({
+          nodes: layoutedGraph.children.map((node) => ({
+            id: node.id,
+            type: node.type,
+            data: node.data,
+            // React Flow expects a position property on the node instead of `x`
+            // and `y` fields.
+            position: { x: node.x, y: node.y },
+          })),
 
-      edges: layoutedGraph.edges,
-    }))
+      edges: layoutedGraph.edges.map((edge) => ({
+        id: edge.id,
+        target: edge.target,
+        source: edge.source,
+        type: edge.type,
+      })),
+    });
+  })
     .catch(console.error);
 };
