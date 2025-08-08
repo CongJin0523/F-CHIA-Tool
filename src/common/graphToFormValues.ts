@@ -16,6 +16,21 @@ function normalizeGuideWord(value: string): Interpretation['guideWord'] {
   return 'No';
 }
 
+function computeRowSpans(tasks: Task[]) {
+  tasks.forEach((task) => {
+    task.functions.forEach((fn) => {
+      fn.realizations.forEach((real) => {
+        real.properties.forEach((prop) => {
+          prop.rowSpan = prop.interpretations.length;
+        });
+        real.rowSpan = real.properties.reduce((sum, prop) => sum + prop.rowSpan, 1);
+      });
+      fn.rowSpan = fn.realizations.reduce((sum, real) => sum + real.rowSpan, 0);
+    });
+    task.rowSpan = task.functions.reduce((sum, fn) => sum + fn.rowSpan, 0);
+  });
+}
+
 export function graphToFormValues(nodes: AppNode[], edges: Edge[]): FormValues {
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
   const childrenMap = new Map<string, AppNode[]>();
@@ -37,7 +52,7 @@ export function graphToFormValues(nodes: AppNode[], edges: Edge[]): FormValues {
     .map((taskNode) => {
       const functions: Func[] = getChildren(taskNode.id, 'function').map((fnNode) => {
         const realizations: Realization[] = getChildren(fnNode.id, 'realization').map((realNode) => {
-          const properties: Property[] = getChildren(realNode.id, 'properties').map((propNode) => {
+          const properties: Property[] = getChildren(realNode.id, 'property').map((propNode) => {
             const guidewordNodes = getChildren(propNode.id, 'guideword');
             const interpretations: Interpretation[] = guidewordNodes.map((gwNode) => {
               const deviationNodes = getChildren(gwNode.id, 'deviation');
@@ -77,6 +92,8 @@ export function graphToFormValues(nodes: AppNode[], edges: Edge[]): FormValues {
         functions,
       };
     });
+
+  computeRowSpans(tasks);
 
   return { tasks };
 }

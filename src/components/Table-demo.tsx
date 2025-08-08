@@ -74,11 +74,10 @@ export default function EditableNestedTable() {
   const nodes = useDgStore((state) => state.nodes);
   const edges = useDgStore((state) => state.edges);
   const defaultValues = useMemo(() => graphToFormValues(nodes, edges), [nodes, edges]);
-
   const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues,
   });
-
+  console.log("defaultValues", defaultValues);
   useEffect(() => {
     reset(defaultValues);
   }, [defaultValues, reset]);

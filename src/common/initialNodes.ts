@@ -8,7 +8,7 @@ export const initialNodes: AppNode[] = [
   { id: 'c-3', type: 'function', data: { content: 'c-3' }, position: { x: 400, y: 100 } },
   { id: 'c-4', type: 'function', data: { content: 'c-4' }, position: { x: 400, y: 200 } },
   { id: 'd', type: 'realization', data: { content: 'realization node' }, position: { x: 0, y: 200 } },
-  { id: 'e', type: 'properties', data: { content: 'properties node' }, position: { x: 200, y: 200 } },
+  { id: 'e', type: 'property', data: { content: 'properties node' }, position: { x: 200, y: 200 } },
   { id: 'f', type: 'guideword', data: { content: 'part of' }, position: { x: 400, y: 200 } },
   { id: 'g', type: 'deviation', data: { content: 'deviation node' }, position: { x: 0, y: 400 } },
   { id: 'h', type: 'cause', data: { content: 'cause node' }, position: { x: 200, y: 400 } },

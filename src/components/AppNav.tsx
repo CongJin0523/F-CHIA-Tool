@@ -26,7 +26,7 @@ export function AppNav() {
         Diagram
       </NavLink>
 
-      <NavLink
+      {/* <NavLink
         to="/demo"
         end
         className={({ isActive }) =>
@@ -36,7 +36,7 @@ export function AppNav() {
         }
       >
         demo
-      </NavLink>
+      </NavLink> */}
     </nav>
   );
 }

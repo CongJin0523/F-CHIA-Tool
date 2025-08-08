@@ -3,7 +3,7 @@ import { ZoneNode } from '@/components/nodes/zone-node';
 import { TaskNode } from '@/components/nodes/task-node';
 import { FunctionNode } from '@/components/nodes/function-node';
 import { RealizationNode } from '@/components/nodes/realization-node';
-import { PropertiesNode } from '@/components/nodes/properties';
+import { PropertyNode } from '@/components/nodes/property-node';
 import { GuideWordNode } from '@/components/nodes/guideword-node';
 import { DeviationNode } from '@/components/nodes/deviation-node';
 import { CauseNode } from '@/components/nodes/cause-node';
@@ -15,7 +15,7 @@ const nodeTypes = {
   task: TaskNode,
   function: FunctionNode,
   realization: RealizationNode,
-  properties: PropertiesNode,
+  property: PropertyNode,
   guideword: GuideWordNode,
   deviation: DeviationNode,
   cause: CauseNode,
@@ -48,4 +48,4 @@ function getNextNodeType(current: NodeKey): NodeKey | null {
 }
 
 
-export { nodeTypes, getNextNodeType, type NodeKey };
+export { nodeTypes, getNextNodeType, NodeKey };

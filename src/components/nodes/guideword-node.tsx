@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -6,8 +6,8 @@ import {
 } from "@/components/base-node";
 import { Quote } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
-import { EditableText } from '@/components/nodes//subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
+import { useDgStore } from '@/common/store';
 import {
   Select,
   SelectContent,
@@ -23,14 +23,14 @@ export type GuideWordNode = Node<{
 
 
 export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
-  const { updateNodeData, setNodes } = useReactFlow();
-
+  const { setNodes, setEdges } = useReactFlow();
+  const updateNodeText = useDgStore((state) => state.updateNodeText);
 
   const handleDelete = useCallback(() => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
-  }, [id, setNodes]);
+    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
+  }, [id, setNodes, setEdges]);
   
-  const [content, setContent] = useState(data.content || "no");
 
   return (
     <BaseNode className="w-40 border-fuchsia-200 bg-fuchsia-50">
@@ -43,7 +43,7 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
       />
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
-        <Select value={content} onValueChange={(value) => setContent(value)}>
+        <Select value={data.content} onValueChange={(value) => updateNodeText(id, value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select a guide word" />
           </SelectTrigger>

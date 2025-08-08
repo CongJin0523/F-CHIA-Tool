@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, } from 'react';
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -8,20 +8,20 @@ import { Zap } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-
+import { useDgStore } from '@/common/store';
 export type CauseNode = Node<{
   content: string;
 }>;
 
 export function CauseNode({ id, data }: NodeProps<CauseNode>) {
-  const { updateNodeData, setNodes } = useReactFlow();
-
-
+  const { setNodes, setEdges } = useReactFlow();
+  const updateNodeText = useDgStore((state) => state.updateNodeText);
   const handleDelete = useCallback(() => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
-  }, [id, setNodes]);
-  
-  const [content, setContent] = useState(data.content);
+    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
+  }, [id, setNodes, setEdges]);
+
+
 
   return (
     <BaseNode className="w-40 border-red-200 bg-red-50">
@@ -35,9 +35,9 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
-          content={content}
-          onChange={(value) => setContent(value)}
-        /> 
+          content={data.content}
+          onChange={(value) => updateNodeText(id, value)}
+        />
       </BaseNodeContent>
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </BaseNode>
