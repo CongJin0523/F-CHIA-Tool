@@ -6,7 +6,7 @@ import { initialNodes } from './initialNodes';
 import { initialEdges } from './initialEdges';
 import type {  AppState, AppNode } from './types';
 
-const useStore = create<AppState>()(
+const useDgStore = create<AppState>()(
   immer((set) => ({
     nodes: initialNodes,
     edges: initialEdges,
@@ -23,6 +23,5 @@ const useStore = create<AppState>()(
       }),
   }))
 );
-
-export default useStore;
-export { useStore };
+export default useDgStore;
+export { useDgStore };

@@ -14,7 +14,7 @@ import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import useStore from '@/common/store';
+import useDgStore from '@/common/store';
 
 
 import ShortUniqueId from 'short-uuid';
@@ -23,7 +23,6 @@ import ShortUniqueId from 'short-uuid';
 
 import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 import type { AppState, AppNode } from '@/common/types';
-
 
 
 const selector = (state: AppState) => ({
@@ -43,16 +42,17 @@ const getId = () => translator.new();
 const nodeOrigin: [number, number] = [0.5, 0];
 function LayoutFlow() {
   const reactFlowWrapper = useRef(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, setNodes, setEdges, updateNodeText } = useStore(
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, setNodes, setEdges, updateNodeText } = useDgStore(
     useShallow(selector),
   );
-  const { fitView, screenToFlowPosition } = useReactFlow();
+  const { fitView, screenToFlowPosition, getEdges, getNodes } = useReactFlow();
 
   const onLayout = useCallback(
-    ({ direction, useInitialNodes = false }) => {
+    ({ direction }) => {
       const opts = { 'elk.direction': direction, ...elkOptions };
-      const ns = nodes;
-      const es = edges;
+      console.log('onLayout', getNodes(), getEdges());
+      const ns = getNodes();
+      const es = getEdges();
 
       getLayoutedElements(ns, es, opts).then(
         ({ nodes: layoutedNodes, edges: layoutedEdges }) => {
@@ -65,9 +65,9 @@ function LayoutFlow() {
     [nodes, edges],
   );
 
-  useLayoutEffect(() => {
-    onLayout({ direction: 'DOWN', useInitialNodes: true });
-  }, []);
+  // useLayoutEffect(() => {
+  //   onLayout({ direction: 'DOWN', useInitialNodes: true });
+  // }, []);
 
   const onConnectEnd = useCallback(
     (event, connectionState) => {
@@ -95,6 +95,10 @@ function LayoutFlow() {
         console.log('newEdges', newEdges);
         setNodes(newNodes);
         setEdges(newEdges);
+        requestAnimationFrame(() => {
+          console.log('updated', getNodes(), getEdges());
+          onLayout({ direction: 'DOWN' });
+        });
       }
     },
     [screenToFlowPosition, nodes, edges, setNodes, setEdges],
@@ -108,10 +112,14 @@ function LayoutFlow() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onConnectEnd={onConnectEnd} 
+        onConnectEnd={onConnectEnd}
         nodeTypes={nodeTypes}
         fitView
         nodeOrigin={nodeOrigin}
+        onInit={(instance) => {
+          console.log("React Flow ready", instance.getNodes(), instance.getEdges());
+          onLayout({ direction: 'DOWN' });
+        }}
       >
         <Panel position="bottom-right">
           <Button

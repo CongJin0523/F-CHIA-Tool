@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { initialTasks } from "@/common/initialTasks"
-const tasks = initialTasks;
+
 // const tasks = [
 //   {
 //     taskName: "switch between the autonomous mode and the manual mode",
@@ -56,7 +56,7 @@ const tasks = initialTasks;
 // ]
 
 export default function TableDemo() {
-
+  const tasks = initialTasks;
   return (
     <Table className="w-3/4 mx-auto my-20">
       <TableCaption>Task</TableCaption>
