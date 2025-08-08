@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { type FormValues } from "@/common/types";
-import { graphToFormValues } from "@/common/graphToFormValues";
 import { useDgStore } from "@/common/store";
 // export interface Realization {
 //   realizationName: string;
@@ -71,9 +70,12 @@ import { useDgStore } from "@/common/store";
 // };
 
 export default function EditableNestedTable() {
-  const nodes = useDgStore((state) => state.nodes);
-  const edges = useDgStore((state) => state.edges);
-  const defaultValues = useMemo(() => graphToFormValues(nodes, edges), [nodes, edges]);
+  const { nodes, edges, getFormValues } = useDgStore((state) => ({
+    nodes: state.nodes,
+    edges: state.edges,
+    getFormValues: state.getFormValues,
+  }));
+  const defaultValues = useMemo(() => getFormValues(), [nodes, edges, getFormValues]);
 
   const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues,

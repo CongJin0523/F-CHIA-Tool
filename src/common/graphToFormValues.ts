@@ -16,6 +16,32 @@ function normalizeGuideWord(value: string): Interpretation['guideWord'] {
   return 'No';
 }
 
+const emptyInterpretation = (): Interpretation => ({
+  guideWord: 'No',
+  deviations: [''],
+  causes: [''],
+  consequences: [''],
+  requirements: [''],
+});
+
+const emptyProperty = (): Property => ({
+  properties: [''],
+  interpretations: [emptyInterpretation()],
+  rowSpan: 1,
+});
+
+const emptyRealization = (): Realization => ({
+  realizationName: '',
+  properties: [emptyProperty()],
+  rowSpan: 1,
+});
+
+const emptyFunc = (): Func => ({
+  functionName: '',
+  realizations: [emptyRealization()],
+  rowSpan: 1,
+});
+
 export function graphToFormValues(nodes: AppNode[], edges: Edge[]): FormValues {
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
   const childrenMap = new Map<string, AppNode[]>();
@@ -35,11 +61,11 @@ export function graphToFormValues(nodes: AppNode[], edges: Edge[]): FormValues {
   const tasks: Task[] = nodes
     .filter((n) => n.type === 'task')
     .map((taskNode) => {
-      const functions: Func[] = getChildren(taskNode.id, 'function').map((fnNode) => {
-        const realizations: Realization[] = getChildren(fnNode.id, 'realization').map((realNode) => {
-          const properties: Property[] = getChildren(realNode.id, 'properties').map((propNode) => {
+      let functions: Func[] = getChildren(taskNode.id, 'function').map((fnNode) => {
+        let realizations: Realization[] = getChildren(fnNode.id, 'realization').map((realNode) => {
+          let properties: Property[] = getChildren(realNode.id, 'properties').map((propNode) => {
             const guidewordNodes = getChildren(propNode.id, 'guideword');
-            const interpretations: Interpretation[] = guidewordNodes.map((gwNode) => {
+            let interpretations: Interpretation[] = guidewordNodes.map((gwNode) => {
               const deviationNodes = getChildren(gwNode.id, 'deviation');
               const deviations = deviationNodes.map((d) => d.data.content);
               const causeNodes = deviationNodes.flatMap((d) => getChildren(d.id, 'cause'));
@@ -51,30 +77,42 @@ export function graphToFormValues(nodes: AppNode[], edges: Edge[]): FormValues {
 
               return {
                 guideWord: normalizeGuideWord(gwNode.data.content),
-                deviations,
-                causes,
-                consequences,
-                requirements,
+                deviations: deviations.length ? deviations : [''],
+                causes: causes.length ? causes : [''],
+                consequences: consequences.length ? consequences : [''],
+                requirements: requirements.length ? requirements : [''],
               };
             });
+            if (interpretations.length === 0) interpretations = [emptyInterpretation()];
+            const rowSpan = interpretations.length;
             return {
               properties: [propNode.data.content],
               interpretations,
+              rowSpan,
             };
           });
+          if (properties.length === 0) properties = [emptyProperty()];
+          const rowSpan = properties.reduce((sum, p) => sum + p.rowSpan, 0);
           return {
             realizationName: realNode.data.content,
             properties,
+            rowSpan,
           };
         });
+        if (realizations.length === 0) realizations = [emptyRealization()];
+        const rowSpan = realizations.reduce((sum, r) => sum + r.rowSpan, 0);
         return {
           functionName: fnNode.data.content,
           realizations,
+          rowSpan,
         };
       });
+      if (functions.length === 0) functions = [emptyFunc()];
+      const rowSpan = functions.reduce((sum, f) => sum + f.rowSpan, 0);
       return {
         taskName: taskNode.data.content,
         functions,
+        rowSpan,
       };
     });
 
