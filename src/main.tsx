@@ -3,10 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import './index.css'
 import App from './App.tsx'
-import TableDemo from '@/components/Table.tsx'
 import Diagram from '@/components/Diagram.tsx'
 import { AppNav } from '@/components/AppNav.tsx'
-import EditableNestedTable from '@/components/Table-demo.tsx'
+import EditableNestedTable from '@/components/Table.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

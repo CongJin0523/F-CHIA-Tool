@@ -6,13 +6,12 @@ import {
   ReactFlow,
   Panel,
   useReactFlow,
-  type Edge,
 } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 
 
-import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import React, { useCallback,  useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import useDgStore from '@/common/store';
 

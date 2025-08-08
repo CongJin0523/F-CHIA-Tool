@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { addEdge, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
-import { immer } from 'zustand/middleware/immer'
 
 import { initialNodes } from './initialNodes';
 import { initialEdges } from './initialEdges';
@@ -8,7 +7,7 @@ import type { AppState, AppNode } from './types';
 import { graphToFormValues } from './graphToFormValues';
 
 const useDgStore = create<AppState>()(
-  immer((set, get) => ({
+  (set, get) => ({
     nodes: initialNodes,
     edges: initialEdges,
     onNodesChange: (changes) => set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) })),
@@ -16,14 +15,17 @@ const useDgStore = create<AppState>()(
     onConnect: (params) => set((state) => ({ edges: addEdge(params, state.edges) })),
     setNodes: (nodes) => set({ nodes }),
     setEdges: (edges) => set({ edges }),
-    updateNodeText: (nodeId, text) => set((state) => {
-      const node: AppNode | undefined = state.nodes.find((n) => n.id === nodeId);
-      if (node) {
-        node.data.content = text;
-      }
-    }),
+    updateNodeText: (nodeId, text) =>
+    set((state) => ({
+      nodes: state.nodes.map((n) =>
+        n.id === nodeId
+          ? { ...n, data: { ...n.data, content: text } }
+          : n
+      ),
+    })),
+
     getFormValues: () => graphToFormValues(get().nodes, get().edges),
-  }))
+  })
 );
 
 export default useDgStore;

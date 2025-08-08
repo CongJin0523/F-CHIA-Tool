@@ -55,23 +55,23 @@ export interface AppState {
 
 export interface Task  {
   taskName: string;
-  rowSpan?: number;
+  rowSpan: number;
   functions: Func[];
 }
 
 export interface Func {
   functionName: string;
-  rowSpan?: number;
+  rowSpan: number;
   realizations: Realization[];
 }
 export interface Realization {
   realizationName: string;
-  rowSpan?: number;
+  rowSpan: number;
   properties: Property[];
 }
 export interface Property {
   properties: string[];
-  rowSpan?: number;
+  rowSpan: number;
   interpretations: Interpretation[];
 }
 export interface Interpretation {

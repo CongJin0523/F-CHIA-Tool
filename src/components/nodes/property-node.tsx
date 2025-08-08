@@ -29,7 +29,7 @@ export function PropertyNode({ id, data }: NodeProps<PropertyNode>) {
     <BaseNode className="w-40 border-pink-200 bg-pink-50">
       <NodeHeader
         icon={Settings}
-        title="Properties"
+        title="Property"
         bgColor="bg-pink-200"
         textColor="text-pink-900"
         onDelete={handleDelete}

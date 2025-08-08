@@ -29,7 +29,7 @@ const nodeOrder = [
   "task",
   "function",
   "realization",
-  "properties",
+  "property",
   "guideword",
   "deviation",
   "cause",

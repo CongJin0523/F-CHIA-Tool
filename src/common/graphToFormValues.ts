@@ -15,19 +15,98 @@ function normalizeGuideWord(value: string): Interpretation['guideWord'] {
   if (lower === 'other than') return 'Other than';
   return 'No';
 }
+export function ensureRenderableStructure(form: FormValues): FormValues {
+  const cloned: FormValues = JSON.parse(JSON.stringify(form));
 
-function computeRowSpans(tasks: Task[]) {
+  cloned.tasks.forEach((task) => {
+    // 确保每个 function 至少渲染一行
+    task.functions.forEach((fn) => {
+      if (!fn.realizations || fn.realizations.length === 0) {
+        fn.realizations = [
+          {
+            realizationName: "",
+            rowSpan: 1,
+            properties: [
+              {
+                properties: [""],
+                rowSpan: 1,
+                interpretations: [
+                  {
+                    guideWord: "No",
+                    deviations: [],
+                    causes: [],
+                    consequences: [],
+                    requirements: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ];
+      } else {
+        // realizations 存在，但 properties/interpretations 可能还是空
+        fn.realizations.forEach((real) => {
+          if (!real.properties || real.properties.length === 0) {
+            real.properties = [
+              {
+                properties: [""],
+                rowSpan: 1,
+                interpretations: [
+                  {
+                    guideWord: "No",
+                    deviations: [],
+                    causes: [],
+                    consequences: [],
+                    requirements: [],
+                  },
+                ],
+              },
+            ];
+          } else {
+            real.properties.forEach((prop) => {
+              if (!prop.interpretations || prop.interpretations.length === 0) {
+                prop.interpretations = [
+                  {
+                    guideWord: "No",
+                    deviations: [],
+                    causes: [],
+                    consequences: [],
+                    requirements: [],
+                  },
+                ];
+              }
+            });
+          }
+        });
+      }
+    });
+  });
+
+  return cloned;
+}
+export function computeRowSpans(tasks: Task[]) {
   tasks.forEach((task) => {
     task.functions.forEach((fn) => {
       fn.realizations.forEach((real) => {
         real.properties.forEach((prop) => {
-          prop.rowSpan = prop.interpretations.length;
+          if (!prop.interpretations.length) {
+            prop.interpretations.push({
+              guideWord: 'No',
+              deviations: [],
+              causes: [],
+              consequences: [],
+              requirements: [],
+            });
+            prop.rowSpan = 1; // Default rowSpan for empty interpretations
+          } else {
+            prop.rowSpan = prop.interpretations.length;
+          }
         });
-        real.rowSpan = real.properties.reduce((sum, prop) => sum + prop.rowSpan, 1);
+        real.rowSpan = real.properties.reduce((sum, prop) => sum + prop.rowSpan, 0) || 1; // Ensure at least 1 rowSpan
       });
-      fn.rowSpan = fn.realizations.reduce((sum, real) => sum + real.rowSpan, 0);
+      fn.rowSpan = fn.realizations.reduce((sum, real) => sum + real.rowSpan, 0) || 1; // Ensure at least 1 rowSpan
     });
-    task.rowSpan = task.functions.reduce((sum, fn) => sum + fn.rowSpan, 0);
+    task.rowSpan = task.functions.reduce((sum, fn) => sum + fn.rowSpan, 0) || 1; // Ensure at least 1 rowSpan
   });
 }
 
@@ -75,21 +154,25 @@ export function graphToFormValues(nodes: AppNode[], edges: Edge[]): FormValues {
             return {
               properties: [propNode.data.content],
               interpretations,
+              rowSpan: 1, // Default rowSpan, will be updated later
             };
           });
           return {
             realizationName: realNode.data.content,
             properties,
+            rowSpan: 1, // Default rowSpan, will be updated later
           };
         });
         return {
           functionName: fnNode.data.content,
           realizations,
+          rowSpan: 1, // Default rowSpan, will be updated later
         };
       });
       return {
         taskName: taskNode.data.content,
         functions,
+        rowSpan: 1, // Default rowSpan, will be updated later
       };
     });
 
