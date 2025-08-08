@@ -1,12 +1,14 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { initialTasks } from "@/common/initialTasks";
-import { type FormValues } from "@/common/types";
 import { Textarea } from "@/components/ui/textarea";
+import { type FormValues } from "@/common/types";
+import { graphToFormValues } from "@/common/graphToFormValues";
+import { useDgStore } from "@/common/store";
 // export interface Realization {
 //   realizationName: string;
 // }
@@ -68,12 +70,18 @@ import { Textarea } from "@/components/ui/textarea";
 //   ],
 // };
 
-const defaultValues: FormValues = initialTasks;
-
 export default function EditableNestedTable() {
-  const { control, handleSubmit } = useForm<FormValues>({
+  const nodes = useDgStore((state) => state.nodes);
+  const edges = useDgStore((state) => state.edges);
+  const defaultValues = useMemo(() => graphToFormValues(nodes, edges), [nodes, edges]);
+
+  const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues,
   });
+
+  useEffect(() => {
+    reset(defaultValues);
+  }, [defaultValues, reset]);
 
   const { fields: taskFields } = useFieldArray({
     control,

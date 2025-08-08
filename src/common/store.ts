@@ -4,10 +4,11 @@ import { immer } from 'zustand/middleware/immer'
 
 import { initialNodes } from './initialNodes';
 import { initialEdges } from './initialEdges';
-import type {  AppState, AppNode } from './types';
+import type { AppState, AppNode } from './types';
+import { graphToFormValues } from './graphToFormValues';
 
 const useDgStore = create<AppState>()(
-  immer((set) => ({
+  immer((set, get) => ({
     nodes: initialNodes,
     edges: initialEdges,
     onNodesChange: (changes) => set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) })),
@@ -20,8 +21,10 @@ const useDgStore = create<AppState>()(
       if (node) {
         node.data.content = text;
       }
-      }),
+    }),
+    getFormValues: () => graphToFormValues(get().nodes, get().edges),
   }))
 );
+
 export default useDgStore;
 export { useDgStore };
