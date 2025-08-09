@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { type FormValues } from "@/common/types";
 import { computeRowSpans, ensureRenderableStructure, graphToFormValues } from "@/common/graphToFormValues";
 import { useDgStore } from "@/common/store";
+import { graphToIR } from "@/common/graphToIR";
+import { deriveRowSpans } from "@/common/deriveRowSpans";
 // export interface Realization {
 //   realizationName: string;
 // }
@@ -74,10 +76,8 @@ export default function EditableNestedTable() {
   const nodes = useDgStore((state) => state.nodes);
   const edges = useDgStore((state) => state.edges);
   const defaultValues = useMemo(() => {
-  const form = graphToFormValues(nodes, edges);
-  const normalized = ensureRenderableStructure(form);
-  computeRowSpans(normalized.tasks);
-  return normalized;
+  const ir = graphToIR(nodes, edges);
+  return deriveRowSpans(ir);
 }, [nodes, edges]);
   const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues,
@@ -115,257 +115,381 @@ export default function EditableNestedTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {/* Render task rows */}
-          {taskFields.map((task, taskIndex) => {
-            const functionFields = task.functions;
+  {taskFields.map((task, taskIndex) => {
+    const functionFields = task.functions;
+    let taskRendered = false;
 
-            let taskRendered = false;
-            {/* Render functions for each task */ }
-            return functionFields.map((fn, functionIndex) => {
-              let functionRendered = false;
 
-              return fn.realizations.map((realization, realizationIndex) => {
-                let realizationRendered = false;
+    if (!functionFields?.length) {
+      return (
+        <TableRow key={`${task.id}-empty`}>
+          <TableCell rowSpan={1}>
+            <Controller
+              control={control}
+              name={`tasks.${taskIndex}.taskName`}
+              render={({ field }) => <Textarea {...field} />}
+            />
+          </TableCell>
+          <TableCell colSpan={8} className="text-amber-600">
+            No function found, please complete in the graph editor.
+          </TableCell>
+        </TableRow>
+      );
+    }
 
-                return realization.properties.map((property, propertyIndex) => {
-                  let propertyRendered = false;
-                  return property.interpretations.map((interpretation, interpretationIndex) => {
-                    return (
-                      <TableRow key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}>
-                        {/* Task Name */}
-                        {!taskRendered && (
-                          <TableCell rowSpan={task.rowSpan || 1}>
-                            <Controller
-                              control={control}
-                              name={`tasks.${taskIndex}.taskName`}
-                              render={({ field }) => <Textarea {...field} />}
+    return functionFields.map((fn, functionIndex) => {
+      let functionRendered = false;
+
+      // ① Function 没有 realizations：渲染一行告警
+      if (!fn.realizations || fn.realizations.length === 0) {
+        return (
+          <TableRow key={`${task.id}-${functionIndex}-no-real`}>
+            {/* Task */}
+            {!taskRendered && (
+              <TableCell rowSpan={task.rowSpan || 1}>
+                <Controller
+                  control={control}
+                  name={`tasks.${taskIndex}.taskName`}
+                  render={({ field }) => <Textarea {...field} />}
+                />
+              </TableCell>
+            )}
+            {/* Function */}
+            {!functionRendered && (
+              <TableCell rowSpan={fn.rowSpan || 1}>
+                <Controller
+                  control={control}
+                  name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                  render={({ field }) => <Textarea {...field} />}
+                />
+              </TableCell>
+            )}
+            {/* 告警占 7 列 */}
+            <TableCell colSpan={7} className="text-amber-600">
+              No realization found, please complete in the graph editor.
+            </TableCell>
+
+            {taskRendered = true}
+            {functionRendered = true}
+          </TableRow>
+        );
+      }
+
+      return fn.realizations.map((realization, realizationIndex) => {
+        let realizationRendered = false;
+
+        // ② Realization 没有 properties：渲染一行告警
+        if (!realization.properties || realization.properties.length === 0) {
+          return (
+            <TableRow key={`${task.id}-${functionIndex}-${realizationIndex}-no-prop`}>
+              {/* Task */}
+              {!taskRendered && (
+                <TableCell rowSpan={task.rowSpan || 1}>
+                  <Controller
+                    control={control}
+                    name={`tasks.${taskIndex}.taskName`}
+                    render={({ field }) => <Textarea {...field} />}
+                  />
+                </TableCell>
+              )}
+              {/* Function */}
+              {!functionRendered && (
+                <TableCell rowSpan={fn.rowSpan || 1}>
+                  <Controller
+                    control={control}
+                    name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                    render={({ field }) => <Textarea {...field} />}
+                  />
+                </TableCell>
+              )}
+              {/* Realization */}
+              {!realizationRendered && (
+                <TableCell rowSpan={realization.rowSpan || 1}>
+                  <Controller
+                    control={control}
+                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                    render={({ field }) => <Textarea {...field} />}
+                  />
+                </TableCell>
+              )}
+              {/* 告警占 6 列 */}
+              <TableCell colSpan={6} className="text-amber-600">
+                No property found, please complete in the graph editor.
+              </TableCell>
+
+              {taskRendered = true}
+              {functionRendered = true}
+              {realizationRendered = true}
+            </TableRow>
+          );
+        }
+
+        return realization.properties.map((property, propertyIndex) => {
+          let propertyRendered = false;
+
+          // ③ Property 没有 interpretations：渲染一行告警
+          if (!property.interpretations || property.interpretations.length === 0) {
+            return (
+              <TableRow key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-no-inter`}>
+                {/* Task */}
+                {!taskRendered && (
+                  <TableCell rowSpan={task.rowSpan || 1}>
+                    <Controller
+                      control={control}
+                      name={`tasks.${taskIndex}.taskName`}
+                      render={({ field }) => <Textarea {...field} />}
+                    />
+                  </TableCell>
+                )}
+                {/* Function */}
+                {!functionRendered && (
+                  <TableCell rowSpan={fn.rowSpan || 1}>
+                    <Controller
+                      control={control}
+                      name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                      render={({ field }) => <Textarea {...field} />}
+                    />
+                  </TableCell>
+                )}
+                {/* Realization */}
+                {!realizationRendered && (
+                  <TableCell rowSpan={realization.rowSpan || 1}>
+                    <Controller
+                      control={control}
+                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                      render={({ field }) => <Textarea {...field} />}
+                    />
+                  </TableCell>
+                )}
+                {/* Property */}
+                {!propertyRendered && (
+                  <TableCell rowSpan={property.rowSpan || 1}>
+                    <Controller
+                      control={control}
+                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                      render={({ field }) => (
+                        <ul>
+                          {field.value.map((prop, idx) => (
+                            <li key={idx}>
+                              <Textarea
+                                value={prop}
+                                onChange={(e) => {
+                                  const newProperties = [...field.value];
+                                  newProperties[idx] = e.target.value;
+                                  field.onChange(newProperties);
+                                }}
+                              />
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    />
+                  </TableCell>
+                )}
+                {/* 告警占 5 列（GuideWord + 4 列数组） */}
+                <TableCell colSpan={5} className="text-amber-600">
+                  No interpretation found, please complete in the graph editor.
+                </TableCell>
+
+                {taskRendered = true}
+                {functionRendered = true}
+                {realizationRendered = true}
+                {propertyRendered = true}
+              </TableRow>
+            );
+          }
+
+          // ④ 正常渲染 interpretations（移除所有 Add 按钮）
+          return property.interpretations.map((interpretation, interpretationIndex) => (
+            <TableRow
+              key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}
+            >
+              {/* Task */}
+              {!taskRendered && (
+                <TableCell rowSpan={task.rowSpan || 1}>
+                  <Controller
+                    control={control}
+                    name={`tasks.${taskIndex}.taskName`}
+                    render={({ field }) => <Textarea {...field} />}
+                  />
+                </TableCell>
+              )}
+
+              {/* Function */}
+              {!functionRendered && (
+                <TableCell rowSpan={fn.rowSpan || 1}>
+                  <Controller
+                    control={control}
+                    name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                    render={({ field }) => <Textarea {...field} />}
+                  />
+                </TableCell>
+              )}
+
+              {/* Realization */}
+              {!realizationRendered && (
+                <TableCell rowSpan={realization.rowSpan || 1}>
+                  <Controller
+                    control={control}
+                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                    render={({ field }) => <Textarea {...field} />}
+                  />
+                </TableCell>
+              )}
+
+              {/* Property */}
+              {!propertyRendered && (
+                <TableCell rowSpan={property.rowSpan || 1}>
+                  <Controller
+                    control={control}
+                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                    render={({ field }) => (
+                      <ul>
+                        {field.value.map((prop, idx) => (
+                          <li key={idx}>
+                            <Textarea
+                              value={prop}
+                              onChange={(e) => {
+                                const newProperties = [...field.value];
+                                newProperties[idx] = e.target.value;
+                                field.onChange(newProperties);
+                              }}
                             />
-                          </TableCell>
-                        )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  />
+                </TableCell>
+              )}
 
-                        {/* Function Name */}
-                        {!functionRendered && (
-                          <TableCell rowSpan={fn.rowSpan || 1}>
-                            <Controller
-                              control={control}
-                              name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
-                              render={({ field }) => <Textarea {...field} />}
-                            />
-                          </TableCell>
-                        )}
+              {/* Guide Word */}
+              <TableCell>
+                <Controller
+                  control={control}
+                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.guideWord`}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger>
+                        <SelectValue>{field.value}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Part of">Part of</SelectItem>
+                        <SelectItem value="Other than">Other than</SelectItem>
+                        <SelectItem value="No">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </TableCell>
 
-                        {/* Realization Name */}
-                        {!realizationRendered && (
-                          <TableCell rowSpan={realization.rowSpan || 1}>
-                            <Controller
-                              control={control}
-                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
-                              render={({ field }) => <Textarea {...field} />}
-                            />
-                          </TableCell>
-                        )}
-
-                        {/* Property Name */}
-                        {!propertyRendered && (
-                          <TableCell rowSpan={property.rowSpan || 1}>
-                            <Controller
-                              control={control}
-                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
-                              render={({ field }) => (
-                                <ul>
-                                  {field.value.map((prop, idx) => (
-                                    <li key={idx}>
-                                      <Textarea
-                                        value={prop}
-                                        onChange={(e) => {
-                                          const newProperties = [...field.value];
-                                          newProperties[idx] = e.target.value;
-                                          field.onChange(newProperties);
-                                        }}
-                                      />
-                                    </li>
-                                  ))}
-                                  <Button
-                                    type="button"
-                                    onClick={() => {
-                                      const newProperties = [...field.value, ""];
-                                      field.onChange(newProperties);
-                                    }}
-                                  >
-                                    Add Property
-                                  </Button>
-                                </ul>
-                              )}
-                            />
-                          </TableCell>
-                        )}
-
-                        {/* Guide Word */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.guideWord`}
-                            render={({ field }) => (
-                              <Select
-                                onValueChange={field.onChange}
-                                value={field.value}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue>{field.value}</SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Part of">Part of</SelectItem>
-                                  <SelectItem value="Other than">Other than</SelectItem>
-                                  <SelectItem value="No">No</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            )}
+              {/* Deviations */}
+              <TableCell>
+                <Controller
+                  control={control}
+                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.deviations`}
+                  render={({ field }) => (
+                    <ul>
+                      {field.value.map((prop, idx) => (
+                        <li key={idx}>
+                          <Textarea
+                            value={prop}
+                            onChange={(e) => {
+                              const newProperties = [...field.value];
+                              newProperties[idx] = e.target.value;
+                              field.onChange(newProperties);
+                            }}
                           />
-                        </TableCell>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                />
+              </TableCell>
 
-                        {/* Deviations */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.deviations`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    <Textarea
-                                      value={prop}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = e.target.value;
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                                <Button
-                                  type="button"
-                                  onClick={() => {
-                                    const newProperties = [...field.value, ""];
-                                    field.onChange(newProperties);
-                                  }}
-                                >
-                                  Add deviation
-                                </Button>
-                              </ul>
-                            )}
+              {/* Causes */}
+              <TableCell>
+                <Controller
+                  control={control}
+                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.causes`}
+                  render={({ field }) => (
+                    <ul>
+                      {field.value.map((prop, idx) => (
+                        <li key={idx}>
+                          <Textarea
+                            value={prop}
+                            onChange={(e) => {
+                              const newProperties = [...field.value];
+                              newProperties[idx] = e.target.value;
+                              field.onChange(newProperties);
+                            }}
                           />
-                        </TableCell>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                />
+              </TableCell>
 
-                        {/* Causes */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.causes`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    <Textarea
-                                      value={prop}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = e.target.value;
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                                <Button
-                                  type="button"
-                                  onClick={() => {
-                                    const newProperties = [...field.value, ""];
-                                    field.onChange(newProperties);
-                                  }}
-                                >
-                                  Add causes
-                                </Button>
-                              </ul>
-                            )}
+              {/* Consequences */}
+              <TableCell>
+                <Controller
+                  control={control}
+                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.consequences`}
+                  render={({ field }) => (
+                    <ul>
+                      {field.value.map((prop, idx) => (
+                        <li key={idx}>
+                          <Textarea
+                            value={prop}
+                            onChange={(e) => {
+                              const newProperties = [...field.value];
+                              newProperties[idx] = e.target.value;
+                              field.onChange(newProperties);
+                            }}
                           />
-                        </TableCell>
-                        {/* Consequences */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.consequences`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    {idx + 1}
-                                    <Textarea
-                                      value={prop}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = e.target.value;
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                                <Button
-                                  type="button"
-                                  onClick={() => {
-                                    const newProperties = [...field.value, ""];
-                                    field.onChange(newProperties);
-                                  }}
-                                >
-                                  Add consequences
-                                </Button>
-                              </ul>
-                            )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                />
+              </TableCell>
+
+              {/* Requirements */}
+              <TableCell>
+                <Controller
+                  control={control}
+                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
+                  render={({ field }) => (
+                    <ul>
+                      {field.value.map((prop, idx) => (
+                        <li key={idx}>
+                          <Textarea
+                            value={prop}
+                            onChange={(e) => {
+                              const newProperties = [...field.value];
+                              newProperties[idx] = e.target.value;
+                              field.onChange(newProperties);
+                            }}
                           />
-                        </TableCell>
-                        {/* Requirements */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    <Textarea
-                                      value={prop}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = e.target.value;
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                                <Button
-                                  type="button"
-                                  onClick={() => {
-                                    const newProperties = [...field.value, ""];
-                                    field.onChange(newProperties);
-                                  }}
-                                >
-                                  Add Requirements
-                                </Button>
-                              </ul>
-                            )}
-                          />
-                        </TableCell>
-                        {/* Set rendered flags after rendering the row */}
-                        {taskRendered = true}
-                        {functionRendered = true}
-                        {realizationRendered = true}
-                        {propertyRendered = true}
-                      </TableRow>
-                    );
-                  });
-                });
-              });
-            })
-          })}
-        </TableBody>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                />
+              </TableCell>
+
+              {taskRendered = true}
+              {functionRendered = true}
+              {realizationRendered = true}
+              {propertyRendered = true}
+            </TableRow>
+          ));
+        });
+      });
+    });
+  })}
+</TableBody>
       </Table>
       <div className="mt-4">
         <Button>add task</Button>
