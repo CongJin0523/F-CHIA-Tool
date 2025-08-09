@@ -1,12 +1,17 @@
 import { cn } from "@/lib/utils";
 import { forwardRef, type HTMLAttributes } from "react";
+import { motion } from "motion/react";
 
 export const BaseNode = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
+  <motion.div
     ref={ref}
+    layout
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ type: "spring", duration: 0.4 }}
     className={cn(
       "relative rounded-md border bg-card text-card-foreground",
       "hover:ring-1",
@@ -20,7 +25,7 @@ export const BaseNode = forwardRef<
       className,
     )}
     tabIndex={0}
-    {...props}
+    {...(props as any)}
   />
 ));
 BaseNode.displayName = "BaseNode";
