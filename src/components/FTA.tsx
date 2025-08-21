@@ -12,6 +12,12 @@ const initialNodes: FtaNodeTypes[] = [
     id: 'n2',
     position: { x: 100, y: 100 },
     data: { content: 'Node 2' },
+    type: 'logic',
+  },
+  {
+    id: 'n3',
+    position: { x: 200, y: 200 },
+    data: { content: 'Node 3' },
     type: 'basicEvent',
   },
 ];
@@ -21,8 +27,13 @@ const initialEdges = [
     id: 'n1-n2',
     source: 'n1',
     target: 'n2',
-    type: 'step',
-    label: 'connects with',
+    type: 'smoothstep',
+  },
+  {
+    id: 'n2-n3',
+    source: 'n2',
+    target: 'n3',
+    type: 'smoothstep',
   },
 ];
 

@@ -15,8 +15,14 @@ export type ResultEventNode = Node<{
 }>;
 
 export function ResultEventNode({ id, data }: NodeProps<ResultEventNode>) {
-  const { setNodes, setEdges } = useReactFlow();
+  const { setNodes, setEdges, updateNodeData } = useReactFlow();
   const updateNodeText = useDgStore((state) => state.updateNodeText);
+    const handleText = useCallback(
+    (content: string) => {
+      updateNodeData(id, { content });  // set content directly
+    },
+    [id, updateNodeData]
+  );
   const handleDelete = useCallback(() => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
@@ -32,18 +38,11 @@ export function ResultEventNode({ id, data }: NodeProps<ResultEventNode>) {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <BaseNode className="w-40 border-red-200 bg-red-50">
-          <NodeHeader
-            icon={Zap}
-            title="Cause"
-            bgColor="bg-red-200"
-            textColor="text-red-900"
-            onDelete={handleDelete}
-          />
 
           <BaseNodeContent>
             <EditableText
               content={data.content}
-              onChange={(value) => updateNodeText(id, value)}
+              onChange={handleText}
             />
           </BaseNodeContent>
         </BaseNode >

@@ -34,14 +34,7 @@ export function BasicEventNode({ id, data }: NodeProps<BasicEventNode>) {
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-        <BaseNode className="w-40 border-red-200 bg-red-50">
-          <NodeHeader
-            icon={Zap}
-            title="Cause"
-            bgColor="bg-red-200"
-            textColor="text-red-900"
-            onDelete={handleDelete}
-          />
+        <BaseNode className="w-20 h-20 rounded-full border-red-200 bg-red-50 flex items-center justify-center">
 
           <BaseNodeContent>
             <EditableText
@@ -52,7 +45,6 @@ export function BasicEventNode({ id, data }: NodeProps<BasicEventNode>) {
         </BaseNode >
       </motion.div>
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </div>
   );
 }
