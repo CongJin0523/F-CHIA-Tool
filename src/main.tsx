@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router'
 import './index.css'
 import App from './App.tsx'
 import Diagram from '@/components/Diagram.tsx'
+import FtaDiagram from '@/components/FTA.tsx'
 import { AppNav } from '@/components/AppNav.tsx'
 import EditableNestedTable from '@/components/Table.tsx'
 createRoot(document.getElementById('root')!).render(
@@ -13,7 +14,8 @@ createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<EditableNestedTable />} />
         <Route path="/diagram" element={<Diagram />} />
-        {/* <Route path="/demo" element={<App />} /> */}
+        <Route path="/demo" element={<App />} />
+        <Route path="/fta" element={<FtaDiagram />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

@@ -26,7 +26,7 @@ export function AppNav() {
         Diagram
       </NavLink>
 
-      {/* <NavLink
+      <NavLink
         to="/demo"
         end
         className={({ isActive }) =>
@@ -36,7 +36,18 @@ export function AppNav() {
         }
       >
         demo
-      </NavLink> */}
+      </NavLink>
+      <NavLink
+        to="/fta"
+        end
+        className={({ isActive }) =>
+          `text-lg font-semibold transition-colors ${
+            isActive ? "text-blue-600 underline" : "text-gray-800 hover:text-blue-500"
+          }`
+        }
+      >
+        FTA
+      </NavLink>
     </nav>
   );
 }

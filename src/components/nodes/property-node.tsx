@@ -12,7 +12,7 @@ import { useDgStore } from '@/common/store';
 export type PropertyNode = Node<{
   content: string;
 }>;
-
+import { motion } from 'motion/react';
 
 
 export function PropertyNode({ id, data }: NodeProps<PropertyNode>) {
@@ -26,6 +26,12 @@ export function PropertyNode({ id, data }: NodeProps<PropertyNode>) {
   
 
   return (
+        <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
     <BaseNode className="w-40 border-pink-200 bg-pink-50">
       <NodeHeader
         icon={Settings}
@@ -34,15 +40,17 @@ export function PropertyNode({ id, data }: NodeProps<PropertyNode>) {
         textColor="text-pink-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
           content={data.content}
           onChange={(value) => updateNodeText(id, value)}
         />
       </BaseNodeContent>
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </BaseNode>
+          </motion.div>
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
+      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
+    </div>
   );
 }
 PropertyNode.displayName = "PropertyNode";

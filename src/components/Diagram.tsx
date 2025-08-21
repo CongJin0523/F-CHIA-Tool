@@ -88,7 +88,7 @@ function LayoutFlow() {
           }),
           data: { content: `Node ${id}` },
         };
-        const newEdges = edges.concat({ id, source: connectionState.fromNode.id, target: id });
+        const newEdges = edges.concat({ id, source: connectionState.fromNode.id, target: id, type: 'smoothstep' });
         const newNodes = nodes.concat(newNode);
         console.log('newNodes', newNodes);
         console.log('newEdges', newEdges);

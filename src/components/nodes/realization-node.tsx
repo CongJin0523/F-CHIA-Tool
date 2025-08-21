@@ -12,7 +12,7 @@ import { useDgStore } from '@/common/store';
 export type RealizationNode = Node<{
   content: string;
 }>;
-
+import { motion } from 'motion/react';
 
 
 export function RealizationNode({ id, data }: NodeProps<RealizationNode>) {
@@ -26,6 +26,12 @@ export function RealizationNode({ id, data }: NodeProps<RealizationNode>) {
   
 
   return (
+        <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
     <BaseNode className="w-40 border-sky-200 bg-sky-50">
       <NodeHeader
         icon={Sparkles}
@@ -34,15 +40,17 @@ export function RealizationNode({ id, data }: NodeProps<RealizationNode>) {
         textColor="text-sky-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
           content={data.content}
           onChange={(value) => updateNodeText(id, value)}
         />
       </BaseNodeContent>
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </BaseNode>
+          </motion.div>
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
+      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
+    </div>
   );
 }
 RealizationNode.displayName = "RealizationNode";

@@ -9,6 +9,7 @@ import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 import { useDgStore } from '@/common/store';
+import { motion } from 'motion/react';
 export type FunctionNode = Node<{
   content: string;
 }>;
@@ -26,6 +27,12 @@ export function FunctionNode({ id, data }: NodeProps<FunctionNode>) {
   
 
   return (
+        <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
     <BaseNode className="w-40 border-yellow-200 bg-yellow-50">
       <NodeHeader
         icon={Settings2}
@@ -34,15 +41,17 @@ export function FunctionNode({ id, data }: NodeProps<FunctionNode>) {
         textColor="text-yellow-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
           content={data.content}
           onChange={(value) => updateNodeText(id, value)}
         />
       </BaseNodeContent>
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </BaseNode>
+          </motion.div>
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
+      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
+    </div>
   );
 }
 FunctionNode.displayName = "FunctionNode";

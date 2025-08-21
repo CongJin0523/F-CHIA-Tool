@@ -12,7 +12,7 @@ import { useDgStore } from '@/common/store';
 export type TaskNode = Node<{
   content: string;
 }>;
-
+import { motion } from 'motion/react';
 
 
 export function TaskNode({ id, data }: NodeProps<TaskNode>) {
@@ -25,6 +25,12 @@ export function TaskNode({ id, data }: NodeProps<TaskNode>) {
   }, [id, setNodes, setEdges]);
   
   return (
+        <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
     <BaseNode className="w-40 border-green-200 bg-green-50">
       <NodeHeader
         icon={ClipboardCheck}
@@ -33,15 +39,17 @@ export function TaskNode({ id, data }: NodeProps<TaskNode>) {
         textColor="text-green-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
           content={data.content}
           onChange={(value) => updateNodeText(id, value)}
         />
       </BaseNodeContent>
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </BaseNode>
+          </motion.div>
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
+      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
+    </div>
   );
 }
 TaskNode.displayName = "TaskNode";

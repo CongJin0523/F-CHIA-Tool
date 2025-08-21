@@ -43,6 +43,8 @@ export const getLayoutedElements = (nodes : AppNode[], edges: Edge[], options = 
             // React Flow expects a position property on the node instead of `x`
             // and `y` fields.
             position: { x: node.x, y: node.y },
+                        // preserve handle positions so edges follow nodes when layout direction changes
+
           })),
 
       edges: layoutedGraph.edges.map((edge) => ({
@@ -50,6 +52,7 @@ export const getLayoutedElements = (nodes : AppNode[], edges: Edge[], options = 
         target: edge.target,
         source: edge.source,
         type: edge.type,
+
       })),
     });
   })

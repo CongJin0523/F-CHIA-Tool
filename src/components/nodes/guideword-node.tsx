@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
+import { motion } from 'motion/react';
 export type GuideWordNode = Node<{
   content: string;
 }>;
@@ -33,6 +33,12 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
   
 
   return (
+        <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
     <BaseNode className="w-40 border-fuchsia-200 bg-fuchsia-50">
       <NodeHeader
         icon={Quote}
@@ -41,7 +47,6 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
         textColor="text-fuchsia-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <Select value={data.content} onValueChange={(value) => updateNodeText(id, value)}>
           <SelectTrigger>
@@ -54,8 +59,11 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
           </SelectContent>
         </Select>
       </BaseNodeContent>
-      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </BaseNode>
+          </motion.div>
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
+      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
+    </div>
   );
 }
 GuideWordNode.displayName = "GuideWordNode";

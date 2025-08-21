@@ -9,6 +9,7 @@ import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 import { useDgStore } from '@/common/store';
+import { motion } from 'motion/react';
 export type CauseNode = Node<{
   content: string;
 }>;
@@ -24,23 +25,32 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
 
 
   return (
-    <BaseNode className="w-40 border-red-200 bg-red-50">
-      <NodeHeader
-        icon={Zap}
-        title="Cause"
-        bgColor="bg-red-200"
-        textColor="text-red-900"
-        onDelete={handleDelete}
-      />
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
-      <BaseNodeContent>
-        <EditableText
-          content={data.content}
-          onChange={(value) => updateNodeText(id, value)}
-        />
-      </BaseNodeContent>
+    <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
+        <BaseNode className="w-40 border-red-200 bg-red-50">
+          <NodeHeader
+            icon={Zap}
+            title="Cause"
+            bgColor="bg-red-200"
+            textColor="text-red-900"
+            onDelete={handleDelete}
+          />
+
+          <BaseNodeContent>
+            <EditableText
+              content={data.content}
+              onChange={(value) => updateNodeText(id, value)}
+            />
+          </BaseNodeContent>
+        </BaseNode >
+      </motion.div>
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
-    </BaseNode>
+    </div>
   );
 }
 CauseNode.displayName = "CauseNode";

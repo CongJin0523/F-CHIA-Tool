@@ -12,7 +12,7 @@ import { useDgStore } from '@/common/store';
 export type ZoneNode = Node<{
   content: string;
 }>;
-
+import { motion } from 'motion/react';
 
 
 const selector = (connection: ConnectionState) => {
@@ -29,6 +29,12 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
   }, [id, setNodes, setEdges]);
 
   return (
+        <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
     <BaseNode className="w-40 border-violet-200 bg-violet-50">
       <NodeHeader
         icon={Globe}
@@ -56,9 +62,11 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
             <Plus size={10} />
           </Button>
         </ButtonHandle> */}
-        <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
       </BaseNodeContent>
     </BaseNode>
+          </motion.div>
+      <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
+    </div>
   );
 }
 ZoneNode.displayName = "ZoneNode";

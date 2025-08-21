@@ -11,7 +11,7 @@ import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 import { useDgStore } from '@/common/store';
 export type RequirementNode = Node<{
   content: string;
-}>;
+}>;import { motion } from 'motion/react';
 
 
 
@@ -26,6 +26,12 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
   
 
   return (
+        <div>
+      <motion.div
+        layout
+        initial={{ opacity: 0, scale: 1 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
     <BaseNode className="w-40 border-rose-200 bg-rose-50">
       <NodeHeader
         icon={BadgeCheck}
@@ -34,7 +40,6 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
         textColor="text-rose-900"
         onDelete={handleDelete}
       />
-      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" /> 
       <BaseNodeContent>
         <EditableText
           content={data.content}
@@ -42,6 +47,9 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
         />
       </BaseNodeContent>
     </BaseNode>
+          </motion.div>
+      <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
+    </div>
   );
 }
 RequirementNode.displayName = "RequirementNode";
