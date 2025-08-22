@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { type FormValues } from "@/common/types";
 import { computeRowSpans, ensureRenderableStructure, graphToFormValues } from "@/common/graphToFormValues";
-import { useDgStore } from "@/common/store";
+import { useDgStore } from "@/store/dg-store";
 import { graphToIR } from "@/common/graphToIR";
 import { deriveRowSpans } from "@/common/deriveRowSpans";
 // export interface Realization {

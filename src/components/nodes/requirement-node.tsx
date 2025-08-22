@@ -8,7 +8,7 @@ import { BadgeCheck } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { useDgStore } from '@/common/store';
+import { useDgStore } from '@/store/dg-store';
 export type RequirementNode = Node<{
   content: string;
 }>;import { motion } from 'motion/react';

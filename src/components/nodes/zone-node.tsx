@@ -8,7 +8,7 @@ import { Globe, } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState, useConnection } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { BaseHandle } from '../base-handle';
-import { useDgStore } from '@/common/store';
+import { useDgStore } from '@/store/dg-store';
 export type ZoneNode = Node<{
   content: string;
 }>;

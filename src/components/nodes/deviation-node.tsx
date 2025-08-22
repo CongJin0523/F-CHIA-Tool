@@ -8,7 +8,7 @@ import { ArrowBigDownDash } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { useDgStore } from '@/common/store';
+import { useDgStore } from '@/store/dg-store';
 import { motion } from 'motion/react';
 export type DeviationNode = Node<{
   content: string;

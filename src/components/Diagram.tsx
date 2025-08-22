@@ -13,7 +13,7 @@ import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 
 import React, { useCallback,  useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import useDgStore from '@/common/store';
+import useDgStore from '@/store/dg-store';
 
 
 import ShortUniqueId from 'short-uuid';

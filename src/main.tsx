@@ -7,9 +7,11 @@ import Diagram from '@/components/Diagram.tsx'
 import FtaDiagram from '@/components/FTA.tsx'
 import { AppNav } from '@/components/AppNav.tsx'
 import EditableNestedTable from '@/components/Table.tsx'
+import ZoneSelecter from '@/components/ZoneSelecter.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      <ZoneSelecter />
       <AppNav />
       <Routes>
         <Route path="/" element={<EditableNestedTable />} />

@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { addEdge, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 
-import { initialNodes } from './initialNodes';
-import { initialEdges } from './initialEdges';
-import type { AppState, AppNode } from './types';
-import { graphToFormValues } from './graphToFormValues';
+import { initialNodes } from '@/common/initialNodes';
+import { initialEdges } from '@/common/initialEdges';
+import type { AppState, AppNode } from '@/common/types';
+import { graphToFormValues } from '@/common/graphToFormValues';
 
 const useDgStore = create<AppState>()(
   (set, get) => ({
