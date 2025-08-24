@@ -1,4 +1,4 @@
-import { useCallback, } from 'react';
+import { useCallback, useMemo, } from 'react';
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -13,11 +13,17 @@ export type TaskNode = Node<{
   content: string;
 }>;
 import { motion } from 'motion/react';
+import { useZoneStore } from '@/store/zone-store';
+import { getGraphStoreHook } from '@/store/graph-registry';
 
 
 export function TaskNode({ id, data }: NodeProps<TaskNode>) {
+    // console.log('CauseNode props:', { id, data });
   const { setNodes, setEdges } = useReactFlow();
-  const updateNodeText = useDgStore((state) => state.updateNodeText);
+  const zoneId : string = useZoneStore((s) => s.selectedId);
+  // console.log('CauseNode render, zoneId:', zoneId);
+  const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
+  const updateNodeText = storeHook((state) => state.updateNodeText);
 
   const handleDelete = useCallback(() => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
@@ -39,7 +45,7 @@ export function TaskNode({ id, data }: NodeProps<TaskNode>) {
         textColor="text-green-900"
         onDelete={handleDelete}
       />
-      <BaseNodeContent>
+          <BaseNodeContent  key={data.content}>
         <EditableText
           content={data.content}
           onChange={(value) => updateNodeText(id, value)}

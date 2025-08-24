@@ -1,4 +1,4 @@
-import { useCallback, } from 'react';
+import { useCallback, useMemo, } from 'react';
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -8,15 +8,20 @@ import { Zap } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { useDgStore } from '@/store/dg-store';
 import { motion } from 'motion/react';
+import { getGraphStoreHook } from '@/store/graph-registry';
+import { useZoneStore } from '@/store/zone-store';
 export type CauseNode = Node<{
   content: string;
 }>;
 
 export function CauseNode({ id, data }: NodeProps<CauseNode>) {
+  // console.log('CauseNode props:', { id, data });
   const { setNodes, setEdges } = useReactFlow();
-  const updateNodeText = useDgStore((state) => state.updateNodeText);
+  const zoneId : string = useZoneStore((s) => s.selectedId);
+  // console.log('CauseNode render, zoneId:', zoneId);
+  const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
+  const updateNodeText = storeHook((state) => state.updateNodeText);
   const handleDelete = useCallback(() => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
@@ -40,7 +45,7 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
             onDelete={handleDelete}
           />
 
-          <BaseNodeContent>
+          <BaseNodeContent  key={data.content}>
             <EditableText
               content={data.content}
               onChange={(value) => updateNodeText(id, value)}

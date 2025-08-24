@@ -1,6 +1,7 @@
 // src/store/zone-store.ts
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, subscribeWithSelector } from "zustand/middleware";
+import { deleteGraphStore, getGraphStoreHook } from "./graph-registry";
 
 export type Zone = { id: string; label: string };
 
@@ -22,42 +23,46 @@ const slug = (s: string) =>
     .replace(/^-|-$/g, "") || "zone";
 
 export const useZoneStore = create<ZoneState>()(
-  persist(
-    (set, get) => ({
-      zones: [
-        { id: "zone-1", label: "Base Zone" },
-        { id: "zone-2", label: "Zone 2" },
-        { id: "zone-3", label: "Zone 3" },
-      ],
-      selectedId: undefined,
+  subscribeWithSelector(
+    persist(
+      (set, get) => ({
+        zones: [
+          { id: "zone-1", label: "Base Zone" },
+          { id: "zone-2", label: "Zone 2" },
+          { id: "zone-3", label: "Zone 3" },
+        ],
+        selectedId: undefined,
 
-      addZone: (label) => {
-        const base = slug(label);
-        const ids = new Set(get().zones.map(z => z.id));
-        let id = base, i = 2;
-        while (ids.has(id)) id = `${base}-${i++}`;
+        addZone: (label) => {
+          const base = slug(label);
+          const ids = new Set(get().zones.map(z => z.id));
+          let id = base, i = 2;
+          while (ids.has(id)) id = `${base}-${i++}`;
 
-        const zone = { id, label };
-        set(state => ({ zones: [...state.zones, zone], selectedId: id }));
-        return zone;
-      },
+          const zone = { id, label };
+          getGraphStoreHook(id); // 确保创建对应的 GraphStore
+          set(state => ({ zones: [...state.zones, zone], selectedId: id }));
+          return zone;
+        },
 
-      removeZone: (id) => {
-        set(state => {
-          const zones = state.zones.filter(z => z.id !== id);
-          const selectedId = state.selectedId === id ? undefined : state.selectedId;
-          return { zones, selectedId };
-        });
-      },
+        removeZone: (id) => {
+          set(state => {
+            const zones = state.zones.filter(z => z.id !== id);
+            const selectedId = state.selectedId === id ? undefined : state.selectedId;
+            deleteGraphStore(id); // 清理对应的 GraphStore
+            return { zones, selectedId };
+          });
+        },
 
-      renameZone: (id, nextLabel) => {
-        set(state => ({
-          zones: state.zones.map(z => z.id === id ? { ...z, label: nextLabel } : z),
-        }));
-      },
+        renameZone: (id, nextLabel) => {
+          set(state => ({
+            zones: state.zones.map(z => z.id === id ? { ...z, label: nextLabel } : z),
+          }));
+        },
 
-      setSelected: (id) => set({ selectedId: id }),
-    }),
-    { name: "zones-store" } // 本地持久化 key
+        setSelected: (id) => set({ selectedId: id }),
+      }),
+      { name: "zones-store" } // 本地持久化 key
+    )
   )
 );

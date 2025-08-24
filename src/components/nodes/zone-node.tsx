@@ -1,4 +1,4 @@
-import { useCallback, } from 'react';
+import { useCallback, useMemo, } from 'react';
 import {
   BaseNode,
   BaseNodeContent,
@@ -13,6 +13,8 @@ export type ZoneNode = Node<{
   content: string;
 }>;
 import { motion } from 'motion/react';
+import { getGraphStoreHook } from '@/store/graph-registry';
+import { useZoneStore } from '@/store/zone-store';
 
 
 const selector = (connection: ConnectionState) => {
@@ -21,7 +23,9 @@ const selector = (connection: ConnectionState) => {
 
 export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
   const { setNodes, setEdges } = useReactFlow();
-  const updateNodeText = useDgStore((state) => state.updateNodeText);
+  const zoneId = useZoneStore((s) => s.selectedId);
+  const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
+  const updateNodeText = storeHook((state) => state.updateNodeText);
 
   const handleDelete = useCallback(() => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
@@ -29,26 +33,26 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
   }, [id, setNodes, setEdges]);
 
   return (
-        <div>
+    <div>
       <motion.div
         layout
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-    <BaseNode className="w-40 border-violet-200 bg-violet-50">
-      <NodeHeader
-        icon={Globe}
-        title="Zone"
-        bgColor="bg-violet-200"
-        textColor="text-violet-900"
-        onDelete={handleDelete}
-      />
-      <BaseNodeContent>
-        <EditableText
-          content={data.content}
-          onChange={(value) => updateNodeText(id, value)}
-        />
-        {/* <ButtonHandle
+        <BaseNode className="w-40 border-violet-200 bg-violet-50">
+          <NodeHeader
+            icon={Globe}
+            title="Zone"
+            bgColor="bg-violet-200"
+            textColor="text-violet-900"
+            onDelete={handleDelete}
+          />
+          <BaseNodeContent key={data.content}>
+            <EditableText
+              content={data.content}
+              onChange={(value) => updateNodeText(id, value)}
+            />
+            {/* <ButtonHandle
           type="target"
           position={Position.Bottom}
           showButton={!connectionInProgress}
@@ -62,9 +66,9 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
             <Plus size={10} />
           </Button>
         </ButtonHandle> */}
-      </BaseNodeContent>
-    </BaseNode>
-          </motion.div>
+          </BaseNodeContent>
+        </BaseNode>
+      </motion.div>
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </div>
   );

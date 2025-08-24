@@ -11,11 +11,11 @@ import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 
 
-import React, { useCallback,  useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import useDgStore from '@/store/dg-store';
 
-
+import { useStore } from 'zustand';
 import ShortUniqueId from 'short-uuid';
 
 
@@ -23,7 +23,9 @@ import ShortUniqueId from 'short-uuid';
 import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 import type { AppState, AppNode } from '@/common/types';
 
-
+import { useZoneStore } from '@/store/zone-store';
+import { getGraphStoreHook } from '@/store/graph-registry';
+import GraphFlow from './GraphFlow';
 const selector = (state: AppState) => ({
   nodes: state.nodes,
   edges: state.edges,
@@ -33,15 +35,17 @@ const selector = (state: AppState) => ({
   setNodes: state.setNodes,
   setEdges: state.setEdges,
   updateNodeText: state.updateNodeText,
-
 });
 const translator = ShortUniqueId();
 
 const getId = () => translator.new();
 const nodeOrigin: [number, number] = [0.5, 0];
-function LayoutFlow() {
+function LayoutFlow({ zoneId }: { zondId?: string }) {
+  console.log('LayoutFlow render, zoneId:', zoneId);
+  const storeHook = useMemo(() => getGraphStoreHook(zoneId), [zoneId]);
+
   const reactFlowWrapper = useRef(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, setNodes, setEdges, updateNodeText } = useDgStore(
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, setNodes, setEdges, updateNodeText } = useStore(storeHook,
     useShallow(selector),
   );
   const { fitView, screenToFlowPosition, getEdges, getNodes } = useReactFlow();
@@ -141,9 +145,11 @@ function LayoutFlow() {
   );
 };
 function Diagram() {
+  const zoneId = useZoneStore((s) => s.selectedId);
+  console.log('Diagram render, zoneId:', zoneId);
   return (
     <ReactFlowProvider>
-      <LayoutFlow />
+      <LayoutFlow key={ zoneId } zoneId={ zoneId } />
     </ReactFlowProvider>
   );
 }

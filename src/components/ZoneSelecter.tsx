@@ -24,7 +24,10 @@ export default function ZoneSelecter() {
   const renameZone = useZoneStore(s => s.renameZone);
   const removeZone = useZoneStore(s => s.removeZone);
 
-  const selected = () => zones.find(z => z.id === selectedId);
+  const selected = useMemo(
+  () => zones.find((z) => z.id === selectedId),
+  [zones, selectedId]
+  );
 
   // Ensure the Select is always controlled: pick a stable value
   const controlledValue = selectedId ?? zones[0]?.id ?? "";
@@ -111,7 +114,26 @@ export default function ZoneSelecter() {
           ))}
         </SelectContent>
       </Select>
-      {/* Add/Edit Dialog */}
+     
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-2"
+        onClick={startAdd}
+      >
+        <Plus className="h-4 w-4" />
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-2"
+        onClick={startEdit}
+        disabled={!selected}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+       {/* Add/Edit Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[460px]">
           <DialogHeader>
@@ -153,24 +175,6 @@ export default function ZoneSelecter() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-2"
-        onClick={startAdd}
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-2"
-        onClick={startEdit}
-        disabled={!selected}
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
       {/* Delete confirmation */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
