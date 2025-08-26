@@ -45,7 +45,7 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-        <BaseNode className="w-40 border-fuchsia-200 bg-fuchsia-50">
+        <BaseNode className="w-40 border-fuchsia-200 bg-fuchsia-50 nodrag">
           <NodeHeader
             icon={Quote}
             title="Guide Word"

@@ -18,7 +18,7 @@ export type CauseNode = Node<{
 export function CauseNode({ id, data }: NodeProps<CauseNode>) {
   // console.log('CauseNode props:', { id, data });
   const { setNodes, setEdges } = useReactFlow();
-  const zoneId : string = useZoneStore((s) => s.selectedId);
+  const zoneId: string = useZoneStore((s) => s.selectedId);
   // console.log('CauseNode render, zoneId:', zoneId);
   const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
   const updateNodeText = storeHook((state) => state.updateNodeText);
@@ -36,7 +36,7 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-        <BaseNode className="w-40 border-red-200 bg-red-50">
+        <BaseNode className="w-40 border-red-200 bg-red-50 nodrag">
           <NodeHeader
             icon={Zap}
             title="Cause"
@@ -45,7 +45,7 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
             onDelete={handleDelete}
           />
 
-          <BaseNodeContent  key={data.content}>
+          <BaseNodeContent key={data.content}>
             <EditableText
               content={data.content}
               onChange={(value) => updateNodeText(id, value)}

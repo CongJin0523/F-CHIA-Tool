@@ -39,7 +39,7 @@ export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-        <BaseNode className="w-40 border-orange-200 bg-orange-50">
+        <BaseNode className="w-40 border-orange-200 bg-orange-50 nodrag">
           <NodeHeader
             icon={ArrowBigDownDash}
             title="Deviation"

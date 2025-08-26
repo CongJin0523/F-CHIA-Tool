@@ -38,7 +38,7 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-    <BaseNode className="w-40 border-rose-200 bg-rose-50">
+    <BaseNode className="w-40 border-rose-200 bg-rose-50 nodrag">
       <NodeHeader
         icon={BadgeCheck}
         title="Requirement"

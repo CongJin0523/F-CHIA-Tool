@@ -18,9 +18,9 @@ import { getGraphStoreHook } from '@/store/graph-registry';
 
 
 export function TaskNode({ id, data }: NodeProps<TaskNode>) {
-    // console.log('CauseNode props:', { id, data });
+  // console.log('CauseNode props:', { id, data });
   const { setNodes, setEdges } = useReactFlow();
-  const zoneId : string = useZoneStore((s) => s.selectedId);
+  const zoneId: string = useZoneStore((s) => s.selectedId);
   // console.log('CauseNode render, zoneId:', zoneId);
   const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
   const updateNodeText = storeHook((state) => state.updateNodeText);
@@ -29,30 +29,30 @@ export function TaskNode({ id, data }: NodeProps<TaskNode>) {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
   }, [id, setNodes, setEdges]);
-  
+
   return (
-        <div>
+    <div>
       <motion.div
         layout
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-    <BaseNode className="w-40 border-green-200 bg-green-50">
-      <NodeHeader
-        icon={ClipboardCheck}
-        title="Task"
-        bgColor="bg-green-200"
-        textColor="text-green-900"
-        onDelete={handleDelete}
-      />
-          <BaseNodeContent  key={data.content}>
-        <EditableText
-          content={data.content}
-          onChange={(value) => updateNodeText(id, value)}
-        />
-      </BaseNodeContent>
-    </BaseNode>
-          </motion.div>
+        <BaseNode className="w-40 border-green-200 bg-green-50 nodrag">
+          <NodeHeader
+            icon={ClipboardCheck}
+            title="Task"
+            bgColor="bg-green-200"
+            textColor="text-green-900"
+            onDelete={handleDelete}
+          />
+          <BaseNodeContent key={data.content}>
+            <EditableText
+              content={data.content}
+              onChange={(value) => updateNodeText(id, value)}
+            />
+          </BaseNodeContent>
+        </BaseNode>
+      </motion.div>
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </div>

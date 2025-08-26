@@ -38,7 +38,7 @@ export function ConsequenceNode({ id, data }: NodeProps<ConsequenceNode>) {
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-        <BaseNode className="w-40 border-indigo-200 bg-indigo-50">
+        <BaseNode className="w-40 border-indigo-200 bg-indigo-50 nodrag">
           <NodeHeader
             icon={Blocks}
             title="Consequence"
