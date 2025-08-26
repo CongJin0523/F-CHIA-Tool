@@ -41,7 +41,7 @@ const translator = ShortUniqueId();
 const getId = () => translator.new();
 const nodeOrigin: [number, number] = [0.5, 0];
 function LayoutFlow({ zoneId }: { zondId?: string }) {
-  console.log('LayoutFlow render, zoneId:', zoneId);
+  // console.log('LayoutFlow render, zoneId:', zoneId);
   const storeHook = useMemo(() => getGraphStoreHook(zoneId), [zoneId]);
 
   const reactFlowWrapper = useRef(null);

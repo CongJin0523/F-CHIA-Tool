@@ -59,9 +59,9 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
                 <SelectValue placeholder="Select a guide word" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="no">no</SelectItem>
-                <SelectItem value="other than">other than</SelectItem>
-                <SelectItem value="part of">part of</SelectItem>
+                <SelectItem value="No">No</SelectItem>
+                <SelectItem value="Other than">Other than</SelectItem>
+                <SelectItem value="Part of">Part of</SelectItem>
               </SelectContent>
             </Select>
           </BaseNodeContent>

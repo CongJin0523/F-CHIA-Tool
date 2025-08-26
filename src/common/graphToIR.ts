@@ -35,15 +35,32 @@ export function graphToIR(nodes: AppNode[], edges: Edge[]): IR {
             const guidewordNodes = getChildren(propNode.id, "guideword");
             const interpretations = guidewordNodes.map((gwNode) => {
               const deviationNodes = getChildren(gwNode.id, "deviation");
-              const deviations = deviationNodes.map((d) => d.data.content ?? "");
+              const deviations = deviationNodes.map((d) => ({
+                id: d.id,
+                text: d.data.content ?? "",
+              }));
+
               const causeNodes = deviationNodes.flatMap((d) => getChildren(d.id, "cause"));
-              const causes = causeNodes.map((c) => c.data.content ?? "");
+              const causes = causeNodes.map((c) => ({
+                id: c.id,
+                text: c.data.content ?? "",
+              }));
+
               const consequenceNodes = causeNodes.flatMap((c) => getChildren(c.id, "consequence"));
-              const consequences = consequenceNodes.map((c) => c.data.content ?? "");
+              const consequences = consequenceNodes.map((c) => ({
+                id: c.id,
+                text: c.data.content ?? "",
+              }));
+
               const requirementNodes = consequenceNodes.flatMap((c) => getChildren(c.id, "requirement"));
-              const requirements = requirementNodes.map((r) => r.data.content ?? "");
+              const requirements = requirementNodes.map((r) => ({
+                id: r.id,
+                text: r.data.content ?? "",
+              }));
+
 
               return {
+                guideWordId: gwNode.id,
                 guideWord: normalizeGuideWord(gwNode.data.content),
                 deviations,
                 causes,
@@ -80,7 +97,7 @@ export function graphToIR(nodes: AppNode[], edges: Edge[]): IR {
         functions,
       };
     });
-
+  console.log("Tasks constructed:", tasks);
   // 用 Zod 做一次 parse，顺便填默认值/校验
   return IRSchema.parse({ tasks });
 }

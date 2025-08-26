@@ -53,33 +53,44 @@ export interface AppState {
 //     }[];
 // }
 
-export interface Task  {
-  taskName: string;
-  rowSpan: number;
-  functions: Func[];
+// 更通用的小类型
+export type IdText = { id: string; text: string };
+
+export interface Interpretation {
+  guideWordId: string;                          // ✅ 新增：对应 guideword 节点 ID
+  guideWord: "Part of" | "Other than" | "No";
+  deviations: IdText[];                         // ✅ string[] -> IdText[]
+  causes: IdText[];                             // ✅
+  consequences: IdText[];                       // ✅
+  requirements: IdText[];                       // ✅
 }
 
-export interface Func {
-  functionName: string;
+export interface Property {
+  id: string;                                   // ✅ 新增：property 节点 ID
+  properties: string[];                         // 仍然是 string[]（标题一般用第一个）
   rowSpan: number;
-  realizations: Realization[];
+  interpretations: Interpretation[];
 }
+
 export interface Realization {
+  id: string;                                   // ✅ 新增
   realizationName: string;
   rowSpan: number;
   properties: Property[];
 }
-export interface Property {
-  properties: string[];
+
+export interface Func {
+  id: string;                                   // ✅ 新增
+  functionName: string;
   rowSpan: number;
-  interpretations: Interpretation[];
+  realizations: Realization[];
 }
-export interface Interpretation {
-  guideWord: "Part of" | "Other than" | "No";
-  deviations: string[];
-  causes: string[];
-  consequences: string[];
-  requirements: string[];
+
+export interface Task  {
+  id: string;                                   // ✅ 新增
+  taskName: string;
+  rowSpan: number;
+  functions: Func[];
 }
 
 export interface FormValues {

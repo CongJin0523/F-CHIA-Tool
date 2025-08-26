@@ -17,7 +17,6 @@ const LINK_WHITELIST = [
 type ResultItem = {
   iso_number: string;
   title: string;
-  clause: string;        // 不知道就 ""
   reason: string;
   links: string[];       // >= 1 个链接（经白名单过滤后仍需 >= 1）
 };
@@ -37,6 +36,25 @@ function isWhitelisted(url: string): boolean {
     return false;
   }
 }
+function extractResults(respData) {
+  // 1) Find the assistant "message" block
+  const msg = respData.output?.find(o => o.type === "message");
+  if (!msg) throw new Error("No assistant message found in response.output");
+
+  // 2) Inside it, find the output_text chunk
+  const textPart = msg.content?.find(c => c.type === "output_text");
+  if (!textPart?.text) throw new Error("No output_text found inside message.content");
+
+  // 3) It's a JSON string matching your schema — parse it
+  const parsed = JSON.parse(textPart.text);
+
+  // 4) Your schema's payload lives at parsed.results
+  if (!Array.isArray(parsed.results)) {
+    throw new Error("Parsed payload missing results[]");
+  }
+  return parsed.results;
+}
+
 
 export default function App() {
   const [apiKey, setApiKey] = useState<string>("");
@@ -63,85 +81,76 @@ STRICT RULES:
 - Only output standards you are confident about from your existing knowledge.
 - Each item MUST include at least one authoritative reference link (iso.org/standard, webstore.iec.ch, or reputable SDO stores like BSI/ANSI/Techstreet/DIN/SIS).
 - If you cannot provide an authoritative link for a candidate, DO NOT include that candidate.
-- If you don't know the clause, leave it "" (do NOT guess).
-- Output MUST be valid JSON matching this schema:
-{
-  "items":[
-    {
-      "iso_number":"ISO 10218-1:2011",
-      "title":"Robots and robotic devices — Safety requirements for industrial robots — Part 1",
-      "clause":"",             // "" if unknown
-      "reason":"short reason",
-      "links":["https://..."]  // >=1 link, authoritative only
-    }
-  ],
-  "notes":"optional caveats"
-}
+- Return data that matches the provided JSON schema exactly.
       `.trim();
 
       const user = `
 Safety Requirement:
 "${requirement}"
-
-Output JSON only. No prose, no markdown.
       `.trim();
+
 
       const resp = await axios.post(
         OPENAI_ENDPOINT,
         {
-          model: "gpt-5-mini", // 可换 gpt-4o；如需严格 JSON，可尝试 responses API 的 json_mode
-          tools: [{ "type": "web_search_preview" }],
+          model: "gpt-5-mini",
+          tools: [{
+            "type": "web_search_preview",
+            "search_context_size": "low",
+          }],
           input: [
             { role: "system", content: system },
             { role: "user", content: user },
           ],
-          // 如果你的账号/模型支持，可解注：response_format: { type: "json_object" },
+          text: {
+            format: {
+              type: "json_schema",
+              name: "iso_standard_matching",
+              description: "Match safety requirements to ISO/IEC standards",
+              schema: {
+                type: "object",
+                properties: {
+                  results: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        iso_number: { type: "string" },
+                        title: { type: "string" },
+                        reason: { type: "string" },
+                        links: {
+                          type: "array",
+                          items: { type: "string" },
+                          minItems: 1,
+                        },
+                      },
+                      required: ["iso_number", "title", "reason", "links"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["results"],
+                additionalProperties: false,
+              },
+            }
+          }
         },
         {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
           },
-          timeout: 30000,
+          timeout: 300000,
         }
       );
-      console.log("Response:", resp.data);
-      const content: string =
-        resp?.data?.message?.content ?? "";
-
-      setRaw(content);
-
-      // 解析 JSON（容错：若模型返回带杂文，尝试截取花括号）
-      let parsed: ResultPayload;
-      try {
-        parsed = JSON.parse(content) as ResultPayload;
-      } catch {
-        const firstBrace = content.indexOf("{");
-        const lastBrace = content.lastIndexOf("}");
-        if (firstBrace >= 0 && lastBrace > firstBrace) {
-          parsed = JSON.parse(
-            content.slice(firstBrace, lastBrace + 1)
-          ) as ResultPayload;
-        } else {
-          throw new Error("Invalid JSON. Unable to parse response.");
-        }
+      console.log("Response_alll:", resp.data);
+      const results = extractResults(resp.data);
+      // Example: print ISO numbers
+      for (const r of results) {
+        console.log(r.iso_number, "-", r.title);
       }
 
-      const cleanItems: ResultItem[] = (parsed.items || [])
-        .map((it) => ({
-          ...it,
-          links: Array.isArray(it.links)
-            ? it.links.filter(isWhitelisted)
-            : [],
-        }))
-        .filter(
-          (it) =>
-            Boolean(it.iso_number) &&
-            Boolean(it.title) &&
-            it.links.length > 0
-        );
 
-      setItems(cleanItems);
     } catch (err) {
       const axErr = err as AxiosError<any>;
       const msg =

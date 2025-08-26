@@ -58,16 +58,17 @@ export function LogicNode({ id, data }: NodeProps<LogicNode>) {
                 <g transform="translate(0, 5)">
                 <path d={gateTypes[gateType]} stroke="currentColor" fill="none" strokeWidth={2} />
                 {/* OR center solid dot */}
+                {/*
                 {gateType === 'or' && (
                   <circle cx="0" cy="-12" r="3" fill="currentColor" />
                 )}
-                {/* AND center plus */}
                 {gateType === 'and' && (
                   <>
                     <line x1="-4" y1="-16" x2="4" y2="-16" stroke="currentColor" strokeWidth={2} />
                     <line x1="0" y1="-20" x2="0" y2="-12" stroke="currentColor" strokeWidth={2} />
                   </>
                 )}
+                */}
                 {/* 上方立柱 */}
                 <path d="M 0 -30 0 -46" stroke="currentColor" strokeWidth={2} />
                 {/* 下方立柱 */}

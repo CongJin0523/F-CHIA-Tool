@@ -47,30 +47,30 @@ export function irToGraph(ir: IR): { nodes: AppNode[]; edges: Edge[] } {
           link(rId, pId);
 
           p.interpretations.forEach((inter) => {
-            const gId = add("guideword", inter.guideWord);
-
+            // ✅ 使用 guideWordId，内容是枚举字符串
+            const gId = add("guideword", inter.guideWord, inter.guideWordId);
             link(pId, gId);
 
             const dIds = inter.deviations.map((d) => {
-              const id = add("deviation", d);
+              const id = add("deviation", d.text, d.id);      // ✅ IdText
               link(gId, id);
               return id;
             });
 
             const cIds = inter.causes.map((c) => {
-              const id = add("cause", c);
+              const id = add("cause", c.text, c.id);          // ✅ IdText
               dIds.forEach((d) => link(d, id));
               return id;
             });
 
             const sIds = inter.consequences.map((s) => {
-              const id = add("consequence", s);
+              const id = add("consequence", s.text, s.id);    // ✅ IdText
               cIds.forEach((c) => link(c, id));
               return id;
             });
 
             inter.requirements.forEach((req) => {
-              const id = add("requirement", req);
+              const id = add("requirement", req.text, req.id); // ✅ IdText
               sIds.forEach((s) => link(s, id));
             });
           });
