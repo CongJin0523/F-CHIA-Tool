@@ -79,7 +79,7 @@ export default function NonLinearStepper() {
   };
 
   return (
-    <div className="fixed top-50 right-0 h-screen w-60 overflow-y-auto p-4 z-50">
+    <div className="fixed top-50 right-0 h-150 w-60 overflow-y-auto p-4 z-50">
       <Box sx={{ maxWidth: 300 }}>
         {/* nonLinear 允许直接点击任意步骤 */}
         <Stepper nonLinear activeStep={activeStep} orientation="vertical">

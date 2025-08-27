@@ -51,7 +51,7 @@ export const getLayoutedElements = (nodes : AppNode[], edges: Edge[], options = 
         id: edge.id,
         target: edge.target,
         source: edge.source,
-        type: edge.type,
+        type: 'default',
 
       })),
     });
