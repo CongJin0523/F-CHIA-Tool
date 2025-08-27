@@ -153,7 +153,12 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
           >
             vertical layout
           </Button>
-
+          <Button
+            className="xy-theme__button"
+            onClick={() => onLayout({ direction: 'RIGHT' })}
+          >
+            horizontal layout
+          </Button>
         </Panel>
         <Background />
       </ ReactFlow>
