@@ -23,7 +23,7 @@ import { getGraphStoreHook } from '@/store/graph-registry';
 import { useZoneStore } from '@/store/zone-store';
 import { Button } from '../ui/button';
 import { getId } from '@/common/utils/uuid';
-
+import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 const selector = (connection: ConnectionState) => {
   return connection.inProgress;
 };
@@ -33,7 +33,6 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
   const zoneId = useZoneStore((s) => s.selectedId);
   const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
   const updateNodeText = storeHook((state) => state.updateNodeText);
-  const onLayout = storeHook((state) => state.onLayout);
   const [showToolbar, setShowToolbar] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleDelete = useCallback(() => {
@@ -47,7 +46,7 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
     }
     setShowToolbar(true);
   };
-  const handleAddNode = useCallback(() => {
+  const handleAddNode = useCallback(async () => {
     const ns = getNodes();
     const es = getEdges();
     const sourceNode = ns.find((n) => n.id === id);
@@ -78,15 +77,19 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
       target: newId,
       type: 'default' as const,
     };
+    const opts = { 'elk.direction': "DOWN", ...elkOptions };
+    try {
+      const result = await getLayoutedElements([...ns, newNode], [...es, newEdge], opts);
+      if (result) {
+        // Type cast the result to maintain AppNode types
+        setNodes(result.nodes);
+        setEdges(result.edges);
+      }
+    } catch (error) {
+      console.error('Layout failed:', error);
+    }
 
-    // Add the new elements to the state
-    setNodes([...ns, newNode]);
-    setEdges([...es, newEdge]);
-
-    // Apply layout immediately after adding
-    onLayout('DOWN');
-
-  }, [getNodes, getEdges, setNodes, setEdges, id, onLayout]);
+  }, [getNodes, getEdges, setNodes, setEdges, id]);
 
 
   const handleMouseLeave = () => {
