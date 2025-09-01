@@ -27,6 +27,7 @@ export interface AppState {
   setNodes: (nodes: AppNode[]) => void;
   setEdges: (edges: Edge[]) => void;
   updateNodeText: (nodeId: string, text: string) => void;
+  onLayout: (direction?: 'DOWN' | 'RIGHT') => Promise<void>;
   getFormValues: () => FormValues;
 };
 

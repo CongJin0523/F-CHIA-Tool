@@ -11,6 +11,7 @@ import { graphToIR } from "@/common/graphToIR";
 import { deriveRowSpans } from "@/common/deriveRowSpans";
 import { useZoneStore } from "@/store/zone-store";
 import { getGraphStoreHook } from '@/store/graph-registry';
+import IsoMatchingDialog from "@/components/iso-matching-dialog";
 type Update = { id: string; content: string };
 
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
@@ -85,38 +86,100 @@ export default function EditableNestedTable() {
     control,
     name: "tasks",
   });
+  function taskHasWarnings(task: any): boolean {
+    const fns = task?.functions ?? [];
+    if (!fns.length) return true; // 无 functions
 
-  const onSubmit = (data: FormValues) => {
-  const updates = collectGraphUpdatesFromForm(data); 
+    for (const fn of fns) {
+      const reals = fn?.realizations ?? [];
+      if (!reals.length) return true; // 无 realizations
 
-  if (!updates.length) {
-    console.log("No changes to save.");
-    return;
+      for (const real of reals) {
+        const props = real?.properties ?? [];
+        if (!props.length) return true; // 无 properties
+
+        for (const prop of props) {
+          const inters = prop?.interpretations ?? [];
+          if (!inters.length) return true; // 无 interpretations
+        }
+      }
+    }
+
+    return false; // 全部完整，没有告警
   }
-  const map = new Map<string, string>(updates.map(u => [u.id, u.content]));
 
-  // 3) 读取当前 zone 的节点，并构造写回后的 nodes
-  const graphState = storeHook.getState(); // Zustand getState
-  const nextNodes = graphState.nodes.map(n =>
-    map.has(n.id)
-      ? { ...n, data: { ...n.data, content: map.get(n.id)! } }
-      : n
-  );
+  // --- TaskCell component to unify Task cell rendering and FTA button ---
+  function TaskCell({
+    control,
+    taskIndex,
+    rowSpan,
+    hasWarnings,
+    taskId,
+  }: {
+    control: any;
+    taskIndex: number;
+    rowSpan?: number;
+    hasWarnings: boolean;
+    taskId: string;
+  }) {
+    return (
+      <TableCell rowSpan={rowSpan || 1}>
 
-  // 4) 一次性写回
-  graphState.setNodes(nextNodes);
+        <Controller
+          control={control}
+          name={`tasks.${taskIndex}.taskName`}
+          render={({ field }) => <Textarea {...field} />}
+        />
+        <div className="mt-2">
+          <Button
+            type="button"
+            disabled={hasWarnings}
+            title={
+              hasWarnings
+                ? "This task has missing items. Complete the graph first."
+                : "All good! You can proceed."
+            }
+            onClick={() => {
+              console.log("Proceed with task:", taskId);
+            }}
+          >
+            FTA
+          </Button>
+        </div>
+      </TableCell>
+    );
+  }
+  const onSubmit = (data: FormValues) => {
+    const updates = collectGraphUpdatesFromForm(data);
 
-  console.log("Saved updates:", updates);
+    if (!updates.length) {
+      console.log("No changes to save.");
+      return;
+    }
+    const map = new Map<string, string>(updates.map(u => [u.id, u.content]));
+
+    // 3) 读取当前 zone 的节点，并构造写回后的 nodes
+    const graphState = storeHook.getState(); // Zustand getState
+    const nextNodes = graphState.nodes.map(n =>
+      map.has(n.id)
+        ? { ...n, data: { ...n.data, content: map.get(n.id)! } }
+        : n
+    );
+
+    // 4) 一次性写回
+    graphState.setNodes(nextNodes);
+
+    console.log("Saved updates:", updates);
   };
 
   return (
 
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-20 pr-50" key={zoneId}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-20 pr-60" key={zoneId}>
       <div className="overflow-x-auto">
         <Table className="table-fixed w-[1600px]">
           <TableHeader>
             <TableRow>
-              <TableHead colSpan={9} className="text-center text-lg font-semibold bg-gray-100">
+              <TableHead colSpan={10} className="text-center text-lg font-semibold bg-gray-100">
                 Hazard Zone: {label ?? "Unnamed Zone"}
               </TableHead>
             </TableRow>
@@ -130,25 +193,27 @@ export default function EditableNestedTable() {
               <TableHead>Causes</TableHead>
               <TableHead >Consequences</TableHead>
               <TableHead className="w-1/3">Requirements</TableHead>
+              <TableHead className="w-1/12">ISO Standard</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {taskFields.map((task, taskIndex) => {
               const functionFields = task.functions;
+              const hasWarnings = taskHasWarnings(task);
               let taskRendered = false;
 
 
               if (!functionFields?.length) {
                 return (
                   <TableRow key={`${task.id}-empty`}>
-                    <TableCell rowSpan={1}>
-                      <Controller
-                        control={control}
-                        name={`tasks.${taskIndex}.taskName`}
-                        render={({ field }) => <Textarea {...field} />}
-                      />
-                    </TableCell>
-                    <TableCell colSpan={8} className="text-amber-600">
+                    <TaskCell
+                      control={control}
+                      taskIndex={taskIndex}
+                      rowSpan={1}
+                      hasWarnings={true}
+                      taskId={task.id}
+                    />
+                    <TableCell colSpan={9} className="text-amber-600">
                       No function found, please complete in the graph editor.
                     </TableCell>
                   </TableRow>
@@ -164,13 +229,13 @@ export default function EditableNestedTable() {
                     <TableRow key={`${task.id}-${functionIndex}-no-real`}>
                       {/* Task */}
                       {!taskRendered && (
-                        <TableCell rowSpan={task.rowSpan || 1}>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.taskName`}
-                            render={({ field }) => <Textarea {...field} />}
-                          />
-                        </TableCell>
+                        <TaskCell
+                          control={control}
+                          taskIndex={taskIndex}
+                          rowSpan={task.rowSpan}
+                          hasWarnings={true}
+                          taskId={task.id}
+                        />
                       )}
                       {/* Function */}
                       {!functionRendered && (
@@ -182,8 +247,8 @@ export default function EditableNestedTable() {
                           />
                         </TableCell>
                       )}
-                      {/* 告警占 7 列 */}
-                      <TableCell colSpan={7} className="text-amber-600">
+                      {/* 告警占 8 列 */}
+                      <TableCell colSpan={8} className="text-amber-600">
                         No realization found, please complete in the graph editor.
                       </TableCell>
 
@@ -202,13 +267,13 @@ export default function EditableNestedTable() {
                       <TableRow key={`${task.id}-${functionIndex}-${realizationIndex}-no-prop`}>
                         {/* Task */}
                         {!taskRendered && (
-                          <TableCell rowSpan={task.rowSpan || 1}>
-                            <Controller
-                              control={control}
-                              name={`tasks.${taskIndex}.taskName`}
-                              render={({ field }) => <Textarea {...field} />}
-                            />
-                          </TableCell>
+                          <TaskCell
+                            control={control}
+                            taskIndex={taskIndex}
+                            rowSpan={task.rowSpan}
+                            hasWarnings={true}
+                            taskId={task.id}
+                          />
                         )}
                         {/* Function */}
                         {!functionRendered && (
@@ -230,8 +295,8 @@ export default function EditableNestedTable() {
                             />
                           </TableCell>
                         )}
-                        {/* 告警占 6 列 */}
-                        <TableCell colSpan={6} className="text-amber-600">
+                        {/* 告警占 7 列 */}
+                        <TableCell colSpan={7} className="text-amber-600">
                           No property found, please complete in the graph editor.
                         </TableCell>
 
@@ -251,13 +316,13 @@ export default function EditableNestedTable() {
                         <TableRow key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-no-inter`}>
                           {/* Task */}
                           {!taskRendered && (
-                            <TableCell rowSpan={task.rowSpan || 1}>
-                              <Controller
-                                control={control}
-                                name={`tasks.${taskIndex}.taskName`}
-                                render={({ field }) => <Textarea {...field} />}
-                              />
-                            </TableCell>
+                            <TaskCell
+                              control={control}
+                              taskIndex={taskIndex}
+                              rowSpan={task.rowSpan}
+                              hasWarnings={true}
+                              taskId={task.id}
+                            />
                           )}
                           {/* Function */}
                           {!functionRendered && (
@@ -304,8 +369,8 @@ export default function EditableNestedTable() {
                               />
                             </TableCell>
                           )}
-                          {/* 告警占 5 列（GuideWord + 4 列数组） */}
-                          <TableCell colSpan={5} className="text-amber-600">
+                          {/* 告警占 6 列（GuideWord + 4 列数组 + ISO） */}
+                          <TableCell colSpan={6} className="text-amber-600">
                             No interpretation found, please complete in the graph editor.
                           </TableCell>
 
@@ -318,58 +383,105 @@ export default function EditableNestedTable() {
                     }
 
                     // ④ 正常渲染 interpretations（移除所有 Add 按钮）
-                    return property.interpretations.map((interpretation, interpretationIndex) => (
-                      <TableRow
-                        key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}
-                      >
-                        {/* Task */}
-                        {!taskRendered && (
-                          <TableCell rowSpan={task.rowSpan || 1}>
+                    return property.interpretations.map((interpretation, interpretationIndex) => {
+                      const hasRequirements = Array.isArray(interpretation.requirements) && interpretation.requirements.length > 0;
+                      return (
+                        <TableRow
+                          key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}
+                        >
+                          {/* Task */}
+                          {!taskRendered && (
+                            <TaskCell
+                              control={control}
+                              taskIndex={taskIndex}
+                              rowSpan={task.rowSpan}
+                              hasWarnings={hasWarnings}
+                              taskId={task.id}
+                            />
+                          )}
+
+                          {/* Function */}
+                          {!functionRendered && (
+                            <TableCell rowSpan={fn.rowSpan || 1}>
+                              <Controller
+                                control={control}
+                                name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                                render={({ field }) => <Textarea {...field} />}
+                              />
+                            </TableCell>
+                          )}
+
+                          {/* Realization */}
+                          {!realizationRendered && (
+                            <TableCell rowSpan={realization.rowSpan || 1}>
+                              <Controller
+                                control={control}
+                                name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                                render={({ field }) => <Textarea {...field} />}
+                              />
+                            </TableCell>
+                          )}
+
+                          {/* Property */}
+                          {!propertyRendered && (
+                            <TableCell rowSpan={property.rowSpan || 1}>
+                              <Controller
+                                control={control}
+                                name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                                render={({ field }) => (
+                                  <ul>
+                                    {field.value.map((prop, idx) => (
+                                      <li key={idx}>
+                                        <Textarea
+                                          value={prop}
+                                          onChange={(e) => {
+                                            const newProperties = [...field.value];
+                                            newProperties[idx] = e.target.value;
+                                            field.onChange(newProperties);
+                                          }}
+                                        />
+                                      </li>
+                                    ))}
+                                  </ul>
+                                )}
+                              />
+                            </TableCell>
+                          )}
+
+                          {/* Guide Word */}
+                          <TableCell>
                             <Controller
                               control={control}
-                              name={`tasks.${taskIndex}.taskName`}
-                              render={({ field }) => <Textarea {...field} />}
+                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.guideWord`}
+                              render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <SelectTrigger>
+                                    <SelectValue>{field.value}</SelectValue>
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Part of">Part of</SelectItem>
+                                    <SelectItem value="Other than">Other than</SelectItem>
+                                    <SelectItem value="No">No</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              )}
                             />
                           </TableCell>
-                        )}
 
-                        {/* Function */}
-                        {!functionRendered && (
-                          <TableCell rowSpan={fn.rowSpan || 1}>
+                          {/* Deviations */}
+                          <TableCell>
                             <Controller
                               control={control}
-                              name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
-                              render={({ field }) => <Textarea {...field} />}
-                            />
-                          </TableCell>
-                        )}
-
-                        {/* Realization */}
-                        {!realizationRendered && (
-                          <TableCell rowSpan={realization.rowSpan || 1}>
-                            <Controller
-                              control={control}
-                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
-                              render={({ field }) => <Textarea {...field} />}
-                            />
-                          </TableCell>
-                        )}
-
-                        {/* Property */}
-                        {!propertyRendered && (
-                          <TableCell rowSpan={property.rowSpan || 1}>
-                            <Controller
-                              control={control}
-                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.deviations`}
                               render={({ field }) => (
                                 <ul>
                                   {field.value.map((prop, idx) => (
                                     <li key={idx}>
                                       <Textarea
-                                        value={prop}
+                                        value={prop.text}
                                         onChange={(e) => {
                                           const newProperties = [...field.value];
-                                          newProperties[idx] = e.target.value;
+                                          newProperties[idx] = { id: prop.id, text: e.target.value };
                                           field.onChange(newProperties);
                                         }}
                                       />
@@ -379,130 +491,111 @@ export default function EditableNestedTable() {
                               )}
                             />
                           </TableCell>
-                        )}
 
-                        {/* Guide Word */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.guideWord`}
-                            render={({ field }) => (
-                              <Select onValueChange={field.onChange} value={field.value}>
-                                <SelectTrigger>
-                                  <SelectValue>{field.value}</SelectValue>
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Part of">Part of</SelectItem>
-                                  <SelectItem value="Other than">Other than</SelectItem>
-                                  <SelectItem value="No">No</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            )}
-                          />
-                        </TableCell>
+                          {/* Causes */}
+                          <TableCell>
+                            <Controller
+                              control={control}
+                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.causes`}
+                              render={({ field }) => (
+                                <ul>
+                                  {field.value.map((prop, idx) => (
+                                    <li key={idx}>
+                                      <Textarea
+                                        value={prop.text}
+                                        onChange={(e) => {
+                                          const newProperties = [...field.value];
+                                          newProperties[idx] = { id: prop.id, text: e.target.value };
+                                          field.onChange(newProperties);
+                                        }}
+                                      />
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            />
+                          </TableCell>
 
-                        {/* Deviations */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.deviations`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    <Textarea
-                                      value={prop.text}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = { id: prop.id, text: e.target.value };
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          />
-                        </TableCell>
+                          {/* Consequences */}
+                          <TableCell>
+                            <Controller
+                              control={control}
+                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.consequences`}
+                              render={({ field }) => (
+                                <ul>
+                                  {field.value.map((prop, idx) => (
+                                    <li key={idx}>
+                                      <Textarea
+                                        value={prop.text}
+                                        onChange={(e) => {
+                                          const newProperties = [...field.value];
+                                          newProperties[idx] = { id: prop.id, text: e.target.value };
+                                          field.onChange(newProperties);
+                                        }}
+                                      />
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            />
+                          </TableCell>
 
-                        {/* Causes */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.causes`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    <Textarea
-                                      value={prop.text}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = { id: prop.id, text: e.target.value };
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          />
-                        </TableCell>
+                          {/* Requirements */}
+                          <TableCell>
+                            <Controller
+                              control={control}
+                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
+                              render={({ field }) => (
+                                <ul>
+                                  {field.value.map((prop, idx) => (
+                                    <li key={idx}>
+                                      <Textarea
+                                        value={prop.text}
+                                        onChange={(e) => {
+                                          const newProperties = [...field.value];
+                                          newProperties[idx] = { id: prop.id, text: e.target.value };
+                                          field.onChange(newProperties);
+                                        }}
+                                      />
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            />
+                          </TableCell>
+                          {/* ISO Standard */}
+                          <TableCell>
+                            <IsoMatchingDialog
+                              trigger={
+                                <Button type="button" disabled={!hasRequirements}>
+                                  Matching
+                                </Button>
+                              }
+                              // 可把当前行的 requirement 文本拼起来作为默认输入
+                              defaultRequirement={
+                                (interpretation.requirements ?? []).map(r => r.text).join("\n")
+                              }
+                              onConfirm={(selectedItems) => {
+                                // TODO: 这里拿到选择的标准结果，写回你的状态或 edges/nodes，
+                                // 或在某处保存 / 标注对应的 interpretation。
+                                console.log("Selected ISO items:", selectedItems, {
+                                  taskId: task.id,
+                                  functionId: fn.id,
+                                  realizationId: realization.id,
+                                  propertyId: property.id,
+                                  interpretationIndex,
+                                });
+                              }}
+                            />
+                          </TableCell>
 
-                        {/* Consequences */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.consequences`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    <Textarea
-                                      value={prop.text}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = { id: prop.id, text: e.target.value };
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          />
-                        </TableCell>
-
-                        {/* Requirements */}
-                        <TableCell>
-                          <Controller
-                            control={control}
-                            name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
-                            render={({ field }) => (
-                              <ul>
-                                {field.value.map((prop, idx) => (
-                                  <li key={idx}>
-                                    <Textarea
-                                      value={prop.text}
-                                      onChange={(e) => {
-                                        const newProperties = [...field.value];
-                                        newProperties[idx] = { id: prop.id, text: e.target.value };
-                                        field.onChange(newProperties);
-                                      }}
-                                    />
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          />
-                        </TableCell>
-
-                        {taskRendered = true}
-                        {functionRendered = true}
-                        {realizationRendered = true}
-                        {propertyRendered = true}
-                      </TableRow>
-                    ));
+                          {taskRendered = true}
+                          {functionRendered = true}
+                          {realizationRendered = true}
+                          {propertyRendered = true}
+                        </TableRow>
+                      );
+                    });
                   });
                 });
               });

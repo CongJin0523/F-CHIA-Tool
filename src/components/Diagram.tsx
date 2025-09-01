@@ -19,9 +19,6 @@ import useDgStore from '@/store/dg-store';
 import { useStore } from 'zustand';
 import ShortUniqueId from 'short-uuid';
 
-
-
-import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 import type { AppState, AppNode } from '@/common/types';
 
 import { useZoneStore } from '@/store/zone-store';
@@ -34,6 +31,7 @@ const selector = (state: AppState) => ({
   setNodes: state.setNodes,
   setEdges: state.setEdges,
   updateNodeText: state.updateNodeText,
+  onLayout: state.onLayout,
 });
 const translator = ShortUniqueId();
 
@@ -44,27 +42,18 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
   const storeHook = useMemo(() => getGraphStoreHook(zoneId), [zoneId]);
 
   const reactFlowWrapper = useRef(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, updateNodeText } = useStore(storeHook,
+  const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, updateNodeText, onLayout: storeOnLayout } = useStore(storeHook,
     useShallow(selector),
   );
   const { fitView, screenToFlowPosition, getEdges, getNodes } = useReactFlow();
 
   const onLayout = useCallback(
-    ({ direction }) => {
-      const opts = { 'elk.direction': direction, ...elkOptions };
-      console.log('onLayout', getNodes(), getEdges());
-      const ns = getNodes();
-      const es = getEdges();
-
-      getLayoutedElements(ns, es, opts).then(
-        ({ nodes: layoutedNodes, edges: layoutedEdges }) => {
-          setNodes(layoutedNodes);
-          setEdges(layoutedEdges);
-          fitView();
-        },
-      );
+    ({ direction }: { direction: 'DOWN' | 'RIGHT' }) => {
+      storeOnLayout(direction);
+      // Fit view after layout
+      setTimeout(() => fitView(), 100);
     },
-    [nodes],
+    [storeOnLayout, fitView],
   );
 
   // useLayoutEffect(() => {
@@ -122,11 +111,11 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
         setEdges(newEdges);
         requestAnimationFrame(() => {
           console.log('updated', getNodes(), getEdges());
-          onLayout({ direction: 'DOWN' });
+          storeOnLayout('DOWN');
         });
       }
     },
-    [screenToFlowPosition, nodes, edges, setNodes, setEdges],
+    [screenToFlowPosition, nodes, edges, setNodes, setEdges, getNodes, getEdges, storeOnLayout],
   );
 
   return (

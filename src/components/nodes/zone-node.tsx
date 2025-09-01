@@ -9,6 +9,7 @@ import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState
 import { EditableText } from './subComponents/editable-text';
 import { BaseHandle } from '../base-handle';
 import { useDgStore } from '@/store/dg-store';
+import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 import {
   NodeTooltip,
   NodeTooltipContent,
@@ -21,17 +22,18 @@ import { motion } from 'motion/react';
 import { getGraphStoreHook } from '@/store/graph-registry';
 import { useZoneStore } from '@/store/zone-store';
 import { Button } from '../ui/button';
-
+import { getId } from '@/common/utils/uuid';
 
 const selector = (connection: ConnectionState) => {
   return connection.inProgress;
 };
 
 export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
-  const { setNodes, setEdges } = useReactFlow();
+  const { getNodes, getEdges, setNodes, setEdges } = useReactFlow();
   const zoneId = useZoneStore((s) => s.selectedId);
   const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
   const updateNodeText = storeHook((state) => state.updateNodeText);
+  const onLayout = storeHook((state) => state.onLayout);
   const [showToolbar, setShowToolbar] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleDelete = useCallback(() => {
@@ -45,6 +47,47 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
     }
     setShowToolbar(true);
   };
+  const handleAddNode = useCallback(() => {
+    const ns = getNodes();
+    const es = getEdges();
+    const sourceNode = ns.find((n) => n.id === id);
+    if (!sourceNode) {
+      console.warn('ZoneNode: source node not found', id);
+      return;
+    }
+
+    const targetType = getNextNodeType(sourceNode.type as NodeKey);
+    if (!targetType) {
+      console.warn('ZoneNode: cannot determine target type for', sourceNode.type);
+      return;
+    }
+
+    const newId = getId();
+
+    // Create the new node and edge
+    const newNode = {
+      id: newId,
+      type: targetType,
+      position: { x: 0, y: 0 }, // Will be set by layout
+      data: { content: `Node ${newId}` },
+    };
+
+    const newEdge = {
+      id: `${sourceNode.id}-${newId}`,
+      source: sourceNode.id,
+      target: newId,
+      type: 'default' as const,
+    };
+
+    // Add the new elements to the state
+    setNodes([...ns, newNode]);
+    setEdges([...es, newEdge]);
+
+    // Apply layout immediately after adding
+    onLayout('DOWN');
+
+  }, [getNodes, getEdges, setNodes, setEdges, id, onLayout]);
+
 
   const handleMouseLeave = () => {
     hideTimeoutRef.current = setTimeout(() => {
@@ -59,7 +102,7 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
       className="relative"
     >
       <NodeToolbar isVisible={showToolbar} position={Position.Bottom}>
-        <Button size="sm" variant="secondary" className="rounded-full">
+        <Button size="sm" variant="secondary" className="rounded-full " onClick={handleAddNode}>
           <Plus />
         </Button>
       </NodeToolbar>

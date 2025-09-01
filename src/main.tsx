@@ -17,7 +17,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ZoneSelecter />
-      <AppNav />
+      {/* <AppNav /> */}
       <Stepper />
       <Routes>
         <Route path="/table" element={<EditableNestedTable />} />
