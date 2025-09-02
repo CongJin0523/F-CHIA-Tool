@@ -14,10 +14,13 @@ export type LogicNode = Node<{
   content: string;
 }>;
 const gateTypes: Record<string, string> = {
-  // FTA OR outline only (no center dot)
-  or: "M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0 Z",
-  // FTA AND outline only (no plus sign)
-  and: "M -20 0 L 20 0 C 20 -24 10 -30 0 -30 C -10 -30 -20 -24 -20 0 Z",
+  or: 'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0',
+  xor: 'M -20 0 C -20 -15 -10 -30 0 -30 C 10 -30 20 -15 20 0 C 10 -6 -10 -6 -20 0 M -20 0 0 -30 M 0 -30 20 0',
+  and: 'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z',
+  priority_and:
+    'M -20 0 C -20 -25 -10 -30 0 -30 C 10 -30 20 -25 20 0 Z M -20 0 0 -30 20 0',
+  inhibit: 'M -10 0 -20 -15 -10 -30 10 -30 20 -15 10 0 Z',
+  transfer: 'M -20 0 20 0 0 -30 z',
 };
 export function LogicNode({ id, data }: NodeProps<LogicNode>) {
   const { setNodes, setEdges } = useReactFlow();
@@ -56,23 +59,12 @@ export function LogicNode({ id, data }: NodeProps<LogicNode>) {
                 preserveAspectRatio="xMidYMid meet"
               >
                 <g transform="translate(0, 5)">
-                <path d={gateTypes[gateType]} stroke="currentColor" fill="none" strokeWidth={2} />
-                {/* OR center solid dot */}
-                {/*
-                {gateType === 'or' && (
-                  <circle cx="0" cy="-12" r="3" fill="currentColor" />
-                )}
-                {gateType === 'and' && (
-                  <>
-                    <line x1="-4" y1="-16" x2="4" y2="-16" stroke="currentColor" strokeWidth={2} />
-                    <line x1="0" y1="-20" x2="0" y2="-12" stroke="currentColor" strokeWidth={2} />
-                  </>
-                )}
-                */}
-                {/* 上方立柱 */}
-                <path d="M 0 -30 0 -46" stroke="currentColor" strokeWidth={2} />
-                {/* 下方立柱 */}
-                <path d="M 0 0 0 15" stroke="currentColor" strokeWidth={2} />
+                  <path d={gateTypes[gateType]} stroke="currentColor" fill="none" strokeWidth={2} />
+
+                  {/* 上方立柱 */}
+                  <path d="M 0 -30 0 -46" stroke="currentColor" strokeWidth={2} />
+                  {/* 下方立柱 */}
+                  <path d="M 0 0 0 15" stroke="currentColor" strokeWidth={2} />
                 </g>
               </svg>
             </button>
