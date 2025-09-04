@@ -10,11 +10,11 @@ import { EditableText } from '@/components/nodes/subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 import { useDgStore } from '@/store/dg-store';
 import { motion } from 'motion/react';
-export type ResultEventNode = Node<{
+export type InterEventNode = Node<{
   content: string;
 }>;
 
-export function ResultEventNode({ id, data }: NodeProps<ResultEventNode>) {
+export function InterEventNode({ id, data }: NodeProps<InterEventNode>) {
   const { setNodes, setEdges, updateNodeData } = useReactFlow();
   const updateNodeText = useDgStore((state) => state.updateNodeText);
     const handleText = useCallback(
@@ -52,4 +52,4 @@ export function ResultEventNode({ id, data }: NodeProps<ResultEventNode>) {
     </div>
   );
 }
-ResultEventNode.displayName = "ResultEventNode";
+InterEventNode.displayName = "InterEventNode";

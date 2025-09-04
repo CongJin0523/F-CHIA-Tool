@@ -10,8 +10,8 @@ import {
 } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
-
-
+import DownloadButton from '@/components/DownloadButton';
+import ExportJSONButton from '@/components/ExportJson';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import useDgStore from '@/store/dg-store';
@@ -150,7 +150,9 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
           </Button>
         </Panel>
         <Background />
-      </ ReactFlow>
+        <DownloadButton />
+        <ExportJSONButton />
+      </ReactFlow>
     </div>
   );
 };

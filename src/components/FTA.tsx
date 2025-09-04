@@ -1,13 +1,21 @@
 import { ReactFlow, Background, Controls } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { type FtaNodeTypes, nodeTypes } from '@/common/fta-node-type';
+import TaskSelector from '@/components/FTA/component/taskSelecter';
 const initialNodes: FtaNodeTypes[] = [
-  {
+    {
+    id: 't1',
+    position: { x: -100, y: -100 },
+    data: { content: 'apple, river, glow' },
+    type: 'topEvent',
+  },
+    {
     id: 'n1',
     position: { x: 0, y: 0 },
     data: { content: 'apple, river, glow' },
-    type: 'resultEvent',
+    type: 'interEvent',
   },
+
   {
     id: 'n2',
     position: { x: 100, y: 100 },
@@ -23,6 +31,12 @@ const initialNodes: FtaNodeTypes[] = [
 ];
 
 const initialEdges = [
+  {
+    id: 't1-n1',
+    source: 't1',
+    target: 'n1',
+    type: 'smoothstep',
+  },
   {
     id: 'n1-n2',
     source: 'n1',
@@ -47,6 +61,7 @@ export default function FtaDiagram() {
       >
         <Background />
         <Controls />
+        <TaskSelector />
       </ReactFlow>
     </div>
   );

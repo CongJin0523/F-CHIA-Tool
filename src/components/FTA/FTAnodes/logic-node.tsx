@@ -10,6 +10,7 @@ import { EditableText } from '@/components/nodes/subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 import { useDgStore } from '@/store/dg-store';
 import { motion } from 'motion/react';
+import { NodeTooltip, NodeTooltipContent, NodeTooltipTrigger } from '@/components/node-tooltip';
 export type LogicNode = Node<{
   content: string;
 }>;
@@ -44,32 +45,41 @@ export function LogicNode({ id, data }: NodeProps<LogicNode>) {
         initial={{ opacity: 0, scale: 1 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
-        <BaseNode className="w-20 p-0">
-          <BaseNodeContent className='p-0 flex items-center justify-center'>
-            <button
-              type="button"
-              onClick={handleGateClick}
-              title={`${gateType.toUpperCase()} Gate (click to switch)`}
-              aria-label="Switch gate type"
-              className='inline-flex items-center justify-center'
-            >
-              <svg
-                className="w-full h-full"
-                viewBox="-40 -40 80 60"
-                preserveAspectRatio="xMidYMid meet"
-              >
-                <g transform="translate(0, 5)">
-                  <path d={gateTypes[gateType]} stroke="currentColor" fill="none" strokeWidth={2} />
+        <NodeTooltip>
+          <NodeTooltipContent position={Position.Right} className="text-center">
+            {gateType.replace(/_+/g, ' ').replace(/\w\S*/g, (w) =>                // 匹配每个单词
+    w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+  )} Gate
+          </NodeTooltipContent>
+          <BaseNode className="w-20 p-0">
+            <NodeTooltipTrigger>
+              <BaseNodeContent className='p-0 flex items-center justify-center'>
+                <button
+                  type="button"
+                  onClick={handleGateClick}
+                  title={`${gateType.toUpperCase()} Gate (click to switch)`}
+                  aria-label="Switch gate type"
+                  className='inline-flex items-center justify-center'
+                >
+                  <svg
+                    className="w-full h-full"
+                    viewBox="-40 -40 80 60"
+                    preserveAspectRatio="xMidYMid meet"
+                  >
+                    <g transform="translate(0, 5)">
+                      <path d={gateTypes[gateType]} stroke="currentColor" fill="none" strokeWidth={2} />
 
-                  {/* 上方立柱 */}
-                  <path d="M 0 -30 0 -46" stroke="currentColor" strokeWidth={2} />
-                  {/* 下方立柱 */}
-                  <path d="M 0 0 0 15" stroke="currentColor" strokeWidth={2} />
-                </g>
-              </svg>
-            </button>
-          </BaseNodeContent>
-        </BaseNode >
+                      {/* 上方立柱 */}
+                      <path d="M 0 -30 0 -46" stroke="currentColor" strokeWidth={2} />
+                      {/* 下方立柱 */}
+                      <path d="M 0 0 0 15" stroke="currentColor" strokeWidth={2} />
+                    </g>
+                  </svg>
+                </button>
+              </BaseNodeContent>
+            </NodeTooltipTrigger>
+          </BaseNode >
+        </NodeTooltip>
       </motion.div>
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
