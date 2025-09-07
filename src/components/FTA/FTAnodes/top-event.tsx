@@ -32,11 +32,7 @@ export function TopEventNode({ id, data }: NodeProps<TopEventNode>) {
 
   return (
     <div>
-      <motion.div
-        layout
-        initial={{ opacity: 0, scale: 1 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
+
         <BaseNode className="w-40 border-green-200 bg-green-50">
 
           <BaseNodeContent>
@@ -46,7 +42,7 @@ export function TopEventNode({ id, data }: NodeProps<TopEventNode>) {
             />
           </BaseNodeContent>
         </BaseNode >
-      </motion.div>
+
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </div>
   );

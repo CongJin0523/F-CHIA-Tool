@@ -32,11 +32,7 @@ export function InterEventNode({ id, data }: NodeProps<InterEventNode>) {
 
   return (
     <div>
-      <motion.div
-        layout
-        initial={{ opacity: 0, scale: 1 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
+
         <BaseNode className="w-40 border-red-200 bg-red-50">
 
           <BaseNodeContent>
@@ -46,7 +42,6 @@ export function InterEventNode({ id, data }: NodeProps<InterEventNode>) {
             />
           </BaseNodeContent>
         </BaseNode >
-      </motion.div>
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </div>

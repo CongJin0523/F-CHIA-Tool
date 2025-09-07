@@ -40,11 +40,7 @@ export function LogicNode({ id, data }: NodeProps<LogicNode>) {
 
   return (
     <div>
-      <motion.div
-        layout
-        initial={{ opacity: 0, scale: 1 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
+
         <NodeTooltip>
           <NodeTooltipContent position={Position.Right} className="text-center">
             {gateType.replace(/_+/g, ' ').replace(/\w\S*/g, (w) =>                // 匹配每个单词
@@ -80,7 +76,6 @@ export function LogicNode({ id, data }: NodeProps<LogicNode>) {
             </NodeTooltipTrigger>
           </BaseNode >
         </NodeTooltip>
-      </motion.div>
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </div>

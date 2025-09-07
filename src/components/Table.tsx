@@ -12,6 +12,8 @@ import { deriveRowSpans } from "@/common/deriveRowSpans";
 import { useZoneStore } from "@/store/zone-store";
 import { getGraphStoreHook } from '@/store/graph-registry';
 import IsoMatchingDialog from "@/components/iso-matching-dialog";
+import type { IR } from "@/common/ir";
+import DSM from "@/components/DSM";
 type Update = { id: string; content: string };
 
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
@@ -56,6 +58,7 @@ function collectGraphUpdatesFromForm(data: FormValues): Update[] {
 
   return updates;
 }
+
 export default function EditableNestedTable() {
   const zoneId: string = useZoneStore((s) => s.selectedId);
   const label = useZoneStore((s) =>
@@ -66,7 +69,7 @@ export default function EditableNestedTable() {
   const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
   const nodes = storeHook((state) => state.nodes);
   const edges = storeHook((state) => state.edges);
-
+  
   const defaultValues = useMemo(() => {
     const ir = graphToIR(nodes, edges);
     console.log("Derived IR:", ir);
@@ -86,6 +89,9 @@ export default function EditableNestedTable() {
     control,
     name: "tasks",
   });
+
+
+
   function taskHasWarnings(task: any): boolean {
     const fns = task?.functions ?? [];
     if (!fns.length) return true; // 无 functions
@@ -143,7 +149,7 @@ export default function EditableNestedTable() {
               console.log("Proceed with task:", taskId);
             }}
           >
-            FTA
+            Create FTA
           </Button>
         </div>
       </TableCell>
@@ -605,6 +611,9 @@ export default function EditableNestedTable() {
       </div>
       <div className="mt-4">
         <Button type="submit">Save Changes</Button>
+      </div>
+      <div className="mt-4">
+        <DSM data={defaultValues} />
       </div>
     </form>
   );

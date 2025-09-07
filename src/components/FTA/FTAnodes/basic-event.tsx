@@ -29,11 +29,7 @@ export function BasicEventNode({ id, data }: NodeProps<BasicEventNode>) {
 
   return (
     <div>
-      <motion.div
-        layout
-        initial={{ opacity: 0, scale: 1 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
+
         <BaseNode className="w-20 h-20 rounded-full border-red-200 bg-red-50 flex items-center justify-center">
 
           <BaseNodeContent>
@@ -43,7 +39,6 @@ export function BasicEventNode({ id, data }: NodeProps<BasicEventNode>) {
             />
           </BaseNodeContent>
         </BaseNode >
-      </motion.div>
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
     </div>
   );
