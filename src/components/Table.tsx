@@ -69,7 +69,7 @@ export default function EditableNestedTable() {
   const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
   const nodes = storeHook((state) => state.nodes);
   const edges = storeHook((state) => state.edges);
-  
+
   const defaultValues = useMemo(() => {
     const ir = graphToIR(nodes, edges);
     console.log("Derived IR:", ir);
@@ -437,7 +437,8 @@ export default function EditableNestedTable() {
                                 render={({ field }) => (
                                   <ul>
                                     {field.value.map((prop, idx) => (
-                                      <li key={idx}>
+                                      <li key={idx} className="flex items-start gap-2">
+                                        <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
                                         <Textarea
                                           value={prop}
                                           onChange={(e) => {
@@ -482,7 +483,8 @@ export default function EditableNestedTable() {
                               render={({ field }) => (
                                 <ul>
                                   {field.value.map((prop, idx) => (
-                                    <li key={idx}>
+                                    <li key={idx} className="flex items-start gap-2">
+                                      <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
                                       <Textarea
                                         value={prop.text}
                                         onChange={(e) => {
@@ -506,7 +508,8 @@ export default function EditableNestedTable() {
                               render={({ field }) => (
                                 <ul>
                                   {field.value.map((prop, idx) => (
-                                    <li key={idx}>
+                                    <li key={idx} className="flex items-start gap-2">
+                                      <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
                                       <Textarea
                                         value={prop.text}
                                         onChange={(e) => {
@@ -530,7 +533,8 @@ export default function EditableNestedTable() {
                               render={({ field }) => (
                                 <ul>
                                   {field.value.map((prop, idx) => (
-                                    <li key={idx}>
+                                    <li key={idx} className="flex items-start gap-2">
+                                      <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
                                       <Textarea
                                         value={prop.text}
                                         onChange={(e) => {
@@ -554,7 +558,8 @@ export default function EditableNestedTable() {
                               render={({ field }) => (
                                 <ul>
                                   {field.value.map((prop, idx) => (
-                                    <li key={idx}>
+                                    <li key={idx} className="flex items-start gap-2">
+                                      <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
                                       <Textarea
                                         value={prop.text}
                                         onChange={(e) => {
