@@ -14,6 +14,7 @@ import { getGraphStoreHook } from '@/store/graph-registry';
 import IsoMatchingDialog from "@/components/iso-matching-dialog";
 import type { IR } from "@/common/ir";
 import DSM from "@/components/DSM";
+import jsonTest from "@/common/jsonTest";
 type Update = { id: string; content: string };
 
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
@@ -584,7 +585,9 @@ export default function EditableNestedTable() {
                               }
                               // 可把当前行的 requirement 文本拼起来作为默认输入
                               defaultRequirement={
-                                (interpretation.requirements ?? []).map(r => r.text).join("\n")
+                                (interpretation.requirements ?? [])
+                                  .map((r, i) => `${i + 1}. ${r.text}`)
+                                  .join("\n")
                               }
                               onConfirm={(selectedItems) => {
                                 // TODO: 这里拿到选择的标准结果，写回你的状态或 edges/nodes，
@@ -597,6 +600,7 @@ export default function EditableNestedTable() {
                                   interpretationIndex,
                                 });
                               }}
+                              mockResponse={jsonTest}
                             />
                           </TableCell>
 

@@ -91,12 +91,15 @@ export interface IsoMatchingDialogProps {
   defaultRequirement?: string;
   /** 匹配确认回调（把勾选的 items 传回父组件） */
   onConfirm?: (items: ResultItem[]) => void;
+
+  mockResponse?: any;
 }
 
 export default function IsoMatchingDialog({
   trigger,
   defaultRequirement = "",
   onConfirm,
+  mockResponse,
 }: IsoMatchingDialogProps) {
   const [open, setOpen] = useState(false);
   const [apiKey, setApiKey] = useState("");
@@ -125,6 +128,11 @@ export default function IsoMatchingDialog({
     setError("");
 
     try {
+      let respData: any;
+      if (mockResponse) {
+        // 测试用的 Mock 数据
+        respData = mockResponse;
+      } else {
       const system = `
 You are a functional safety expert.
 TASK: Map a user's Safety Requirement to relevant ISO/IEC standards.
@@ -187,8 +195,10 @@ STRICT RULES:
           timeout: 300000,
         }
       );
+      respData = resp.data;
+    }
 
-      const results = extractResults(resp.data);
+      const results = extractResults(respData);
 
       // 过滤掉非白名单链接的项；并清洗 links
       const filtered = results
@@ -369,7 +379,7 @@ STRICT RULES:
           </Button>
         </div>
 
-        {/* Debug 区域（可选） */}
+        {/* Debug 区域（可选）
         <div className="mt-3">
           <div className="text-xs text-muted-foreground font-medium">
             Raw Response (Debug)
@@ -377,7 +387,7 @@ STRICT RULES:
           <pre className="max-h-48 overflow-auto text-xs rounded-md bg-neutral-950 text-white p-3">
             {raw || "(Empty)"}
           </pre>
-        </div>
+        </div> */}
       </DialogContent>
     </Dialog>
   );
@@ -385,7 +395,7 @@ STRICT RULES:
 
 function safeHost(u: string) {
   try {
-    return new URL(u).hostname;
+    return new URL(u).href;
   } catch {
     return u;
   }
