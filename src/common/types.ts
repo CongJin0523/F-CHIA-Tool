@@ -56,14 +56,20 @@ export interface AppState {
 
 // 更通用的小类型
 export type IdText = { id: string; text: string };
-
+export type IsoMatch = {
+  iso_number: string;
+  title: string;
+  reason: string;
+  links: string[];
+};
 export interface Interpretation {
-  guideWordId: string;                          // ✅ 新增：对应 guideword 节点 ID
+  guideWordId: string;                          
   guideWord: "Part of" | "Other than" | "No";
-  deviations: IdText[];                         // ✅ string[] -> IdText[]
-  causes: IdText[];                             // ✅
-  consequences: IdText[];                       // ✅
-  requirements: IdText[];                       // ✅
+  deviations: IdText[];
+  causes: IdText[];
+  consequences: IdText[];
+  requirements: IdText[];
+  isoMatches?: IsoMatch[];
 }
 
 export interface Property {
@@ -87,7 +93,7 @@ export interface Func {
   realizations: Realization[];
 }
 
-export interface Task  {
+export interface Task {
   id: string;                                   // ✅ 新增
   taskName: string;
   rowSpan: number;

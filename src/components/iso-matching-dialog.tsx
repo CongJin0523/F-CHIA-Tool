@@ -27,25 +27,17 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { Label } from "@/components/ui/label";
-
+import { LINK_WHITELIST, type ResultItem } from "@/common/iso-match-tool"; 
 const OPENAI_ENDPOINT = "https://api.openai.com/v1/responses";
 
-const LINK_WHITELIST = [
-  "iso.org",
-  "webstore.iec.ch",
-  "bsigroup.com",
-  "ansi.org",
-  "techstreet.com",
-  "din.de",
-  "sis.se",
-];
 
-export type ResultItem = {
-  iso_number: string;
-  title: string;
-  reason: string;
-  links: string[];
-};
+
+// export type ResultItem = {
+//   iso_number: string;
+//   title: string;
+//   reason: string;
+//   links: string[];
+// };
 
 type ResultPayload = {
   items: ResultItem[];

@@ -60,6 +60,18 @@ function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   return updates;
 }
 
+
+import { type ResultItem } from "@/common/iso-match-tool";
+import AddIsoDialog from "./manually-add-iso";
+
+type IsoMatch = ResultItem;
+
+const uniqIso = (list: IsoMatch[]) => {
+  const m = new Map<string, IsoMatch>();
+  for (const it of list) m.set(`${it.iso_number}::${it.title}`, it);
+  return Array.from(m.values());
+};
+
 export default function EditableNestedTable() {
   const zoneId: string = useZoneStore((s) => s.selectedId);
   const label = useZoneStore((s) =>
@@ -72,7 +84,7 @@ export default function EditableNestedTable() {
   const edges = storeHook((state) => state.edges);
 
   const defaultValues = useMemo(() => {
-    const ir = graphToIR(nodes, edges);
+    const ir: IR = graphToIR(nodes, edges);
     console.log("Derived IR:", ir);
     return deriveRowSpans(ir);
   }, [nodes, edges]);
@@ -575,32 +587,96 @@ export default function EditableNestedTable() {
                               )}
                             />
                           </TableCell>
+
+
+
                           {/* ISO Standard */}
                           <TableCell>
-                            <IsoMatchingDialog
-                              trigger={
-                                <Button type="button" disabled={!hasRequirements}>
-                                  Matching
-                                </Button>
-                              }
-                              // 可把当前行的 requirement 文本拼起来作为默认输入
-                              defaultRequirement={
-                                (interpretation.requirements ?? [])
-                                  .map((r, i) => `${i + 1}. ${r.text}`)
-                                  .join("\n")
-                              }
-                              onConfirm={(selectedItems) => {
-                                // TODO: 这里拿到选择的标准结果，写回你的状态或 edges/nodes，
-                                // 或在某处保存 / 标注对应的 interpretation。
-                                console.log("Selected ISO items:", selectedItems, {
-                                  taskId: task.id,
-                                  functionId: fn.id,
-                                  realizationId: realization.id,
-                                  propertyId: property.id,
-                                  interpretationIndex,
-                                });
+                            <Controller
+                              control={control}
+                              name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.isoMatches`}
+                              render={({ field }) => {
+                                const selectedIso = field.value ?? [];
+                                const removeAt = (idx: number) => {
+                                  const next = selectedIso.slice();
+                                  next.splice(idx, 1);
+                                  field.onChange(next);
+                                };
+
+                                const addManual = (item: IsoMatch) => {
+                                  field.onChange(uniqIso([...(field.value ?? []), item]));
+                                };
+
+                                const addFromAI = (items: IsoMatch[]) => {
+                                  field.onChange(uniqIso([...(field.value ?? []), ...items]));
+                                };
+
+                                return (
+                                  <div className="space-y-2 flex flex-col">
+                                    {/* 已选标签 */}
+                                    {selectedIso.length > 0 ? (
+                                      <div className="flex flex-wrap gap-2">
+                                        {selectedIso.map((it: any, idx: number) => (
+                                          <span
+                                            key={`${it.iso_number}-${idx}`}
+                                            className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200"
+                                            title={it.title}
+                                          >
+                                            {it.iso_number}
+                                            <button
+                                              type="button"
+                                              aria-label="Remove"
+                                              className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
+                                              onClick={() => removeAt(idx)}
+                                              title="移除该条"
+                                            >
+                                              ×
+                                            </button>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-xs text-muted-foreground">No ISO selected.</div>
+                                    )}
+
+                                    <IsoMatchingDialog
+                                      trigger={
+                                        <Button type="button" disabled={!hasRequirements} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                          Matching(AI)
+                                        </Button>
+                                      }
+                                      // 可把当前行的 requirement 文本拼起来作为默认输入
+                                      defaultRequirement={
+                                        (interpretation.requirements ?? [])
+                                          .map((r, i) => `${i + 1}. ${r.text}`)
+                                          .join("\n")
+                                      }
+                                      onConfirm={(selectedItems) => {
+                                        // TODO: 这里拿到选择的标准结果，写回你的状态或 edges/nodes，
+                                        // 或在某处保存 / 标注对应的 interpretation。
+                                        field.onChange(selectedItems);
+                                        console.log("Selected ISO items:", selectedItems, {
+                                          taskId: task.id,
+                                          functionId: fn.id,
+                                          realizationId: realization.id,
+                                          propertyId: property.id,
+                                          interpretationIndex,
+                                        });
+                                      }}
+                                      mockResponse={jsonTest} // fake data
+                                    />
+
+                                    <AddIsoDialog
+                                      trigger={
+                                        <Button type="button" disabled={!hasRequirements} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                          Add Manually
+                                        </Button>
+                                      }
+                                      onAdd={addManual}
+                                    />
+                                  </div>
+                                );
                               }}
-                              mockResponse={jsonTest}
                             />
                           </TableCell>
 
@@ -624,6 +700,6 @@ export default function EditableNestedTable() {
       <div className="mt-4">
         <DSM data={defaultValues} />
       </div>
-    </form>
+    </form >
   );
 }
