@@ -59,8 +59,8 @@ export type IdText = { id: string; text: string };
 export type IsoMatch = {
   iso_number: string;
   title: string;
-  reason: string;
-  links: string[];
+  reason?: string;
+  links?: string[];
 };
 export interface Interpretation {
   guideWordId: string;                          

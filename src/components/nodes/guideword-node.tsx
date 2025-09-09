@@ -18,8 +18,10 @@ import {
 import { motion } from 'motion/react';
 import { useZoneStore } from '@/store/zone-store';
 import { getGraphStoreHook } from '@/store/graph-registry';
+import type { IsoMatch } from '@/common/types';
 export type GuideWordNode = Node<{
   content: string;
+  isoMatches?: IsoMatch[];
 }>;
 
 

@@ -1,5 +1,6 @@
 // src/common/deriveRowSpans.ts
 // src/common/deriveRowSpans.ts
+import { iso } from "zod";
 import type { IR } from "./ir";
 import type { FormValues } from "./types";
 
@@ -15,6 +16,7 @@ function makePlaceholderInterpretation(propertyId: string) {
     causes: [] as { id: string; text: string }[],
     consequences: [] as { id: string; text: string }[],
     requirements: [] as { id: string; text: string }[],
+    isoMatches: [] as { iso_number: string; title: string; reason?: string; links?: string[] }[],
   };
 }
 
@@ -46,6 +48,7 @@ export function deriveRowSpans(ir: IR): FormValues {
                   causes: it.causes.map(c => ({ id: c.id, text: c.text })),
                   consequences: it.consequences.map(cs => ({ id: cs.id, text: cs.text })),
                   requirements: it.requirements.map(rq => ({ id: rq.id, text: rq.text })),
+                  isoMatches: it.isoMatches ?? [],
                 }))
               : [makePlaceholderInterpretation(p.id)],
             rowSpan: 1,

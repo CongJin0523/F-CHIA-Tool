@@ -1,11 +1,18 @@
 // src/common/ir.ts
-import { z } from "zod";
+import { iso, z } from "zod";
 
 export const IdTextSchema = z.object({
   id: z.string(),
   text: z.string().default(""),
 });
 export type IdText = z.infer<typeof IdTextSchema>;
+
+export const IsoMatchSchema = z.object({
+  iso_number: z.string(),
+  title: z.string(),
+  reason: z.string().optional(),
+  links: z.array(z.string()).optional(), // ← 链接可选；若你仍想强制至少 1 条，把 .optional() 改为 .min(1)
+});
 
 export const InterpretationSchema = z.object({
   guideWordId: z.string(),
@@ -16,6 +23,7 @@ export const InterpretationSchema = z.object({
   causes: z.array(IdTextSchema).default([]),
   consequences: z.array(IdTextSchema).default([]),
   requirements: z.array(IdTextSchema).default([]),
+  isoMatches: z.array(IsoMatchSchema).default([]),
 });
 
 export const PropertySchema = z.object({

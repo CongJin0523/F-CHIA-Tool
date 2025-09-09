@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { type FormValues } from "@/common/types";
+import { type FormValues, type IsoMatch } from "@/common/types";
 import { graphToIR } from "@/common/graphToIR";
 import { deriveRowSpans } from "@/common/deriveRowSpans";
 import { useZoneStore } from "@/store/zone-store";
@@ -60,11 +60,27 @@ function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   return updates;
 }
 
+function collectIsoMatchesFromForm(data: FormValues) {
+  const map = new Map<string, IsoMatch[]>();
 
-import { type ResultItem } from "@/common/iso-match-tool";
+  for (const task of data.tasks ?? []) {
+    for (const fn of task.functions ?? []) {
+      for (const real of fn.realizations ?? []) {
+        for (const prop of real.properties ?? []) {
+          for (const inter of prop.interpretations ?? []) {
+            if (!inter?.guideWordId) continue;
+            const list = inter.isoMatches ?? [];
+            map.set(inter.guideWordId, list);
+          }
+        }
+      }
+    }
+  }
+  return map;
+}
 import AddIsoDialog from "./manually-add-iso";
 
-type IsoMatch = ResultItem;
+
 
 const uniqIso = (list: IsoMatch[]) => {
   const m = new Map<string, IsoMatch>();
@@ -171,25 +187,41 @@ export default function EditableNestedTable() {
   const onSubmit = (data: FormValues) => {
     const updates = collectGraphUpdatesFromForm(data);
 
-    if (!updates.length) {
+    const isoMap = collectIsoMatchesFromForm(data);
+
+    if (!updates.length && isoMap.size === 0) {
       console.log("No changes to save.");
       return;
     }
-    const map = new Map<string, string>(updates.map(u => [u.id, u.content]));
+    const mapContent = new Map<string, string>(updates.map(u => [u.id, u.content]));
 
-    // 3) 读取当前 zone 的节点，并构造写回后的 nodes
-    const graphState = storeHook.getState(); // Zustand getState
-    const nextNodes = graphState.nodes.map(n =>
-      map.has(n.id)
-        ? { ...n, data: { ...n.data, content: map.get(n.id)! } }
-        : n
-    );
+  // 3) 读取当前 zone 的节点，并构造写回后的 nodes
+  const graphState = storeHook.getState(); // Zustand getState
+  const nextNodes = graphState.nodes.map(n => {
+    let next = n;
 
-    // 4) 一次性写回
-    graphState.setNodes(nextNodes);
+    // 3a) 写回 content（原有逻辑）
+    if (mapContent.has(n.id)) {
+      next = { ...next, data: { ...next.data, content: mapContent.get(n.id)! } };
+    }
 
-    console.log("Saved updates:", updates);
-  };
+    // 3b) 写回 isoMatches 到 guideWord 节点
+    if (isoMap.has(n.id)) {
+      const isoMatches = isoMap.get(n.id)!;
+      next = { ...next, data: { ...next.data, isoMatches } };
+    }
+
+    return next;
+  });
+
+  // 4) 一次性写回
+  graphState.setNodes(nextNodes);
+
+  console.log("Saved updates:", {
+    textUpdates: updates.length,
+    isoPairs: isoMap.size,
+  });
+};
 
   return (
 
@@ -651,18 +683,7 @@ export default function EditableNestedTable() {
                                           .map((r, i) => `${i + 1}. ${r.text}`)
                                           .join("\n")
                                       }
-                                      onConfirm={(selectedItems) => {
-                                        // TODO: 这里拿到选择的标准结果，写回你的状态或 edges/nodes，
-                                        // 或在某处保存 / 标注对应的 interpretation。
-                                        field.onChange(selectedItems);
-                                        console.log("Selected ISO items:", selectedItems, {
-                                          taskId: task.id,
-                                          functionId: fn.id,
-                                          realizationId: realization.id,
-                                          propertyId: property.id,
-                                          interpretationIndex,
-                                        });
-                                      }}
+                                      onConfirm={addFromAI}
                                       mockResponse={jsonTest} // fake data
                                     />
 

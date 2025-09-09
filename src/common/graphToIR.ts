@@ -62,6 +62,7 @@ export function graphToIR(nodes: AppNode[], edges: Edge[]): IR {
               return {
                 guideWordId: gwNode.id,
                 guideWord: normalizeGuideWord(gwNode.data.content),
+                isoMatches: gwNode.data?.isoMatches ??  [],
                 deviations,
                 causes,
                 consequences,
