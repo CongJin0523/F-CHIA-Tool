@@ -14,7 +14,6 @@ import { DnDProvider, useDnD } from '@/components/FTA/component/DnDContext';
 import { type FtaNodeTypes, nodeTypes } from '@/common/fta-node-type';
 import TaskSelector from '@/components/FTA/component/taskSelecter';
 import Sidebar from '@/components/FTA/component/Sidebar';
-import { set } from 'zod';
 const initialNodes: FtaNodeTypes[] = [
   {
     id: 't1',

@@ -16,6 +16,10 @@ import type { IR } from "@/common/ir";
 import DSM from "@/components/DSM";
 import jsonTest from "@/common/jsonTest";
 type Update = { id: string; content: string };
+import AddIsoDialog from "@/components/manually-add-iso";
+import { type Edge } from '@xyflow/react';
+import { type FtaNodeTypes } from '@/common/fta-node-type';
+import { getFtaStoreHook } from '@/store/fta-registry';
 
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   const updates: Update[] = [];
@@ -78,7 +82,26 @@ function collectIsoMatchesFromForm(data: FormValues) {
   }
   return map;
 }
-import AddIsoDialog from "./manually-add-iso";
+function ensureTopEvent(zoneId: string, taskId: string, taskName: string) {
+  const hook = getFtaStoreHook(zoneId, taskId);
+  const st = hook.getState();
+  if (!st.nodes || st.nodes.length === 0) {
+    const topId = `top-${taskId}`;
+    const nodes: FtaNodeTypes[] = [
+      {
+        id: topId,
+        type: 'topEvent',               // 你在 fta-node-type 里定义的类型
+        position: { x: 0, y: 0 },
+        data: { content: taskName || `Top of ${taskId}` },
+      },
+    ];
+    const edges: Edge[] = [];
+    st.setNodes(nodes);
+    st.setEdges(edges);
+    // 可选：立即跑一次布局；也可放到 FTA 画布 onInit 时 fitView + layout
+    st.onLayout?.('DOWN');
+  }
+}
 
 
 
@@ -104,7 +127,7 @@ export default function EditableNestedTable() {
     console.log("Derived IR:", ir);
     return deriveRowSpans(ir);
   }, [nodes, edges]);
-  const { control, handleSubmit, reset } = useForm<FormValues>({
+  const { control, handleSubmit, reset, getValues } = useForm<FormValues>({
     defaultValues,
   });
   useEffect(() => {
@@ -150,12 +173,14 @@ export default function EditableNestedTable() {
     rowSpan,
     hasWarnings,
     taskId,
+    getTaskName,
   }: {
     control: any;
     taskIndex: number;
     rowSpan?: number;
     hasWarnings: boolean;
     taskId: string;
+    getTaskName?: () => string;
   }) {
     return (
       <TableCell rowSpan={rowSpan || 1}>
@@ -175,8 +200,16 @@ export default function EditableNestedTable() {
                 : "All good! You can proceed."
             }
             onClick={() => {
-              console.log("Proceed with task:", taskId);
-            }}
+            const taskName = getTaskName(); // <-- 当前表单里的任务名
+            // zoneId 也要可用
+            if (!zoneId) {
+              console.warn("No zone selected.");
+              return;
+            }
+            ensureTopEvent(zoneId, taskId, taskName);
+            // TODO: 这里可以路由跳转到 FTA 画布：
+            // router.push(`/fta?zone=${encodeURIComponent(zoneId)}&task=${encodeURIComponent(taskId)}`);
+          }}
           >
             Create FTA
           </Button>
@@ -448,6 +481,7 @@ export default function EditableNestedTable() {
                               rowSpan={task.rowSpan}
                               hasWarnings={hasWarnings}
                               taskId={task.id}
+                              getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                             />
                           )}
 
@@ -660,7 +694,7 @@ export default function EditableNestedTable() {
                                               aria-label="Remove"
                                               className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
                                               onClick={() => removeAt(idx)}
-                                              title="移除该条"
+                                              title="remove this ISO"
                                             >
                                               ×
                                             </button>
