@@ -13,10 +13,12 @@ import { Toaster } from "@/components/ui/sonner"
 import EditableNestedTable from '@/components/Table.tsx'
 import ZoneSelecter from '@/components/ZoneSelecter.tsx'
 import Stepper from '@/components/Stepper.tsx';
+import Header from '@/components/Header';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Toaster position="top-center" richColors expand={false} closeButton/>
     <BrowserRouter>
+      <Header />
       <ZoneSelecter />
       {/* <AppNav /> */}
       <Stepper />
