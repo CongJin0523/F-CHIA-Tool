@@ -99,6 +99,7 @@ export function graphToIR(nodes: AppNode[], edges: Edge[]): IR {
       };
     });
   console.log("Tasks constructed:", tasks);
+  console.log('graphToIR tasks:', nodes.filter(n=>n.type==='task').map(n=>({id:n.id, content:n.data?.content})));
   // 用 Zod 做一次 parse，顺便填默认值/校验
   return IRSchema.parse({ tasks });
 }

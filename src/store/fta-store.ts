@@ -10,7 +10,7 @@ import type { FtaNodeTypes } from '@/common/fta-node-type';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 
-type FtaState = {
+export type FtaState = {
   nodes: FtaNodeTypes[];
   edges: Edge[];
   setNodes: (nodes: FtaNodeTypes[]) => void;
@@ -48,3 +48,4 @@ export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; ed
     , { name: `fta-${id}` }))
     ;
 }
+

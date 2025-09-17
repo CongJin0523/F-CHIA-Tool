@@ -20,6 +20,7 @@ import AddIsoDialog from "@/components/manually-add-iso";
 import { type Edge } from '@xyflow/react';
 import { type FtaNodeTypes } from '@/common/fta-node-type';
 import { getFtaStoreHook } from '@/store/fta-registry';
+import { useNavigate } from "react-router-dom";
 
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   const updates: Update[] = [];
@@ -99,7 +100,7 @@ function ensureTopEvent(zoneId: string, taskId: string, taskName: string) {
     st.setNodes(nodes);
     st.setEdges(edges);
     // 可选：立即跑一次布局；也可放到 FTA 画布 onInit 时 fitView + layout
-    st.onLayout?.('DOWN');
+    // st.onLayout?.('DOWN');
   }
 }
 
@@ -112,6 +113,7 @@ const uniqIso = (list: IsoMatch[]) => {
 };
 
 export default function EditableNestedTable() {
+  const navigate = useNavigate();
   const zoneId: string = useZoneStore((s) => s.selectedId);
   const label = useZoneStore((s) =>
     s.zones.find(z => z.id === s.selectedId)?.label
@@ -140,6 +142,7 @@ export default function EditableNestedTable() {
   const { fields: taskFields } = useFieldArray({
     control,
     name: "tasks",
+    keyName: "fieldId",
   });
 
 
@@ -182,6 +185,7 @@ export default function EditableNestedTable() {
     taskId: string;
     getTaskName?: () => string;
   }) {
+    console.log("Rendering TaskCell - taskId:", taskId); 
     return (
       <TableCell rowSpan={rowSpan || 1}>
 
@@ -207,8 +211,7 @@ export default function EditableNestedTable() {
               return;
             }
             ensureTopEvent(zoneId, taskId, taskName);
-            // TODO: 这里可以路由跳转到 FTA 画布：
-            // router.push(`/fta?zone=${encodeURIComponent(zoneId)}&task=${encodeURIComponent(taskId)}`);
+            navigate(`/fta?zone=${encodeURIComponent(zoneId)}&task=${encodeURIComponent(taskId)}`);
           }}
           >
             Create FTA
@@ -289,13 +292,14 @@ export default function EditableNestedTable() {
 
               if (!functionFields?.length) {
                 return (
-                  <TableRow key={`${task.id}-empty`}>
+                  <TableRow key={`${task.fieldId}-empty`}>
                     <TaskCell
                       control={control}
                       taskIndex={taskIndex}
                       rowSpan={1}
                       hasWarnings={true}
                       taskId={task.id}
+                      getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                     />
                     <TableCell colSpan={9} className="text-amber-600">
                       No function found, please complete in the graph editor.
@@ -310,7 +314,7 @@ export default function EditableNestedTable() {
                 // ① Function 没有 realizations：渲染一行告警
                 if (!fn.realizations || fn.realizations.length === 0) {
                   return (
-                    <TableRow key={`${task.id}-${functionIndex}-no-real`}>
+                    <TableRow key={`${task.fieldId}-${functionIndex}-no-real`}>
                       {/* Task */}
                       {!taskRendered && (
                         <TaskCell
@@ -319,6 +323,7 @@ export default function EditableNestedTable() {
                           rowSpan={task.rowSpan}
                           hasWarnings={true}
                           taskId={task.id}
+                          getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                         />
                       )}
                       {/* Function */}
@@ -348,7 +353,7 @@ export default function EditableNestedTable() {
                   // ② Realization 没有 properties：渲染一行告警
                   if (!realization.properties || realization.properties.length === 0) {
                     return (
-                      <TableRow key={`${task.id}-${functionIndex}-${realizationIndex}-no-prop`}>
+                      <TableRow key={`${task.fieldId}-${functionIndex}-${realizationIndex}-no-prop`}>
                         {/* Task */}
                         {!taskRendered && (
                           <TaskCell
@@ -357,6 +362,7 @@ export default function EditableNestedTable() {
                             rowSpan={task.rowSpan}
                             hasWarnings={true}
                             taskId={task.id}
+                            getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                           />
                         )}
                         {/* Function */}
@@ -397,7 +403,7 @@ export default function EditableNestedTable() {
                     // ③ Property 没有 interpretations：渲染一行告警
                     if (!property.interpretations || property.interpretations.length === 0) {
                       return (
-                        <TableRow key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-no-inter`}>
+                        <TableRow key={`${task.fieldId}-${functionIndex}-${realizationIndex}-${propertyIndex}-no-inter`}>
                           {/* Task */}
                           {!taskRendered && (
                             <TaskCell
@@ -406,6 +412,7 @@ export default function EditableNestedTable() {
                               rowSpan={task.rowSpan}
                               hasWarnings={true}
                               taskId={task.id}
+                              getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                             />
                           )}
                           {/* Function */}
@@ -471,7 +478,7 @@ export default function EditableNestedTable() {
                       const hasRequirements = Array.isArray(interpretation.requirements) && interpretation.requirements.length > 0;
                       return (
                         <TableRow
-                          key={`${task.id}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}
+                          key={`${task.fieldId}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}
                         >
                           {/* Task */}
                           {!taskRendered && (

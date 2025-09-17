@@ -1,124 +1,125 @@
-import React, { useRef, useCallback } from 'react';
-import {
-  ReactFlow,
-  ReactFlowProvider,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  Controls,
-  useReactFlow,
-  Background,
-} from '@xyflow/react';
+// pages/FtaDiagram.tsx
+import React, { useRef, useCallback, useEffect, useMemo } from 'react';
+import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { useStore } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { DnDProvider, useDnD } from '@/components/FTA/component/DnDContext';
 import { type FtaNodeTypes, nodeTypes } from '@/common/fta-node-type';
-import TaskSelector from '@/components/FTA/component/taskSelecter';
 import Sidebar from '@/components/FTA/component/Sidebar';
-const initialNodes: FtaNodeTypes[] = [
-  {
-    id: 't1',
-    position: { x: -100, y: -100 },
-    data: { content: 'apple, river, glow' },
-    type: 'topEvent',
-  },
-  {
-    id: 'n1',
-    position: { x: 0, y: 0 },
-    data: { content: 'apple, river, glow' },
-    type: 'interEvent',
-  },
+import TaskSelectorLocal from '@/components/FTA/TaskSelectorLocal';
+import { getFtaStoreHook } from '@/store/fta-registry';
+import { useSearchParams } from 'react-router-dom';
+import { listAllFtaTasks } from '@/common/fta-storage';
+import type { FtaState } from '@/store/fta-store';
 
-  {
-    id: 'n2',
-    position: { x: 100, y: 100 },
-    data: { content: 'Node 2' },
-    type: 'logic',
-  },
-  {
-    id: 'n3',
-    position: { x: 200, y: 200 },
-    data: { content: 'Node 3' },
-    type: 'basicEvent',
-  },
-];
+const selector = (s: FtaState) => ({
+  nodes: s.nodes,
+  edges: s.edges,
+  setNodes: s.setNodes,
+  setEdges: s.setEdges,
+  onNodesChange: s.onNodesChange,
+  onEdgesChange: s.onEdgesChange,
+  onLayout: s.onLayout,
+});
 
-const initialEdges = [
-  {
-    id: 't1-n1',
-    source: 't1',
-    target: 'n1',
-    type: 'smoothstep',
-  },
-  {
-    id: 'n1-n2',
-    source: 'n1',
-    target: 'n2',
-    type: 'smoothstep',
-  },
-  {
-    id: 'n2-n3',
-    source: 'n2',
-    target: 'n3',
-    type: 'smoothstep',
-  },
-];
 let id = 0;
 const getId = () => `dndnode_${id++}`;
-function FtaFlow() {
-  const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const { screenToFlowPosition } = useReactFlow();
-  const [type, setType] = useDnD();
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
 
-  const onDragOver = useCallback((event) => {
+function ensureTopIfEmpty(hook: any, taskId: string, fitView?: () => void) {
+  const st = hook.getState();
+  if (!st.nodes || st.nodes.length === 0) {
+    const topId = `top-${taskId}`;
+    const seed: FtaNodeTypes[] = [{
+      id: topId,
+      type: 'topEvent',
+      position: { x: 0, y: 0 },
+      data: { content: `Top Event of ${taskId}` },
+    }];
+    st.setNodes(seed);
+    st.setEdges([]);
+    st.onLayout?.('DOWN');
+    requestAnimationFrame(() => fitView?.());
+  }
+}
+
+function FtaFlow() {
+  const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  // 1) 读取所有 zone 下的 FTA
+  const all = useMemo(() => listAllFtaTasks(), []);
+  // 2) URL params 优先，没有就用列表第一个兜底
+  const zoneParam = params.get('zone');
+  const taskParam = params.get('task');
+  const zoneId = zoneParam ?? all[0]?.zoneId ?? null;
+  const taskId = taskParam ?? (zoneId ? all.find(a => a.zoneId === zoneId)?.taskId : null) ?? null;
+
+  // 3) 没有任何 FTA —— 空态
+  if (!zoneId || !taskId) {
+    return (
+      <div className="h-screen w-screen flex">
+        <aside className="w-80 border-l bg-white overflow-auto">
+          <TaskSelectorLocal />
+          <Sidebar />
+        </aside>
+        <div className="flex-1 p-8 flex items-center justify-center text-sm text-muted-foreground">
+          No FTA found. Please create one from the table, then come back.
+        </div>
+      </div>
+    );
+  }
+
+  // 4) 创建/获取对应 store hook（注意：此时 zoneId、taskId 一定存在）
+  const ftaHook = useMemo(() => getFtaStoreHook(zoneId, taskId), [zoneId, taskId]);
+
+  // 5) 安全订阅（ftaHook 永远非空）
+  const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, onLayout } =
+    useStore(ftaHook, useShallow(selector));
+
+  const { screenToFlowPosition, fitView } = useReactFlow();
+  const [type, setType] = useDnD();
+
+  // 6) 初次/切换时，若为空自动建 topEvent
+  useEffect(() => {
+    ensureTopIfEmpty(ftaHook, taskId, fitView);
+  }, [ftaHook, taskId, fitView]);
+
+  const onConnect = useCallback((params: any) => {
+    setEdges(addEdge(params, edges));
+  }, [edges, setEdges]);
+
+  const onDragOver = useCallback((event: DragEvent) => {
     event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
+    (event.dataTransfer as DataTransfer).dropEffect = 'move';
   }, []);
 
-  const onDrop = useCallback(
-    (event) => {
-      event.preventDefault();
+  const onDrop = useCallback((event: any) => {
+    event.preventDefault();
+    if (!type) return;
 
-      // check if the dropped element is valid
-      if (!type) {
-        return;
-      }
+    const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+    const newNode: FtaNodeTypes = { id: getId(), type, position, data: { content: `${type} node` } };
+    setNodes(nodes.concat(newNode));
+  }, [type, screenToFlowPosition, nodes, setNodes]);
 
-      // project was renamed to screenToFlowPosition
-      // and you don't need to subtract the reactFlowBounds.left/top anymore
-      // details: https://reactflow.dev/whats-new/2023-11-10
-      const position = screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-      const newNode = {
-        id: getId(),
-        type,
-        position,
-        data: { content: `${type} node` },
-      };
-
-      setNodes((nds) => nds.concat(newNode));
-    },
-    [screenToFlowPosition, type, setNodes],
-  );
-
-  const onDragStart = (event, nodeType) => {
+  const onDragStart = (event: any, nodeType: string) => {
     setType(nodeType);
     event.dataTransfer.setData('text/plain', nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
 
-
   return (
     <div className="h-screen w-screen flex">
       <aside className="w-80 border-l bg-white overflow-auto">
+        {/* 选择器会列出“全部 Zone”的 FTA；切换时改 URL params */}
+        <TaskSelectorLocal />
         <Sidebar />
       </aside>
+
       <div className="flex-1 p-8" ref={reactFlowWrapper}>
         <ReactFlow
+          key={`${zoneId}:${taskId}`}   // 切换任务时强制重挂载刷新
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -129,16 +130,18 @@ function FtaFlow() {
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           fitView
+          onInit={() => {
+            onLayout?.('DOWN');
+            requestAnimationFrame(() => fitView?.());
+          }}
         >
           <Controls />
           <Background />
         </ReactFlow>
       </div>
-
     </div>
   );
 }
-
 
 export default function FtaDiagram() {
   return (
