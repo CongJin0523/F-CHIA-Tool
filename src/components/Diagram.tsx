@@ -15,7 +15,7 @@ import ExportJSONButton from '@/components/ExportJson';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import useDgStore from '@/store/dg-store';
-
+import { toast } from "sonner"
 import { useStore } from 'zustand';
 import ShortUniqueId from 'short-uuid';
 
@@ -72,6 +72,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
 
     const targetType: NodeKey = getNextNodeType(sourceNode.type);
     if (targetNode.type !== targetType) {
+      toast.error("❌ invalid connection, need to change target node type");
       console.log("❌ invalid connection, need to change target node type");
       return;
     }
@@ -82,41 +83,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
     setEdges(nextEdges); // <— 关键：不要传函数
   }, [getNodes, getEdges, setEdges]);
 
-  const onConnectEnd = useCallback(
-    (event, connectionState) => {
-      console.log('onConnectEnd', event, connectionState);
-      // when a connection is dropped on the pane it's not valid
-      if (!connectionState.isValid) {
-        // we need to remove the wrapper bounds, in order to get the correct position
-        const targetType: NodeKey = getNextNodeType(connectionState.fromNode.type);
-        console.log('sourceType', targetType);
-        const id = getId();
-        const { clientX, clientY } =
-          'changedTouches' in event ? event.changedTouches[0] : event;
-        const newNode: AppNode = {
-          id,
-          type: targetType,
-          position: screenToFlowPosition({
-            x: clientX,
-            y: clientY,
-          }),
-          data: { content: `Node ${id}` },
-        };
-        const newEdges = edges.concat({ id, source: connectionState.fromNode.id, target: id, type: 'default' });
-        const newNodes = nodes.concat(newNode);
-        console.log('newNodes', newNodes);
-        console.log('newEdges', newEdges);
 
-        setNodes(newNodes);
-        setEdges(newEdges);
-        requestAnimationFrame(() => {
-          console.log('updated', getNodes(), getEdges());
-          storeOnLayout('DOWN');
-        });
-      }
-    },
-    [screenToFlowPosition, nodes, edges, setNodes, setEdges, getNodes, getEdges, storeOnLayout],
-  );
 
   return (
     <div className="h-screen w-screen p-8" ref={reactFlowWrapper}>
@@ -126,7 +93,6 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onConnectEnd={onConnectEnd}
         nodeTypes={nodeTypes}
         fitView
         nodeOrigin={nodeOrigin}
