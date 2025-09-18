@@ -99,7 +99,7 @@ export default function ZoneSelecter() {
   };
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex gap-2 items-center">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex gap-2 items-center">
 
 
 
