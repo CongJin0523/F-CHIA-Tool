@@ -110,14 +110,14 @@ function FtaFlow() {
   };
 
   return (
-    <div className="h-screen w-screen flex">
+    <div className="h-[calc(100vh-52px)] w-full flex">
       <aside className="w-80 border-l bg-white overflow-auto">
         {/* 选择器会列出“全部 Zone”的 FTA；切换时改 URL params */}
         <TaskSelectorLocal />
         <Sidebar />
       </aside>
 
-      <div className="flex-1 p-8" ref={reactFlowWrapper}>
+      <div className="flex-1 p-2" ref={reactFlowWrapper}>
         <ReactFlow
           key={`${zoneId}:${taskId}`}   // 切换任务时强制重挂载刷新
           nodes={nodes}

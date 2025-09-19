@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router'
 import './index.css'
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
@@ -8,19 +8,25 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import Diagram from '@/components/Diagram.tsx'
 import FtaDiagram from '@/components/FTA.tsx'
-import { AppNav } from '@/components/AppNav.tsx'
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from '@/components/ui/sonner'
 import EditableNestedTable from '@/components/Table.tsx'
 import ZoneSelecter from '@/components/ZoneSelecter.tsx'
-import Stepper from '@/components/Stepper.tsx';
-import Header from '@/components/Header';
-import Docs from '@/components/Docs.tsx';
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <Toaster position="top-center" richColors expand={false} closeButton/>
-    <BrowserRouter>
+import Stepper from '@/components/Stepper.tsx'
+import Header from '@/components/Header'
+import Docs from '@/components/Docs.tsx'
+
+function App() {
+  const location = useLocation();
+  // 仅在 /table 和 /diagram（含子路径）下显示 ZoneSelecter
+  const showZoneSelector =
+    location.pathname.startsWith('/table') ||
+    location.pathname.startsWith('/diagram');
+
+  return (
+    <>
+      <Toaster position="top-center" richColors expand={false} closeButton />
       <Header />
-      <ZoneSelecter />
+      {showZoneSelector && <ZoneSelecter />}
       {/* <AppNav /> */}
       <Stepper />
       <Routes>
@@ -30,6 +36,14 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/fta" element={<FtaDiagram />} />
         <Route path="/docs" element={<Docs />} />
       </Routes>
+    </>
+  );
+}
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <BrowserRouter>
+      <App />
     </BrowserRouter>
   </StrictMode>,
 )

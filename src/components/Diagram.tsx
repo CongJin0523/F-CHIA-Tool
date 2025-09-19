@@ -83,6 +83,11 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
     setEdges(nextEdges); // <— 关键：不要传函数
   }, [getNodes, getEdges, setEdges]);
 
+  useEffect(() => {
+    const handler = () => requestAnimationFrame(() => fitView());
+    window.addEventListener('graph-imported', handler);
+    return () => window.removeEventListener('graph-imported', handler);
+  }, [fitView]);
 
 
   return (
