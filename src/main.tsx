@@ -14,6 +14,7 @@ import EditableNestedTable from '@/components/Table.tsx'
 import ZoneSelecter from '@/components/ZoneSelecter.tsx'
 import Stepper from '@/components/Stepper.tsx';
 import Header from '@/components/Header';
+import Docs from '@/components/Docs.tsx';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Toaster position="top-center" richColors expand={false} closeButton/>
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/table" element={<EditableNestedTable />} />
         <Route path="/diagram" element={<Diagram />} />
         <Route path="/fta" element={<FtaDiagram />} />
+        <Route path="/docs" element={<Docs />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

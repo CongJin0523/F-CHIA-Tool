@@ -86,7 +86,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
 
 
   return (
-    <div className="h-[calc(100vh-58px)] w-full px-4" ref={reactFlowWrapper}>
+    <div className="h-[calc(100vh-52px)] w-full px-4" ref={reactFlowWrapper}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
