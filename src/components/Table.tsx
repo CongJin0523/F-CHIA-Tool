@@ -261,7 +261,7 @@ export default function EditableNestedTable() {
 
   return (
 
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-20 pr-60" key={zoneId}>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-20" key={zoneId}>
       <div className="overflow-x-auto">
         <Table className="table-fixed w-[1600px]">
           <TableHeader>
