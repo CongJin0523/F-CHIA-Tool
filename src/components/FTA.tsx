@@ -1,6 +1,9 @@
 // pages/FtaDiagram.tsx
 import React, { useRef, useCallback, useEffect, useMemo } from 'react';
-import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background } from '@xyflow/react';
+import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background, Panel } from '@xyflow/react';
+import Tooltip from '@mui/material/Tooltip';
+import Fab from '@mui/material/Fab';
+import { Workflow } from 'lucide-react';
 import '@xyflow/react/dist/style.css';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
@@ -12,7 +15,7 @@ import { getFtaStoreHook } from '@/store/fta-registry';
 import { useSearchParams } from 'react-router-dom';
 import { listAllFtaTasks } from '@/common/fta-storage';
 import type { FtaState } from '@/store/fta-store';
-
+import DownloadButton from '@/components/DownloadButton';
 const selector = (s: FtaState) => ({
   nodes: s.nodes,
   edges: s.edges,
@@ -23,8 +26,9 @@ const selector = (s: FtaState) => ({
   onLayout: s.onLayout,
 });
 
-let id = 0;
-const getId = () => `dndnode_${id++}`;
+import ShortUniqueId from 'short-uuid';
+const translator = ShortUniqueId();
+const getId = () => translator.new();
 
 function ensureTopIfEmpty(hook: any, taskId: string, fitView?: () => void) {
   const st = hook.getState();
@@ -135,8 +139,25 @@ function FtaFlow() {
             requestAnimationFrame(() => fitView?.());
           }}
         >
+          <Panel>
+            <Tooltip title="Auto Layout" >
+              <Fab
+                size="small"
+                onClick={() => onLayout({ direction: 'DOWN' })}
+                sx={{
+                  position: "fixed",
+                  right: 18,
+                  top: "15vh",
+                  zIndex: (t) => t.zIndex.tooltip + 1,
+                }}
+              >
+                <Workflow />
+              </Fab>
+            </Tooltip>
+          </Panel>
           <Controls />
           <Background />
+          <DownloadButton />
         </ReactFlow>
       </div>
     </div>

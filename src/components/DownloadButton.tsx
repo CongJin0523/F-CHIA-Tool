@@ -1,9 +1,16 @@
 import React from 'react';
 import { Panel, useReactFlow, getNodesBounds, getViewportForBounds } from '@xyflow/react';
 import { toPng } from 'html-to-image';
-import Button from '@mui/material/Button';
+
 import { useZoneStore } from "@/store/zone-store"; // from previous step
-function downloadImage(dataUrl, zoneName : string) {
+import { ImageDown } from 'lucide-react';
+import Tooltip from '@mui/material/Tooltip';
+import Fab from "@mui/material/Fab";
+import { grey } from '@mui/material/colors';
+
+const color = grey[500];
+
+function downloadImage(dataUrl, zoneName: string) {
   const a = document.createElement('a');
   if (zoneName) {
     const safeZoneName = zoneName.replace(/\s+/g, '-');
@@ -29,7 +36,7 @@ function DownloadButton() {
     const nodesBounds = getNodesBounds(getNodes());
     const viewport = getViewportForBounds(nodesBounds, imageWidth, imageHeight, 0.5, 2);
 
-    
+
     const selected = zones.find((z) => z.id === selectedId);
     toPng(document.querySelector('.react-flow__viewport'), {
       backgroundColor: '#ffffff',
@@ -44,10 +51,21 @@ function DownloadButton() {
   };
 
   return (
-    <Panel position="top-right">
-      <Button className="download-btn xy-theme__button" onClick={onClick}>
-        Download Diagram
-      </Button>
+    <Panel>
+      <Tooltip title="Download as PNG">
+        <Fab
+          size="small"
+          color={color}
+          onClick={onClick}
+          sx={{
+            position: "fixed",
+            right: 18,
+            top: "10vh", // 150px from top
+          }}
+        >
+          <ImageDown />
+        </Fab>
+      </Tooltip>
     </Panel>
   );
 }

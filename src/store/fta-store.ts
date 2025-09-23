@@ -17,7 +17,6 @@ export type FtaState = {
   setEdges: (edges: Edge[]) => void;
   onNodesChange: OnNodesChange<FtaNodeTypes>;
   onEdgesChange: OnEdgesChange;
-  // 可选：布局、更新内容等
   onLayout: (dir: 'DOWN' | 'RIGHT') => Promise<void>;
 };
 

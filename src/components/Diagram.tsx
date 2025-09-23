@@ -11,18 +11,23 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 import DownloadButton from '@/components/DownloadButton';
-import ExportJSONButton from '@/components/ExportJson';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Button } from '@/components/ui/button';
 import useDgStore from '@/store/dg-store';
 import { toast } from "sonner"
 import { useStore } from 'zustand';
 import ShortUniqueId from 'short-uuid';
 
-import type { AppState, AppNode } from '@/common/types';
+import type { AppState } from '@/common/types';
 
 import { useZoneStore } from '@/store/zone-store';
 import { getGraphStoreHook } from '@/store/graph-registry';
+
+import { Workflow } from 'lucide-react';
+import Tooltip from '@mui/material/Tooltip';
+import Fab from "@mui/material/Fab";
+import { grey } from '@mui/material/colors';
+const buttonColor = grey[500];
+
 const selector = (state: AppState) => ({
   nodes: state.nodes,
   edges: state.edges,
@@ -45,7 +50,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
   const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, updateNodeText, onLayout: storeOnLayout } = useStore(storeHook,
     useShallow(selector),
   );
-  const { fitView, screenToFlowPosition, getEdges, getNodes } = useReactFlow();
+  const { fitView,  getEdges, getNodes } = useReactFlow();
 
   const onLayout = useCallback(
     ({ direction }: { direction: 'DOWN' | 'RIGHT' }) => {
@@ -106,23 +111,25 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
           onLayout({ direction: 'DOWN' });
         }}
       >
-        <Panel position="bottom-right ">
-          <Button
-            className="xy-theme__button"
-            onClick={() => onLayout({ direction: 'DOWN' })}
-          >
-            vertical layout
-          </Button>
-          <Button
-            className="xy-theme__button"
-            onClick={() => onLayout({ direction: 'RIGHT' })}
-          >
-            horizontal layout
-          </Button>
+        <Panel>
+          <Tooltip title="Auto Layout">
+            <Fab
+              size="small"
+              color={buttonColor}
+              onClick={() => onLayout({ direction: 'DOWN' })}
+              sx={{
+                position: "fixed",
+                right: 18,
+                top: "15vh",
+                zIndex: (t) => t.zIndex.tooltip + 1,
+              }}
+            >
+              <Workflow />
+            </Fab>
+          </Tooltip>
         </Panel>
         <Background />
         <DownloadButton />
-        <ExportJSONButton />
       </ReactFlow>
     </div>
   );

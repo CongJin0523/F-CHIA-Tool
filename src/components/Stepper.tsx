@@ -11,7 +11,8 @@ import Fab from "@mui/material/Fab";
 import Tooltip from "@mui/material/Tooltip";
 import { CircleX, ListChecks } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router";
-
+import { grey } from '@mui/material/colors';
+const color = grey[500];
 const steps = [
   { label: "Hazard Identification", description: "For each ad campaign that you create, you can control how much you're willing to spend...", path: "/diagram" },
   { label: "Check and Standard Matching", description: "An ad group contains one or more ads which target a shared set of keywords.", path: "/table" },
@@ -75,13 +76,12 @@ export default function NonLinearStepper() {
         <Tooltip title="Workflow Steps">
           <Fab
             size="small"
-            color="primary"
+            color={color}
             onClick={() => setOpen(true)}
             sx={{
               position: "fixed",
               right: 18,
               top: "20vh",// 150px from top
-              zIndex: (t) => t.zIndex.tooltip + 1,
             }}
           >
             <ListChecks />
