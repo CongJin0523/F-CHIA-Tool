@@ -16,6 +16,8 @@ import { useSearchParams } from 'react-router-dom';
 import { listAllFtaTasks } from '@/common/fta-storage';
 import type { FtaState } from '@/store/fta-store';
 import DownloadButton from '@/components/DownloadButton';
+import { grey } from '@mui/material/colors';
+const buttonColor = grey[500];
 const selector = (s: FtaState) => ({
   nodes: s.nodes,
   edges: s.edges,
@@ -47,44 +49,19 @@ function ensureTopIfEmpty(hook: any, taskId: string, fitView?: () => void) {
   }
 }
 
-function FtaFlow() {
+function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
-  const [params, setParams] = useSearchParams();
 
-  // 1) 读取所有 zone 下的 FTA
-  const all = useMemo(() => listAllFtaTasks(), []);
-  // 2) URL params 优先，没有就用列表第一个兜底
-  const zoneParam = params.get('zone');
-  const taskParam = params.get('task');
-  const zoneId = zoneParam ?? all[0]?.zoneId ?? null;
-  const taskId = taskParam ?? (zoneId ? all.find(a => a.zoneId === zoneId)?.taskId : null) ?? null;
-
-  // 3) 没有任何 FTA —— 空态
-  if (!zoneId || !taskId) {
-    return (
-      <div className="h-screen w-screen flex">
-        <aside className="w-80 border-l bg-white overflow-auto">
-          <TaskSelectorLocal />
-          <Sidebar />
-        </aside>
-        <div className="flex-1 p-8 flex items-center justify-center text-sm text-muted-foreground">
-          No FTA found. Please create one from the table, then come back.
-        </div>
-      </div>
-    );
-  }
-
-  // 4) 创建/获取对应 store hook（注意：此时 zoneId、taskId 一定存在）
+  // store hook is always created because zoneId/taskId are guaranteed by wrapper
   const ftaHook = useMemo(() => getFtaStoreHook(zoneId, taskId), [zoneId, taskId]);
 
-  // 5) 安全订阅（ftaHook 永远非空）
   const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, onLayout: storeOnLayout } =
     useStore(ftaHook, useShallow(selector));
 
   const { screenToFlowPosition, fitView } = useReactFlow();
   const [type, setType] = useDnD();
 
-  // 6) 初次/切换时，若为空自动建 topEvent
+  // 初次/切换时，若为空自动建 topEvent
   useEffect(() => {
     ensureTopIfEmpty(ftaHook, taskId, fitView);
   }, [ftaHook, taskId, fitView]);
@@ -113,15 +90,14 @@ function FtaFlow() {
     event.dataTransfer.effectAllowed = 'move';
   };
 
-
   const onLayout = useCallback(
     ({ direction }: { direction: 'DOWN' | 'RIGHT' }) => {
       storeOnLayout(direction);
-      // Fit view after layout
       setTimeout(() => fitView(), 100);
     },
     [storeOnLayout, fitView],
   );
+
   return (
     <div className="h-[calc(100vh-52px)] w-full flex">
       <aside className="w-80 border-l bg-white overflow-auto">
@@ -132,7 +108,7 @@ function FtaFlow() {
 
       <div className="flex-1 p-2" ref={reactFlowWrapper}>
         <ReactFlow
-          key={`${zoneId}:${taskId}`}   // 切换任务时强制重挂载刷新
+          key={`${zoneId}:${taskId}`}
           nodes={nodes}
           edges={edges}
           onNodesChange={onNodesChange}
@@ -143,15 +119,13 @@ function FtaFlow() {
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           fitView
-          onInit={() => {
-            onLayout?.('DOWN');
-            requestAnimationFrame(() => fitView?.());
-          }}
+          
         >
           <Panel>
             <Tooltip title="Auto Layout" >
               <Fab
                 size="small"
+                color={buttonColor}
                 onClick={() => onLayout({ direction: 'DOWN' })}
                 sx={{
                   position: "fixed",
@@ -171,6 +145,37 @@ function FtaFlow() {
       </div>
     </div>
   );
+}
+
+function FtaFlow() {
+  const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
+  const [params] = useSearchParams();
+
+  // 1) 读取所有 zone 下的 FTA
+  const all = useMemo(() => listAllFtaTasks(), []);
+  // 2) URL params 优先，没有就用列表第一个兜底
+  const zoneParam = params.get('zone');
+  const taskParam = params.get('task');
+  const zoneId = zoneParam ?? all[0]?.zoneId ?? null;
+  const taskId = taskParam ?? (zoneId ? all.find(a => a.zoneId === zoneId)?.taskId : null) ?? null;
+
+  // 3) 没有任何 FTA —— 空态
+  if (!zoneId || !taskId) {
+    return (
+      <div className="h-screen w-screen flex">
+        <aside className="w-80 border-l bg-white overflow-auto">
+          <TaskSelectorLocal />
+          <Sidebar />
+        </aside>
+        <div className="flex-1 p-8 flex items-center justify-center text-sm text-muted-foreground">
+          No FTA found. Please create one from the table, then come back.
+        </div>
+      </div>
+    );
+  }
+
+  // 4) 有了 zoneId/taskId 再渲染真正的画布组件（内部再使用 hooks）
+  return <FtaCanvas zoneId={zoneId} taskId={taskId} />;
 }
 
 export default function FtaDiagram() {

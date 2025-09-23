@@ -77,8 +77,8 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
 
     const targetType: NodeKey = getNextNodeType(sourceNode.type);
     if (targetNode.type !== targetType) {
-      toast.error("❌ invalid connection, need to change target node type");
-      console.log("❌ invalid connection, need to change target node type");
+      toast.error("Invalid connection, need to change target node type");
+      console.log("Invalid connection, need to change target node type");
       return;
     }
 

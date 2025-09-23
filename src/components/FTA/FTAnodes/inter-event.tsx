@@ -4,11 +4,8 @@ import {
   BaseNode,
   BaseNodeContent,
 } from "@/components/base-node";
-import { Zap } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from '@/components/nodes/subComponents/editable-text';
-import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { useDgStore } from '@/store/dg-store';
 import { motion } from 'motion/react';
 export type InterEventNode = Node<{
   content: string;
@@ -16,7 +13,6 @@ export type InterEventNode = Node<{
 
 export function InterEventNode({ id, data }: NodeProps<InterEventNode>) {
   const { setNodes, setEdges, updateNodeData } = useReactFlow();
-  const updateNodeText = useDgStore((state) => state.updateNodeText);
     const handleText = useCallback(
     (content: string) => {
       updateNodeData(id, { content });  // set content directly

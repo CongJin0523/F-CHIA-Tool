@@ -4,10 +4,8 @@ import {
   BaseNode,
   BaseNodeContent,
 } from "@/components/base-node";
-import { Zap } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from '@/components/nodes/subComponents/editable-text';
-import { NodeHeader } from "@/components/nodes/subComponents/node-header";
 import { motion } from 'motion/react';
 export type BasicEventNode = Node<{
   content: string;
