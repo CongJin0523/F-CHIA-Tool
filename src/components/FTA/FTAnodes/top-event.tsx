@@ -1,4 +1,4 @@
-import { useCallback, } from 'react';
+import { useCallback, useEffect, } from 'react';
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -18,6 +18,11 @@ export function TopEventNode({ id, data }: NodeProps<TopEventNode>) {
     },
     [id, updateNodeData]
   );
+  useEffect(() => {
+    setNodes((nodes) =>
+      nodes.map((n) => (n.id === id ? { ...n, deletable: false } : n))
+    );
+  }, [id, setNodes]);
   const handleDelete = useCallback(() => {
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));

@@ -9,7 +9,7 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { DnDProvider, useDnD } from '@/components/FTA/component/DnDContext';
 import { type FtaNodeTypes, nodeTypes } from '@/common/fta-node-type';
-import Sidebar from '@/components/FTA/component/Sidebar';
+import NodeSelector from '@/components/FTA/component/Sidebar';
 import TaskSelectorLocal from '@/components/FTA/TaskSelectorLocal';
 import { getFtaStoreHook } from '@/store/fta-registry';
 import { useSearchParams } from 'react-router-dom';
@@ -103,7 +103,7 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
       <aside className="w-80 border-l bg-white overflow-auto">
         {/* 选择器会列出“全部 Zone”的 FTA；切换时改 URL params */}
         <TaskSelectorLocal />
-        <Sidebar />
+        <NodeSelector />
       </aside>
 
       <div className="flex-1 p-2" ref={reactFlowWrapper}>
@@ -119,8 +119,12 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           fitView
-          
+
         >
+
+          <Controls />
+          <Background />
+          <DownloadButton />
           <Panel>
             <Tooltip title="Auto Layout" >
               <Fab
@@ -138,9 +142,6 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
               </Fab>
             </Tooltip>
           </Panel>
-          <Controls />
-          <Background />
-          <DownloadButton />
         </ReactFlow>
       </div>
     </div>
@@ -177,13 +178,19 @@ function FtaFlow() {
   // 4) 有了 zoneId/taskId 再渲染真正的画布组件（内部再使用 hooks）
   return <FtaCanvas zoneId={zoneId} taskId={taskId} />;
 }
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/FTA/app-sidebar"
 
 export default function FtaDiagram() {
   return (
     <ReactFlowProvider>
       <DnDProvider>
-        <FtaFlow />
+        <SidebarProvider>
+          <AppSidebar />
+          <SidebarTrigger />
+          <FtaFlow />
+        </SidebarProvider>
       </DnDProvider>
-    </ReactFlowProvider>
+    </ReactFlowProvider >
   );
 }

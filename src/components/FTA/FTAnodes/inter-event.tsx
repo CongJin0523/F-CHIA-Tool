@@ -29,7 +29,7 @@ export function InterEventNode({ id, data }: NodeProps<InterEventNode>) {
   return (
     <div>
 
-        <BaseNode className="w-40 border-red-200 bg-red-50">
+        <BaseNode className="w-40 border-yellow-200 bg-yellow-50">
 
           <BaseNodeContent>
             <EditableText

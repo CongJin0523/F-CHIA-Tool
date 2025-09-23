@@ -12,7 +12,6 @@ export default function TaskSelectorLocal() {
 
   return (
     <div className="p-3 space-y-2">
-      <div className="text-xs font-semibold text-neutral-500">All FTAs</div>
       {items.length === 0 ? (
         <div className="text-xs text-neutral-400">No FTA found.</div>
       ) : (

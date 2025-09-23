@@ -50,7 +50,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
   const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, updateNodeText, onLayout: storeOnLayout } = useStore(storeHook,
     useShallow(selector),
   );
-  const { fitView,  getEdges, getNodes } = useReactFlow();
+  const { fitView, getEdges, getNodes } = useReactFlow();
 
   const onLayout = useCallback(
     ({ direction }: { direction: 'DOWN' | 'RIGHT' }) => {
@@ -139,7 +139,7 @@ function Diagram() {
   console.log('Diagram render, zoneId:', zoneId);
   return (
     <ReactFlowProvider>
-      <LayoutFlow key={zoneId} zoneId={zoneId} />
+        <LayoutFlow key={zoneId} zoneId={zoneId} />
     </ReactFlowProvider>
   );
 }
