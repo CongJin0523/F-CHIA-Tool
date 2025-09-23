@@ -172,8 +172,9 @@ export default function Header() {
                 <NavigationMenuTrigger>Go to</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <ul className="grid gap-2 p-2 min-w-[220px]">
+                    <ListItem key="F-CHIA" title="F-CHIA" href="/diagram" />
                     <ListItem key="table" title="Table" href="/table" />
-                    <ListItem key="diagram" title="Diagram" href="/diagram" />
+                    <ListItem key="FTA" title="FTA" href="/fta" />
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
