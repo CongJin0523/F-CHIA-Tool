@@ -1,5 +1,5 @@
 // pages/FtaDiagram.tsx
-import React, { useRef, useCallback, useEffect, useMemo } from 'react';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background, Panel } from '@xyflow/react';
 import Tooltip from '@mui/material/Tooltip';
 import Fab from '@mui/material/Fab';
@@ -78,7 +78,7 @@ function FtaFlow() {
   const ftaHook = useMemo(() => getFtaStoreHook(zoneId, taskId), [zoneId, taskId]);
 
   // 5) 安全订阅（ftaHook 永远非空）
-  const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, onLayout } =
+  const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, onLayout: storeOnLayout } =
     useStore(ftaHook, useShallow(selector));
 
   const { screenToFlowPosition, fitView } = useReactFlow();
@@ -113,6 +113,15 @@ function FtaFlow() {
     event.dataTransfer.effectAllowed = 'move';
   };
 
+
+  const onLayout = useCallback(
+    ({ direction }: { direction: 'DOWN' | 'RIGHT' }) => {
+      storeOnLayout(direction);
+      // Fit view after layout
+      setTimeout(() => fitView(), 100);
+    },
+    [storeOnLayout, fitView],
+  );
   return (
     <div className="h-[calc(100vh-52px)] w-full flex">
       <aside className="w-80 border-l bg-white overflow-auto">
