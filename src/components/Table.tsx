@@ -21,7 +21,7 @@ import { type Edge } from '@xyflow/react';
 import { type FtaNodeTypes } from '@/common/fta-node-type';
 import { getFtaStoreHook } from '@/store/fta-registry';
 import { useNavigate } from "react-router-dom";
-
+import { toast } from "sonner"
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   const updates: Update[] = [];
 
