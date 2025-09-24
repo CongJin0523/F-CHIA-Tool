@@ -18,16 +18,18 @@ export function NodeHeader({ icon: Icon, title, bgColor, textColor, onDelete }: 
         <Icon className="size-4" />
         <BaseNodeHeaderTitle>{title}</BaseNodeHeaderTitle>
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="nodrag rounded-full size-6 px-1"
-        aria-label="delete"
-        title="delete"
-        onClick={onDelete}
-      >
-        <Trash2 className="size-3" />
-      </Button>
+      {title !== "Zone" && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="nodrag rounded-full size-6 px-1"
+          aria-label="delete"
+          title="delete"
+          onClick={onDelete}
+        >
+          <Trash2 className="size-3" />
+        </Button>
+      )}
     </BaseNodeHeader>
   );
 }

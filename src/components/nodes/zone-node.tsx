@@ -127,7 +127,7 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
                 title="Zone"
                 bgColor="bg-violet-200"
                 textColor="text-violet-900"
-                onDelete={handleDelete}
+                onDelete={() => {}}
               />
 
               <BaseNodeContent key={data.content}>

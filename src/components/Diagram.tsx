@@ -139,7 +139,7 @@ function Diagram() {
   console.log('Diagram render, zoneId:', zoneId);
   return (
     <ReactFlowProvider>
-        <LayoutFlow key={zoneId} zoneId={zoneId} />
+      <LayoutFlow key={zoneId} zoneId={zoneId} />
     </ReactFlowProvider>
   );
 }

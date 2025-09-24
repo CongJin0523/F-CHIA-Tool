@@ -9,8 +9,6 @@ import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
 import { DnDProvider, useDnD } from '@/components/FTA/component/DnDContext';
 import { type FtaNodeTypes, nodeTypes } from '@/common/fta-node-type';
-import NodeSelector from '@/components/FTA/component/Sidebar';
-import TaskSelectorLocal from '@/components/FTA/TaskSelectorLocal';
 import { getFtaStoreHook } from '@/store/fta-registry';
 import { useSearchParams } from 'react-router-dom';
 import { listAllFtaTasks } from '@/common/fta-storage';
@@ -100,11 +98,11 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
 
   return (
     <div className="h-[calc(100vh-52px)] w-full flex">
-      <aside className="w-80 border-l bg-white overflow-auto">
-        {/* 选择器会列出“全部 Zone”的 FTA；切换时改 URL params */}
+      {/* <aside className="w-80 border-l bg-white overflow-auto">
+d
         <TaskSelectorLocal />
         <NodeSelector />
-      </aside>
+      </aside> */}
 
       <div className="flex-1 p-2" ref={reactFlowWrapper}>
         <ReactFlow
@@ -119,7 +117,6 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           fitView
-
         >
 
           <Controls />
@@ -164,10 +161,6 @@ function FtaFlow() {
   if (!zoneId || !taskId) {
     return (
       <div className="h-screen w-screen flex">
-        <aside className="w-80 border-l bg-white overflow-auto">
-          <TaskSelectorLocal />
-          <Sidebar />
-        </aside>
         <div className="flex-1 p-8 flex items-center justify-center text-sm text-muted-foreground">
           No FTA found. Please create one from the table, then come back.
         </div>
