@@ -83,12 +83,13 @@ export default function NodeSelector() {
       </div>
 
 
-      <div
-        className="dndnode cursor-move border-2 w-20 h-20 rounded-full border-red-200 bg-red-50 text-xs px-2 py-1 shadow hover:bg-red-200"
-        onDragStart={(event) => onDragStart(event, 'basicEvent')}
-        draggable
-      >
-        Basic Event
+      <div className="flex flex-col items-center space-y-1">
+        <div
+          className="dndnode cursor-move border-2 w-20 h-15 rounded-full border-blue-200 bg-blue-50 text-xs px-2 py-1 shadow hover:bg-red-200"
+          onDragStart={(event) => onDragStart(event, 'conditioningEvent')}
+          draggable
+        />
+        <span className="text-xs text-blue-800">Conditioning Event</span>
       </div>
     </aside>
   );
