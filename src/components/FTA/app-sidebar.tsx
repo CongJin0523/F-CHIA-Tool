@@ -1,4 +1,5 @@
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 import TaskSelectorLocal from '@/components/FTA/TaskSelectorLocal';
 import {
   Sidebar,
@@ -62,7 +63,13 @@ export function AppSidebar() {
           </SidebarGroupContent>
 
         </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xl font-bold flex justify-center">Basic Event Check</SidebarGroupLabel>
+          <SidebarGroupContent>
+            d
+          </SidebarGroupContent>
 
+        </SidebarGroup>
         {/* <SidebarGroup>
           <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>

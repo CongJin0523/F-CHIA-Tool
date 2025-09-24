@@ -185,7 +185,7 @@ export default function EditableNestedTable() {
     taskId: string;
     getTaskName?: () => string;
   }) {
-    console.log("Rendering TaskCell - taskId:", taskId); 
+    console.log("Rendering TaskCell - taskId:", taskId);
     return (
       <TableCell rowSpan={rowSpan || 1}>
 
@@ -204,15 +204,15 @@ export default function EditableNestedTable() {
                 : "All good! You can proceed."
             }
             onClick={() => {
-            const taskName = getTaskName(); // <-- 当前表单里的任务名
-            // zoneId 也要可用
-            if (!zoneId) {
-              console.warn("No zone selected.");
-              return;
-            }
-            ensureTopEvent(zoneId, taskId, taskName);
-            navigate(`/fta?zone=${encodeURIComponent(zoneId)}&task=${encodeURIComponent(taskId)}`);
-          }}
+              const taskName = getTaskName(); // <-- 当前表单里的任务名
+              // zoneId 也要可用
+              if (!zoneId) {
+                console.warn("No zone selected.");
+                return;
+              }
+              ensureTopEvent(zoneId, taskId, taskName);
+              navigate(`/fta?zone=${encodeURIComponent(zoneId)}&task=${encodeURIComponent(taskId)}`);
+            }}
           >
             Create FTA
           </Button>
@@ -221,43 +221,55 @@ export default function EditableNestedTable() {
     );
   }
   const onSubmit = (data: FormValues) => {
-    const updates = collectGraphUpdatesFromForm(data);
+    try {
+      const updates = collectGraphUpdatesFromForm(data);
+      const isoMap = collectIsoMatchesFromForm(data);
 
-    const isoMap = collectIsoMatchesFromForm(data);
+      if (!updates.length && isoMap.size === 0) {
+        toast.info("No changes to save.");
+        return;
+      }
 
-    if (!updates.length && isoMap.size === 0) {
-      console.log("No changes to save.");
-      return;
+      const mapContent = new Map<string, string>(updates.map(u => [u.id, u.content]));
+
+      // 读取当前 zone 的节点，并构造写回后的 nodes
+      const graphState = storeHook.getState(); // Zustand getState
+      const nextNodes = graphState.nodes.map(n => {
+        let next = n;
+
+        // 写回 content
+        if (mapContent.has(n.id)) {
+          next = { ...next, data: { ...next.data, content: mapContent.get(n.id)! } };
+        }
+
+        // 写回 isoMatches 到 guideWord 节点
+        if (isoMap.has(n.id)) {
+          const isoMatches = isoMap.get(n.id)!;
+          next = { ...next, data: { ...next.data, isoMatches } };
+        }
+
+        return next;
+      });
+
+      // 一次性写回
+      graphState.setNodes(nextNodes);
+
+      const textCount = updates.length;
+      const isoCount = isoMap.size;
+
+      toast.success(`Saved successfully`);
+
+      console.log("Saved updates:", {
+        textUpdates: textCount,
+        isoPairs: isoCount,
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save changes", {
+        description: err instanceof Error ? err.message : String(err),
+      });
     }
-    const mapContent = new Map<string, string>(updates.map(u => [u.id, u.content]));
-
-  // 3) 读取当前 zone 的节点，并构造写回后的 nodes
-  const graphState = storeHook.getState(); // Zustand getState
-  const nextNodes = graphState.nodes.map(n => {
-    let next = n;
-
-    // 3a) 写回 content（原有逻辑）
-    if (mapContent.has(n.id)) {
-      next = { ...next, data: { ...next.data, content: mapContent.get(n.id)! } };
-    }
-
-    // 3b) 写回 isoMatches 到 guideWord 节点
-    if (isoMap.has(n.id)) {
-      const isoMatches = isoMap.get(n.id)!;
-      next = { ...next, data: { ...next.data, isoMatches } };
-    }
-
-    return next;
-  });
-
-  // 4) 一次性写回
-  graphState.setNodes(nextNodes);
-
-  console.log("Saved updates:", {
-    textUpdates: updates.length,
-    isoPairs: isoMap.size,
-  });
-};
+  };
 
   return (
 
