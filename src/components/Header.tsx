@@ -1,5 +1,15 @@
 // Header.tsx
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
   NavigationMenu, NavigationMenuList, NavigationMenuItem,
@@ -10,6 +20,7 @@ import { getGraphStoreHook, deleteGraphStore } from "@/store/graph-registry";
 import { useZoneStore } from "@/store/zone-store";
 import { elkOptions, getLayoutedElements } from "@/common/layout-func";
 import { createNewProject } from "@/common/new-project";
+import { clearAppLocalStorage } from "@/common/utils/claarLocalStorage";
 // —— 工具函数 —— //
 function downloadJSON(data: any, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -51,7 +62,18 @@ function ListItem({
 export default function Header() {
   // 让 input 持久存在于 Header 根部
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
+  const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const [confirmImportOpen, setConfirmImportOpen] = useState(false);
+  const confirmCreateNewProject = async () => {
+    try {
+      await createNewProject(); // your existing function that clears local data and seeds default zone/graph
+      toast?.success?.("New project created");
+      // If you want to force navigation to Diagram after reset, you can:
+      // window.location.href = "/diagram";
+    } finally {
+      setNewProjectOpen(false);
+    }
+  };
   // 导出
   const onExport = () => {
     const { zones, selectedId } = useZoneStore.getState();
@@ -73,64 +95,87 @@ export default function Header() {
     if (!file) return;
 
     importJSON(file, async (data) => {
-      console.log("Importing JSON data:", data);
-
-      let importedZones: Array<{ id: string; label: string; nodes?: any[]; edges?: any[] }> = [];
-      let importedSelectedId: string | undefined;
-
-      if (Array.isArray(data)) {
-        importedZones = data;
-      } else if (data && Array.isArray(data.zones)) {
-        importedZones = data.zones;
-        importedSelectedId = data.selectedId;
-      } else {
-        console.error("Invalid JSON: expect array or { zones:[], selectedId }");
-        return;
-      }
-
-      // 1) 同步 GraphStores
-      const currentZones = useZoneStore.getState().zones;
-      const incomingIds = new Set(importedZones.map((z) => z.id));
-      for (const z of currentZones) {
-        if (!incomingIds.has(z.id)) deleteGraphStore(z.id);
-      }
-      for (const zone of importedZones) {
-        if (!zone?.id) continue;
-        const store = getGraphStoreHook(zone.id).getState();
-        store.setNodes(zone.nodes || []);
-        store.setEdges(zone.edges || []);
-      }
-
-      // 2) 同步 Zone 列表和选中值
-      const nextZones = importedZones.map((z) => ({ id: z.id, label: z.label ?? z.id }));
-      const nextSelectedId =
-        importedSelectedId && nextZones.some((z) => z.id === importedSelectedId)
-          ? importedSelectedId
-          : nextZones[0]?.id;
-
-      useZoneStore.setState({ zones: nextZones, selectedId: nextSelectedId });
-
-      // 3) 对当前选中 zone 自动布局
-      if (nextSelectedId) {
-        const graphSel = getGraphStoreHook(nextSelectedId).getState();
-        const ns = graphSel.nodes;
-        const es = graphSel.edges;
-        const opts = { "elk.direction": "DOWN", ...elkOptions } as const;
-        const { nodes: layoutedNodes, edges: layoutedEdges } =
-          await getLayoutedElements(ns, es, opts);
-        graphSel.setNodes(layoutedNodes);
-        graphSel.setEdges(layoutedEdges);
-      }
-
-      // 可选：发事件，Diagram 页面里用它来 fitView
       try {
-        window.dispatchEvent(new CustomEvent("graph-imported"));
-      } catch { }
+        // 1) Parse & validate (NO CLEAR yet)
+        let importedZones: Array<{ id: string; label: string; nodes?: any[]; edges?: any[] }> = [];
+        let importedSelectedId: string | undefined;
 
-      console.log("Import finished:", {
-        zones: useZoneStore.getState().zones,
-        selectedId: useZoneStore.getState().selectedId,
-      });
+        if (Array.isArray(data)) {
+          importedZones = data;
+        } else if (data && Array.isArray(data.zones)) {
+          importedZones = data.zones;
+          importedSelectedId = data.selectedId;
+        } else {
+          throw new Error("Invalid JSON: expect array or { zones:[], selectedId }");
+        }
+
+        if (!importedZones.length) {
+          throw new Error("The file contains no zones to import.");
+        }
+
+        // 2) Now it’s safe to CLEAR current app data
+        const currentZones = useZoneStore.getState().zones;
+        // clear in-memory graph stores (optional but tidy)
+        for (const z of currentZones) {
+          try { deleteGraphStore(z.id); } catch { }
+        }
+        // clear FTA stores (optional if you use them)
+        // If you have a way to enumerate existing FTA keys, remove them here.
+        // Or just rely on localStorage cleanup below.
+
+        // reset ZoneStore so we start from a clean slate
+        useZoneStore.setState({ zones: [], selectedId: undefined });
+
+        // clear persisted localStorage for our app (graph-/fta-/zone-store/etc)
+        clearAppLocalStorage();
+
+        // 3) Rebuild from imported data
+        for (const zone of importedZones) {
+          if (!zone?.id) continue;
+          const store = getGraphStoreHook(zone.id).getState(); // ensures a store exists
+          store.setNodes(zone.nodes || []);
+          store.setEdges(zone.edges || []);
+        }
+
+        const nextZones = importedZones.map((z) => ({ id: z.id, label: z.label ?? z.id }));
+        const nextSelectedId =
+          importedSelectedId && nextZones.some((z) => z.id === importedSelectedId)
+            ? importedSelectedId
+            : nextZones[0]?.id;
+
+        useZoneStore.setState({ zones: nextZones, selectedId: nextSelectedId });
+
+        // 4) Auto-layout selected zone (if any)
+        if (nextSelectedId) {
+          const graphSel = getGraphStoreHook(nextSelectedId).getState();
+          const ns = graphSel.nodes;
+          const es = graphSel.edges;
+          const opts = { "elk.direction": "DOWN", ...elkOptions } as const;
+          const { nodes: layoutedNodes, edges: layoutedEdges } =
+            await getLayoutedElements(ns, es, opts);
+          graphSel.setNodes(layoutedNodes);
+          graphSel.setEdges(layoutedEdges);
+        }
+
+        // 5) Notify diagram to fitView (if you listen for this)
+        try {
+          window.dispatchEvent(new CustomEvent("graph-imported"));
+        } catch { }
+
+        toast.success("Project imported successfully. Current data was replaced.");
+        console.log("Import finished:", {
+          zones: useZoneStore.getState().zones,
+          selectedId: useZoneStore.getState().selectedId,
+        });
+        setTimeout(() => {
+        window.location.reload(); // 🔁 hard refresh after success
+      }, 1200);
+      } catch (err: any) {
+        console.error("Import failed:", err);
+        // IMPORTANT: we didn’t clear anything unless parsing/validation succeeded,
+        // so the user’s current data is still intact.
+        toast.error(err?.message || "Import failed. Please check the JSON file.");
+      }
     });
   };
 
@@ -150,19 +195,17 @@ export default function Header() {
                 <NavigationMenuTrigger>File</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="min-w-[220px] p-2 mt-2">
+                    {/* New Project */}
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
-                      onClick={async () => {
-                        try {
-                          await createNewProject(); // your function does the clearing + seeding
-                        } catch (e) {
-                          console.error("Failed to start new project:", e);
-                        }
-                      }}
+                      onClick={() => setNewProjectOpen(true)}
                     >
                       New Project…
                     </button>
+
+                    <div className="my-1 h-px bg-border" />
+                    {/* Existing items */}
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
@@ -173,7 +216,7 @@ export default function Header() {
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => setConfirmImportOpen(true)}
                     >
                       Import JSON…
                     </button>
@@ -223,6 +266,55 @@ export default function Header() {
           style={{ display: "none" }}
         />
       </div>
+      <AlertDialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Start a new project?</AlertDialogTitle>
+          </AlertDialogHeader>
+
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              This will <strong>delete all current zones, graphs, and FTAs</strong> from local storage and create a fresh project with a default Base zone and graph.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Tip: Use <em>File → Export JSON</em> to back up your work before continuing.
+            </p>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={confirmCreateNewProject}
+            >
+              Yes, start new
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={confirmImportOpen} onOpenChange={setConfirmImportOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Replace current project with a JSON file?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This will <strong>clear all current local data</strong> (zones, graphs, FTAs) and replace it
+            with the content of the selected file. We recommend exporting a backup first.
+          </p>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                setConfirmImportOpen(false);
+                fileInputRef.current?.click(); // open file picker
+              }}
+            >
+              Choose file &amp; replace
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </header>
   );
 }
