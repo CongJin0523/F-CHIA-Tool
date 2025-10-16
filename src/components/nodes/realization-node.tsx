@@ -69,7 +69,7 @@ export function RealizationNode({ id, data }: NodeProps<RealizationNode>) {
       id: newId,
       type: targetType,
       position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
+      data: { content: "" },
     };
 
     const newEdge = {
@@ -118,9 +118,9 @@ export function RealizationNode({ id, data }: NodeProps<RealizationNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
+            Tip: Explain how the function is physically or logically achieved.
             <br />
-            The tooltip will appear when you hover over the trigger.
+            e.g. “Steering motor controlled via embedded controller.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-sky-200 bg-sky-50 nodrag">
             <NodeTooltipTrigger>

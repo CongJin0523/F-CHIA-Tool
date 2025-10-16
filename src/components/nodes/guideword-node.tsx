@@ -79,7 +79,7 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
       id: newId,
       type: targetType,
       position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
+      data: { content: "" },
     };
 
     const newEdge = {
@@ -127,9 +127,7 @@ export function GuideWordNode({ id, data }: NodeProps<GuideWordNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
-            <br />
-            The tooltip will appear when you hover over the trigger.
+            Tip: Use guide words to explore deviations from normal behavior.
           </NodeTooltipContent>
           <BaseNode className="w-40 border-fuchsia-200 bg-fuchsia-50 nodrag">
           <NodeTooltipTrigger>

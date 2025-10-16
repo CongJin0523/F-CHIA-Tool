@@ -3,6 +3,7 @@ import { useZoneStore } from "@/store/zone-store"; // from previous step
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose,
 } from "@/components/ui/dialog";
@@ -25,8 +26,8 @@ export default function ZoneSelecter() {
   const removeZone = useZoneStore(s => s.removeZone);
 
   const selected = useMemo(
-  () => zones.find((z) => z.id === selectedId),
-  [zones, selectedId]
+    () => zones.find((z) => z.id === selectedId),
+    [zones, selectedId]
   );
 
   // Ensure the Select is always controlled: pick a stable value
@@ -114,26 +115,41 @@ export default function ZoneSelecter() {
           ))}
         </SelectContent>
       </Select>
-     
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-2"
-        onClick={startAdd}
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={startAdd}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>Add new zone</p>
+          </TooltipContent>
+        </Tooltip>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-2"
-        onClick={startEdit}
-        disabled={!selected}
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
-       {/* Add/Edit Dialog */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={startEdit}
+          disabled={!selected}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>Edit selected zone</p>
+        </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {/* Add/Edit Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[460px]">
           <DialogHeader>

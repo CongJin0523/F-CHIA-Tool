@@ -68,7 +68,7 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
       id: newId,
       type: targetType,
       position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
+      data: { content: "" },
     };
 
     const newEdge = {
@@ -116,9 +116,9 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
+            Tip: Briefly describe what happens in this zone and what hazards may occur.
             <br />
-            The tooltip will appear when you hover over the trigger.
+            e.g. “Area for attachments and lifting tools; risk of collision or crush injury.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-violet-200 bg-violet-50 nodrag">
             <NodeTooltipTrigger>

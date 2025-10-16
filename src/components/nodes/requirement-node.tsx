@@ -20,7 +20,7 @@ import {
   NodeTooltipContent,
   NodeTooltipTrigger,
 } from "@/components/node-tooltip";
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 import { getId } from '@/common/utils/uuid';
 import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 
@@ -69,7 +69,7 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
       id: newId,
       type: targetType,
       position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
+      data: { content: "" },
     };
 
     const newEdge = {
@@ -112,9 +112,9 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
+            Tip: Define the safety or design rule that prevents or mitigates the hazard.
             <br />
-            The tooltip will appear when you hover over the trigger.
+            e.g. “System must monitor steering feedback and stop on fault.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-rose-200 bg-rose-50 nodrag">
            <NodeTooltipTrigger>

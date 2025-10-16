@@ -70,7 +70,7 @@ export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
       id: newId,
       type: targetType,
       position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
+      data: { content: "" },
     };
 
     const newEdge = {
@@ -119,9 +119,9 @@ export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
+            Tip: Describe what goes wrong when the function deviates from intent.
             <br />
-            The tooltip will appear when you hover over the trigger.
+            e.g. “Steering does not respond to input.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-orange-200 bg-orange-50 nodrag">
           <NodeTooltipTrigger>

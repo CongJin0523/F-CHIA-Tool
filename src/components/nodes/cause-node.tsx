@@ -68,7 +68,7 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
       id: newId,
       type: targetType,
       position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
+      data: { content: "" },
     };
 
     const newEdge = {
@@ -116,9 +116,9 @@ export function CauseNode({ id, data }: NodeProps<CauseNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
+            Tip: Identify why the deviation may happen.
             <br />
-            The tooltip will appear when you hover over the trigger.
+            e.g. “Controller fault” or “Sensor failure.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-red-200 bg-red-50 nodrag">
             <NodeTooltipTrigger>

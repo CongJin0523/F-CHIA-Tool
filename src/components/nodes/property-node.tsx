@@ -64,12 +64,18 @@ export function PropertyNode({ id, data }: NodeProps<PropertyNode>) {
     const newId = getId();
 
     // Create the new node and edge
-    const newNode = {
-      id: newId,
-      type: targetType,
-      position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
-    };
+
+      const newNode = {
+        id: newId,
+        type: targetType,
+        position: { x: 0, y: 0 }, // Will be set by layout
+        data: { content: `` },
+      };
+      
+      if (targetType == 'guideword') {
+          newNode.data = { content: "No" };
+      };
+
 
     const newEdge = {
       id: `${sourceNode.id}-${newId}`,
@@ -114,9 +120,9 @@ export function PropertyNode({ id, data }: NodeProps<PropertyNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
+            Tip: List measurable features or conditions of the realization.
             <br />
-            The tooltip will appear when you hover over the trigger.
+            e.g. “Motor torque response time, power limit.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-pink-200 bg-pink-50 nodrag">
             <NodeTooltipTrigger>

@@ -69,7 +69,7 @@ export function ConsequenceNode({ id, data }: NodeProps<ConsequenceNode>) {
       id: newId,
       type: targetType,
       position: { x: 0, y: 0 }, // Will be set by layout
-      data: { content: `Node ${newId}` },
+      data: { content: "" },
     };
 
     const newEdge = {
@@ -117,9 +117,9 @@ export function ConsequenceNode({ id, data }: NodeProps<ConsequenceNode>) {
         transition={{ type: "tween", ease: "easeInOut", duration: 0.4 }} >
         <NodeTooltip>
           <NodeTooltipContent position={Position.Top} className="text-center">
-            This is a some tip for the node.
+            Tip: Explain what happens due to the deviation.
             <br />
-            The tooltip will appear when you hover over the trigger.
+            e.g. “Loss of steering causes collision risk.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-indigo-200 bg-indigo-50 nodrag">
             <NodeTooltipTrigger>
