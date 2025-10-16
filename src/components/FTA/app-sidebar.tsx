@@ -66,7 +66,32 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="text-xl font-bold flex justify-center">Basic Event Check</SidebarGroupLabel>
           <SidebarGroupContent>
-            d
+            <ul className="space-y-1">
+              <li className="flex items-center space-x-2">
+                <Checkbox id="basic-event-check" />
+                <label htmlFor="basic-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Basic Event 1
+                </label>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Checkbox id="conditioning-event-check" />
+                <label htmlFor="conditioning-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Basic Event 2
+                </label>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Checkbox id="basic-event-check" />
+                <label htmlFor="basic-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Basic Event 3
+                </label>
+              </li>
+              <li className="flex items-center space-x-2">
+                <Checkbox id="conditioning-event-check" />
+                <label htmlFor="conditioning-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Basic Event 2
+                </label>
+              </li>
+            </ul>
           </SidebarGroupContent>
 
         </SidebarGroup>
