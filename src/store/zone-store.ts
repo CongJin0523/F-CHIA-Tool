@@ -28,8 +28,6 @@ export const useZoneStore = create<ZoneState>()(
       (set, get) => ({
         zones: [
           { id: "zone-1", label: "Base Zone" },
-          { id: "zone-2", label: "Zone 2" },
-          { id: "zone-3", label: "Zone 3" },
         ],
         selectedId: undefined,
 

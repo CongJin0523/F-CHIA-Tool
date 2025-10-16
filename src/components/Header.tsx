@@ -9,7 +9,7 @@ import {
 import { getGraphStoreHook, deleteGraphStore } from "@/store/graph-registry";
 import { useZoneStore } from "@/store/zone-store";
 import { elkOptions, getLayoutedElements } from "@/common/layout-func";
-
+import { createNewProject } from "@/common/new-project";
 // —— 工具函数 —— //
 function downloadJSON(data: any, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -125,7 +125,7 @@ export default function Header() {
       // 可选：发事件，Diagram 页面里用它来 fitView
       try {
         window.dispatchEvent(new CustomEvent("graph-imported"));
-      } catch {}
+      } catch { }
 
       console.log("Import finished:", {
         zones: useZoneStore.getState().zones,
@@ -150,6 +150,19 @@ export default function Header() {
                 <NavigationMenuTrigger>File</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="min-w-[220px] p-2 mt-2">
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
+                      onClick={async () => {
+                        try {
+                          await createNewProject(); // your function does the clearing + seeding
+                        } catch (e) {
+                          console.error("Failed to start new project:", e);
+                        }
+                      }}
+                    >
+                      New Project…
+                    </button>
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
