@@ -4,9 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { listAllFtaTasksWithTitles } from '@/common/fta-storage';
 import { Trash2 } from 'lucide-react';
 import { deleteFtaStore } from '@/store/fta-registry';
-
-// 如果你在 fta-registry 里实现了 deleteFtaStore，就解开下面的 import：
-// import { deleteFtaStore } from '@/store/fta-registry';
+import { useZoneStore } from '@/store/zone-store';
 
 type Item = {
   zoneId: string;
@@ -17,8 +15,13 @@ type Item = {
 export default function TaskSelectorLocal() {
   const [params, setParams] = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
+
   const currentZone = params.get('zone');
   const currentTask = params.get('task');
+
+  // ✅ 取/设 selectedFta
+  const setSelectedFta = useZoneStore(s => s.setSelectedFta);
+  const selectedFta = useZoneStore(s => s.selectedFta);
 
   const load = useCallback(() => {
     const list = listAllFtaTasksWithTitles();
@@ -39,6 +42,8 @@ export default function TaskSelectorLocal() {
 
   const onSelect = (zoneId: string, taskId: string) => {
     setParams({ zone: zoneId, task: taskId });
+    // 同步 store 里的 selectedFta
+    setSelectedFta?.({ zoneId, taskId });
   };
 
   const onDelete = async (zoneId: string, taskId: string) => {
@@ -47,22 +52,26 @@ export default function TaskSelectorLocal() {
     if (!ok) return;
 
     try {
-      // 若你实现了 deleteFtaStore，请优先调用：
-      // try { deleteFtaStore(zoneId, taskId); } catch {}
       deleteFtaStore(zoneId, taskId);
-      // 兜底：移除 localStorage
       localStorage.removeItem(`fta-${zoneId}::${taskId}`);
     } finally {
-      // 刷新列表
+      // 🔑 if the deleted one is the current selection, clear it in the store
+      const sel = useZoneStore.getState().selectedFta;
+      if (sel && sel.zoneId === zoneId && sel.taskId === taskId) {
+        useZoneStore.getState().setSelectedFta(undefined);
+      }
+
+      // Refresh list
       const next = listAllFtaTasksWithTitles();
       setItems(next);
 
-      // 如果删的是当前选中项，跳到剩余第一项或清空参数
+      // Fix URL:
       if (currentZone === zoneId && currentTask === taskId) {
         if (next.length > 0) {
           setParams({ zone: next[0].zoneId, task: next[0].taskId });
         } else {
-          setParams({}); // 清空
+          // no items left: clear URL
+          setParams({});
         }
       }
     }
@@ -87,9 +96,8 @@ export default function TaskSelectorLocal() {
               <button
                 type="button"
                 onClick={() => onSelect(zoneId, taskId)}
-                className={`flex-1 text-left text-xs px-2 py-1 rounded transition-colors ${
-                  active ? 'bg-blue-100 text-blue-700' : 'hover:bg-neutral-100'
-                }`}
+                className={`flex-1 text-left text-xs px-2 py-1 rounded transition-colors ${active ? 'bg-blue-100 text-blue-700' : 'hover:bg-neutral-100'
+                  }`}
                 title={`Zone: ${zoneId}\nTask: ${taskId}`}
               >
                 <div className="truncate">{`${zoneId}: ${title ?? taskId}`}</div>

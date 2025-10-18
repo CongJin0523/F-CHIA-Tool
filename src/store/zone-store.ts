@@ -8,10 +8,12 @@ export type Zone = { id: string; label: string };
 type ZoneState = {
   zones: Zone[];
   selectedId?: string;
+  selectedFta?: { zoneId: string; taskId: string };
   addZone: (label: string) => Zone;
   removeZone: (id: string) => void;
   renameZone: (id: string, nextLabel: string) => void;
   setSelected: (id?: string) => void;
+  setSelectedFta: (sel?: { zoneId: string; taskId: string }) => void;
 };
 
 // 简单 slug
@@ -30,6 +32,7 @@ export const useZoneStore = create<ZoneState>()(
           { id: "zone-1", label: "Base Zone" },
         ],
         selectedId: undefined,
+        selectedFta: undefined,
 
         addZone: (label) => {
           const base = slug(label);
@@ -59,6 +62,8 @@ export const useZoneStore = create<ZoneState>()(
         },
 
         setSelected: (id) => set({ selectedId: id }),
+        setSelectedFta: (sel?: { zoneId: string; taskId: string }) =>
+          set({ selectedFta: sel }),
       }),
       { name: "zones-store" } // 本地持久化 key
     )

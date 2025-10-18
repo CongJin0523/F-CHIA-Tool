@@ -21,6 +21,7 @@ import { useZoneStore } from "@/store/zone-store";
 import { elkOptions, getLayoutedElements } from "@/common/layout-func";
 import { createNewProject } from "@/common/new-project";
 import { clearAppLocalStorage } from "@/common/utils/claarLocalStorage";
+import { getFtaStoreHook } from "@/store/fta-registry";
 // —— 工具函数 —— //
 function downloadJSON(data: any, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -40,6 +41,64 @@ function importJSON(file: File, onLoad: (data: any) => void) {
     }
   };
   reader.readAsText(file);
+}
+
+type FtaDumpItem = {
+  zoneId: string;
+  taskId: string;
+  nodes: any[];
+  edges: any[];
+};
+function readAllFtasFromLocalStorage(): { items: FtaDumpItem[]; } {
+  const items: FtaDumpItem[] = [];
+  let selectedFta: { zoneId: string; taskId: string } | undefined;
+
+
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i) || "";
+    if (!key.startsWith("fta-")) continue;
+
+    // key format we expect: fta-${zoneId}::${taskId}
+    const id = key.slice(4);
+    const [zoneId, taskId] = id.split("::");
+    if (!zoneId || !taskId) continue;
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+
+      // Zustand persist can be { state: {...} } or plain {nodes, edges}
+      const state = parsed?.state ?? parsed;
+      const nodes = state?.nodes ?? [];
+      const edges = state?.edges ?? [];
+
+      items.push({ zoneId, taskId, nodes, edges });
+    } catch {
+      // ignore malformed entries
+    }
+  }
+
+  return { items };
+}
+
+function restoreFtasFromDump(
+  dump: { items?: FtaDumpItem[] }
+) {
+  const { items = [] } = dump;
+
+  // 1) Clear all existing FTA stores in memory AND localStorage
+  //    (optional: if you prefer surgical cleanup, compare keys first)
+  const existingKeys: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i) || "";
+    if (k.startsWith("fta-")) existingKeys.push(k);
+  }
+  existingKeys.forEach((k) => localStorage.removeItem(k));
+
+  // 2) Rehydrate each FTA store
+
+
 }
 
 function ListItem({
@@ -76,13 +135,15 @@ export default function Header() {
   };
   // 导出
   const onExport = () => {
-    const { zones, selectedId } = useZoneStore.getState();
+    const { zones, selectedId, selectedFta } = useZoneStore.getState();
     const payload = {
       zones: zones.map((zone) => {
         const graph = getGraphStoreHook(zone.id).getState();
         return { id: zone.id, label: zone.label, nodes: graph.nodes, edges: graph.edges };
       }),
       selectedId,
+      selectedFta,
+      fta: readAllFtasFromLocalStorage(),
     };
     downloadJSON(payload, "all-zones.json");
   };
@@ -99,18 +160,24 @@ export default function Header() {
         // 1) Parse & validate (NO CLEAR yet)
         let importedZones: Array<{ id: string; label: string; nodes?: any[]; edges?: any[] }> = [];
         let importedSelectedId: string | undefined;
-
+        let importedSelectedFta: { zoneId: string; taskId: string } | undefined;
+        let importedFtaDump: Array<FtaDumpItem> = [];
         if (Array.isArray(data)) {
           importedZones = data;
-        } else if (data && Array.isArray(data.zones)) {
+        } else if (data && Array.isArray(data.zones) && Array.isArray(data.fta.items)) {
           importedZones = data.zones;
           importedSelectedId = data.selectedId;
+          importedSelectedFta = data.selectedFta;
+          importedFtaDump = data.fta.items;
         } else {
-          throw new Error("Invalid JSON: expect array or { zones:[], selectedId }");
+          throw new Error("Invalid JSON: expect array or { zones:[], selectedId, selectedFta, fta:{ items:[] } }");
         }
 
         if (!importedZones.length) {
           throw new Error("The file contains no zones to import.");
+        }
+        if (!importedFtaDump.length) {
+          console.warn("The file contains no FTAs to import.");
         }
 
         // 2) Now it’s safe to CLEAR current app data
@@ -124,7 +191,7 @@ export default function Header() {
         // Or just rely on localStorage cleanup below.
 
         // reset ZoneStore so we start from a clean slate
-        useZoneStore.setState({ zones: [], selectedId: undefined });
+        useZoneStore.setState({ zones: [], selectedId: undefined, selectedFta: undefined });
 
         // clear persisted localStorage for our app (graph-/fta-/zone-store/etc)
         clearAppLocalStorage();
@@ -143,8 +210,17 @@ export default function Header() {
             ? importedSelectedId
             : nextZones[0]?.id;
 
-        useZoneStore.setState({ zones: nextZones, selectedId: nextSelectedId });
-
+        useZoneStore.setState({ zones: nextZones, selectedId: nextSelectedId, selectedFta: importedSelectedFta });
+        //fta
+        if (importedFtaDump.length > 0) {
+          for (const it of importedFtaDump) {
+            if (!it?.zoneId || !it?.taskId) continue;
+            const hook = getFtaStoreHook(it.zoneId, it.taskId);
+            const st = hook.getState();
+            st.setNodes(it.nodes || []);
+            st.setEdges(it.edges || []);
+          }
+        }
         // 4) Auto-layout selected zone (if any)
         if (nextSelectedId) {
           const graphSel = getGraphStoreHook(nextSelectedId).getState();
@@ -168,8 +244,8 @@ export default function Header() {
           selectedId: useZoneStore.getState().selectedId,
         });
         setTimeout(() => {
-        window.location.reload(); // 🔁 hard refresh after success
-      }, 1200);
+          window.location.reload(); // 🔁 hard refresh after success
+        }, 1200);
       } catch (err: any) {
         console.error("Import failed:", err);
         // IMPORTANT: we didn’t clear anything unless parsing/validation succeeded,

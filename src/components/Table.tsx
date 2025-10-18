@@ -22,6 +22,7 @@ import { type FtaNodeTypes } from '@/common/fta-node-type';
 import { getFtaStoreHook } from '@/store/fta-registry';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner"
+
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   const updates: Update[] = [];
 
@@ -115,6 +116,7 @@ const uniqIso = (list: IsoMatch[]) => {
 export default function EditableNestedTable() {
   const navigate = useNavigate();
   const zoneId: string = useZoneStore((s) => s.selectedId);
+  const setSelectedFta = useZoneStore((s) => s.setSelectedFta);
   const label = useZoneStore((s) =>
     s.zones.find(z => z.id === s.selectedId)?.label
   );
@@ -211,6 +213,7 @@ export default function EditableNestedTable() {
                 return;
               }
               ensureTopEvent(zoneId, taskId, taskName);
+              setSelectedFta({ zoneId, taskId });
               navigate(`/fta?zone=${encodeURIComponent(zoneId)}&task=${encodeURIComponent(taskId)}`);
             }}
           >
