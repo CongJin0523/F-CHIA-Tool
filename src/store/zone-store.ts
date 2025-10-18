@@ -9,6 +9,9 @@ type ZoneState = {
   zones: Zone[];
   selectedId?: string;
   selectedFta?: { zoneId: string; taskId: string };
+
+  projectName: string;
+  setProjectName: (name: string) => void;
   addZone: (label: string) => Zone;
   removeZone: (id: string) => void;
   renameZone: (id: string, nextLabel: string) => void;
@@ -33,7 +36,8 @@ export const useZoneStore = create<ZoneState>()(
         ],
         selectedId: undefined,
         selectedFta: undefined,
-
+        projectName: "Untitled Project",
+        setProjectName: (name) => set({ projectName: name || "Untitled Project"}),
         addZone: (label) => {
           const base = slug(label);
           const ids = new Set(get().zones.map(z => z.id));

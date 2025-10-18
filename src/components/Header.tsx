@@ -1,5 +1,5 @@
 // Header.tsx
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import {
@@ -123,6 +124,19 @@ export default function Header() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [confirmImportOpen, setConfirmImportOpen] = useState(false);
+
+  const projectName = useZoneStore((state) => state.projectName);
+  const setProjectName = useZoneStore((state) => state.setProjectName);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(projectName);
+  useEffect(() => setNameDraft(projectName), [projectName]);
+
+  const commitProjectName = () => {
+    setProjectName(nameDraft);
+    setEditingName(false);
+    toast.success("Project name updated");
+  };
+
   const confirmCreateNewProject = async () => {
     try {
       await createNewProject(); // your existing function that clears local data and seeds default zone/graph
@@ -135,8 +149,9 @@ export default function Header() {
   };
   // 导出
   const onExport = () => {
-    const { zones, selectedId, selectedFta } = useZoneStore.getState();
+    const { zones, selectedId, selectedFta, projectName } = useZoneStore.getState();
     const payload = {
+      projectName,
       zones: zones.map((zone) => {
         const graph = getGraphStoreHook(zone.id).getState();
         return { id: zone.id, label: zone.label, nodes: graph.nodes, edges: graph.edges };
@@ -191,7 +206,7 @@ export default function Header() {
         // Or just rely on localStorage cleanup below.
 
         // reset ZoneStore so we start from a clean slate
-        useZoneStore.setState({ zones: [], selectedId: undefined, selectedFta: undefined });
+        useZoneStore.setState({ zones: [], selectedId: undefined, selectedFta: undefined, projectName: "Untitled Project" });
 
         // clear persisted localStorage for our app (graph-/fta-/zone-store/etc)
         clearAppLocalStorage();
@@ -210,7 +225,7 @@ export default function Header() {
             ? importedSelectedId
             : nextZones[0]?.id;
 
-        useZoneStore.setState({ zones: nextZones, selectedId: nextSelectedId, selectedFta: importedSelectedFta });
+        useZoneStore.setState({ zones: nextZones, selectedId: nextSelectedId, selectedFta: importedSelectedFta, projectName: data.projectName || "Untitled Project" });
         //fta
         if (importedFtaDump.length > 0) {
           for (const it of importedFtaDump) {
@@ -258,10 +273,41 @@ export default function Header() {
   return (
     <header className="bg-background sticky top-0 z-50 w-full border-b">
       <div className="flex h-12 items-center px-6">
-        {/* 左侧 Logo */}
+        {/* Left: Logo */}
         <Link to="/" className="text-lg font-semibold hover:text-primary transition-colors">
           F-CHIA Tool
         </Link>
+
+        {/* ✅ Center: Project Name Section */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+          <span className="text-xs text-neutral-400 uppercase tracking-wide">Project:</span>
+          {editingName ? (
+            <Input
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onBlur={commitProjectName}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitProjectName();
+                if (e.key === "Escape") {
+                  setNameDraft(projectName);
+                  setEditingName(false);
+                }
+              }}
+              className="h-7 w-[200px] text-center text-sm"
+              autoFocus
+              placeholder="Project name"
+            />
+          ) : (
+            <button
+              type="button"
+              className="text-sm font-semibold text-neutral-700 hover:text-primary"
+              title="Click to rename project"
+              onClick={() => setEditingName(true)}
+            >
+              {projectName || "Untitled Project"}
+            </button>
+          )}
+        </div>
 
         {/* 右侧菜单 */}
         <div className="ml-auto flex items-center gap-3">

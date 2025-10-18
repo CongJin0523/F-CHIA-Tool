@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useZoneStore } from "@/store/zone-store";
+import { listAllFtaTasksWithTitles } from "@/common/fta-storage";
 import FtaCanvas from "./FTACanvas"; // 你的画布组件
 import { toast } from "sonner";
 // tiny helper: read all FTA ids from localStorage
@@ -28,53 +29,42 @@ export default function FtaPage() {
   const urlZone = params.get("zone") || undefined;
   const urlTask = params.get("task") || undefined;
 
-  // All available FTAs discovered from localStorage
-  const availableFtas = useMemo(() => listAllFtasFromLocalStorage(), []);
+  // current available FTAs
+  const items = useMemo(() => listAllFtaTasksWithTitles(), []);
+  const hasUrlPair =
+    !!urlZone && !!urlTask && items.some(i => i.zoneId === urlZone && i.taskId === urlTask);
 
-  // If URL params are missing, try to restore from store; if none, fall back to first available; else go to /diagram
+
+
+
+  // ① If no URL, try selectedFta; otherwise fall back away
   useEffect(() => {
-    if (urlZone && urlTask) return;
-
-    if (selectedFta?.zoneId && selectedFta?.taskId) {
-      setParams({ zone: selectedFta.zoneId, task: selectedFta.taskId }, { replace: true });
-      return;
-    }
-
-    if (availableFtas.length > 0) {
-      const first = availableFtas[0];
-      setParams({ zone: first.zoneId, task: first.taskId }, { replace: true });
-      return;
-    }
-    toast.warning(
-      "No FTA data found. Please create an FTA from the Table page before viewing."
-    );
-    console.log("No Fta");
-    // no FTAs at all — send user to Table to create FTAs from the Table flow
-    navigate("/table", { replace: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlZone, urlTask, selectedFta]);
-
-  // If URL params exist but point to a non-existing FTA, redirect to first available or Diagram
-  useEffect(() => {
-    if (!urlZone || !urlTask) return;
-    const exists = availableFtas.some((f) => f.zoneId === urlZone && f.taskId === urlTask);
-    if (!exists) {
-      if (availableFtas.length > 0) {
-        const first = availableFtas[0];
-        setParams({ zone: first.zoneId, task: first.taskId }, { replace: true });
+    if (!urlZone || !urlTask) {
+      if (selectedFta) {
+        setParams({ zone: selectedFta.zoneId, task: selectedFta.taskId }, { replace: true });
       } else {
+        // nothing selected => go elsewhere
         navigate("/table", { replace: true });
+        toast.info("No FTA selected. Use the Table page to create one.");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [urlZone, urlTask]);
+  }, [urlZone, urlTask, selectedFta]);
 
-  // Keep store in sync with URL
+  // ② Keep store in sync with URL, but guard against missing pair
   useEffect(() => {
     if (urlZone && urlTask) {
-      setSelectedFta({ zoneId: urlZone, taskId: urlTask });
+      if (hasUrlPair) {
+        setSelectedFta({ zoneId: urlZone, taskId: urlTask });
+      } else {
+        // URL points to a deleted/missing FTA → clear everything and leave
+        setSelectedFta(undefined);
+        setParams({}, { replace: true });
+        navigate("/table", { replace: true });
+        toast.success("FTA deleted.");
+      }
     }
-  }, [urlZone, urlTask, setSelectedFta]);
+  }, [urlZone, urlTask, hasUrlPair, setSelectedFta, setParams, navigate]);
 
   // Don’t render until URL is settled on a valid FTA
   if (!urlZone || !urlTask) return null;
