@@ -7,6 +7,7 @@ import {
   useReactFlow,
   type Edge,
   addEdge,
+  Controls,
 } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
@@ -130,7 +131,8 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
         </Panel>
         <Background />
         <DownloadButton />
-      </ReactFlow
+        <Controls />
+      </ReactFlow>
     </div>
   );
 };
