@@ -10,6 +10,7 @@ import type { FtaNodeTypes } from '@/common/fta-node-type';
 import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 
+export type ChecksMap = Record<string, boolean>;
 export type FtaState = {
   nodes: FtaNodeTypes[];
   edges: Edge[];
@@ -18,6 +19,11 @@ export type FtaState = {
   onNodesChange: OnNodesChange<FtaNodeTypes>;
   onEdgesChange: OnEdgesChange;
   onLayout: (dir: 'DOWN' | 'RIGHT') => Promise<void>;
+
+  causeChecks: ChecksMap;
+  setCauseChecked: (causeKey: string, checked: boolean) => void;
+  clearCauseChecks: () => void;
+  setAllCauseChecks: (map: Record<string, boolean>) => void;
 };
 
 export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; edges: Edge[] }) {
@@ -43,8 +49,15 @@ export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; ed
         console.error('Layout failed:', error);
       }
     },
-  })
-    , { name: `fta-${id}` }))
+    //new UI slice
+    causeChecks: {},
+    setCauseChecked: (causeKey, checked) =>
+      set((s) => ({ causeChecks: { ...s.causeChecks, [causeKey]: checked } })),
+    clearCauseChecks: () => set({ causeChecks: {} }),
+    setAllCauseChecks: (map: Record<string, boolean>) => set({ causeChecks: map || {} }), 
+  }),
+
+    { name: `fta-${id}` }))
     ;
 }
 

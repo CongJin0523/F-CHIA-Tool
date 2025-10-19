@@ -1,4 +1,5 @@
 // Header.tsx
+import { type Edge } from "@xyflow/react";
 import { useRef, useState, useEffect } from "react";
 import {
   AlertDialog,
@@ -23,6 +24,8 @@ import { elkOptions, getLayoutedElements } from "@/common/layout-func";
 import { createNewProject } from "@/common/new-project";
 import { clearAppLocalStorage } from "@/common/utils/claarLocalStorage";
 import { getFtaStoreHook } from "@/store/fta-registry";
+import type { ChecksMap } from "@/store/fta-store";
+import type { FtaNodeTypes } from "@/common/fta-node-type";
 // —— 工具函数 —— //
 function downloadJSON(data: any, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -47,8 +50,9 @@ function importJSON(file: File, onLoad: (data: any) => void) {
 type FtaDumpItem = {
   zoneId: string;
   taskId: string;
-  nodes: any[];
-  edges: any[];
+  nodes: FtaNodeTypes[];
+  edges: Edge[];
+  causeChecks?: ChecksMap;
 };
 function readAllFtasFromLocalStorage(): { items: FtaDumpItem[]; } {
   const items: FtaDumpItem[] = [];
@@ -73,8 +77,8 @@ function readAllFtasFromLocalStorage(): { items: FtaDumpItem[]; } {
       const state = parsed?.state ?? parsed;
       const nodes = state?.nodes ?? [];
       const edges = state?.edges ?? [];
-
-      items.push({ zoneId, taskId, nodes, edges });
+      const causeChecks = state?.causeChecks ?? {};
+      items.push({ zoneId, taskId, nodes, edges, causeChecks });
     } catch {
       // ignore malformed entries
     }
@@ -83,24 +87,7 @@ function readAllFtasFromLocalStorage(): { items: FtaDumpItem[]; } {
   return { items };
 }
 
-function restoreFtasFromDump(
-  dump: { items?: FtaDumpItem[] }
-) {
-  const { items = [] } = dump;
 
-  // 1) Clear all existing FTA stores in memory AND localStorage
-  //    (optional: if you prefer surgical cleanup, compare keys first)
-  const existingKeys: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i) || "";
-    if (k.startsWith("fta-")) existingKeys.push(k);
-  }
-  existingKeys.forEach((k) => localStorage.removeItem(k));
-
-  // 2) Rehydrate each FTA store
-
-
-}
 
 function ListItem({
   title, children, href, ...props
@@ -161,7 +148,14 @@ export default function Header() {
       selectedFta,
       fta: readAllFtasFromLocalStorage(),
     };
-    downloadJSON(payload, "all-zones.json");
+    const safeName = projectName?.trim() ? projectName.trim().replace(/[^\w\-]+/g, "_") : "project";
+    const now = new Date();
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(
+      now.getHours()
+    )}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    const fileName = `${safeName}_${timestamp}.json`;
+    downloadJSON(payload, fileName);
   };
 
   // 导入回调（这里一定会触发）
@@ -235,6 +229,14 @@ export default function Header() {
             const st = hook.getState();
             st.setNodes(it.nodes || []);
             st.setEdges(it.edges || []);
+            if (typeof st.setAllCauseChecks === "function") {
+              st.setAllCauseChecks(it.causeChecks || {});
+            } else if (st.setCauseChecked && it.causeChecks) {
+              // fallback if you didn’t add setAllCauseChecks
+              for (const [k, v] of Object.entries(it.causeChecks)) {
+                st.setCauseChecked(k, !!v);
+              }
+            }
           }
         }
         // 4) Auto-layout selected zone (if any)

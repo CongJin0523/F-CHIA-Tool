@@ -130,7 +130,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
         </Panel>
         <Background />
         <DownloadButton />
-      </ReactFlow>
+      </ReactFlow
     </div>
   );
 };
