@@ -129,6 +129,7 @@ export default function Header() {
   const setProjectName = useZoneStore((state) => state.setProjectName);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(projectName);
+  const [newProjectName, setNewProjectName] = useState("");
   useEffect(() => setNameDraft(projectName), [projectName]);
 
   const commitProjectName = () => {
@@ -138,11 +139,11 @@ export default function Header() {
   };
 
   const confirmCreateNewProject = async () => {
+    const trimmedName = newProjectName.trim() || "Untitled Project";
     try {
-      await createNewProject(); // your existing function that clears local data and seeds default zone/graph
-      toast?.success?.("New project created");
-      // If you want to force navigation to Diagram after reset, you can:
-      // window.location.href = "/diagram";
+      await createNewProject();
+      useZoneStore.getState().setProjectName(trimmedName); // ✅ save new project name
+      toast.success(`New project "${trimmedName}" created`);
     } finally {
       setNewProjectOpen(false);
     }
@@ -391,25 +392,49 @@ export default function Header() {
       <AlertDialog open={newProjectOpen} onOpenChange={setNewProjectOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Start a new project?</AlertDialogTitle>
+            <AlertDialogTitle>Start a new project</AlertDialogTitle>
           </AlertDialogHeader>
 
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              This will <strong>delete all current zones, graphs, and FTAs</strong> from local storage and create a fresh project with a default Base zone and graph.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Tip: Use <em>File → Export JSON</em> to back up your work before continuing.
-            </p>
+          <div className="space-y-3">
+            {/* 🆕 Project name input */}
+            <div>
+              <label className="text-sm font-medium text-foreground">
+                Project name
+              </label>
+              <Input
+                placeholder="Type a name for your new project…"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                className="mt-1"
+              />
+              {!newProjectName.trim() && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  This will become your new project’s title.
+                </p>
+              )}
+            </div>
+
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>
+                This will <strong>delete all current zones, graphs, and FTAs</strong> from local storage.
+              </p>
+              <p>
+                A new project will be created with a default <em>Base Zone</em> and graph.
+              </p>
+              <p>
+                💡 Tip: Use <strong>File → Export JSON</strong> to back up your work before continuing.
+              </p>
+            </div>
           </div>
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              disabled={!nameDraft.trim()}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={confirmCreateNewProject}
             >
-              Yes, start new
+              Create Project
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

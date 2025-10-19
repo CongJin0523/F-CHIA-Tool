@@ -1,5 +1,6 @@
 import type { IR } from "@/common/ir";
 import { useMemo, useRef } from "react";
+
 function collectFunctionRequirementPairs(data: IR) {
   const pairs: {
     taskId: string;
@@ -39,10 +40,10 @@ function collectFunctionRequirementPairs(data: IR) {
 
   return pairs;
 }
+
 function buildMatrix(data: IR) {
   const pairs = collectFunctionRequirementPairs(data);
 
-  // 唯一 functions / requirements（按出现顺序）
   const fnOrder: { id: string; name: string }[] = [];
   const reqOrder: { id: string; text: string }[] = [];
   const fnSeen = new Set<string>();
@@ -59,7 +60,6 @@ function buildMatrix(data: IR) {
     }
   }
 
-  // 若没有 requirement，但你仍想显示所有 function 行，可从 tasks 中补齐函数行
   if (reqOrder.length === 0) {
     for (const task of data.tasks ?? []) {
       for (const fn of task.functions ?? []) {
@@ -71,11 +71,8 @@ function buildMatrix(data: IR) {
     }
   }
 
-  // 布尔矩阵映射
   const hit = new Set<string>(); // `${fnId}|${reqId}`
-  for (const p of pairs) {
-    hit.add(`${p.functionId}|${p.requirementId}`);
-  }
+  for (const p of pairs) hit.add(`${p.functionId}|${p.requirementId}`);
 
   return { fnOrder, reqOrder, hit, pairs };
 }
@@ -86,56 +83,55 @@ export default function DSM({
   showIds = false,
 }: {
   data: IR;
-  fileBase?: string;       // 导出文件名前缀
-  showIds?: boolean;       // 是否在表格中同时显示 id
+  fileBase?: string;
+  showIds?: boolean;
 }) {
   const { fnOrder, reqOrder, hit } = useMemo(() => buildMatrix(data), [data]);
   const tableRef = useRef<HTMLDivElement>(null);
 
-  // const handleExportCSV = () => {
-  //   downloadCSV(fileBase, reqOrder, fnOrder, hit);
-  // };
-
-  // const handleExportPDF = () => {
-  //   const el = tableRef.current;
-  //   if (!el) return;
-  //   exportTableToPDF(el, fileBase);
-  // };
-
   return (
-    <div className="space-y-3">
-      {/* <div className="flex gap-2">
-        <button
-          onClick={handleExportCSV}
-          className="px-3 py-2 rounded bg-blue-600 text-white"
-        >
-          Export CSV
-        </button>
-        <button
-          onClick={handleExportPDF}
-          className="px-3 py-2 rounded bg-emerald-600 text-white"
-        >
-          Export PDF
-        </button>
-      </div> */}
+    <section className="py-4">
+      {/* Header */}
+      <header className="text-center mb-4">
+        <h2 className="text-xl font-bold tracking-tight">
+          Function–Requirement DSM
+        </h2>
+        <p className="text-xs text-muted-foreground">
+          Cross-reference of functions vs. requirements (X = linked)
+        </p>
+      </header>
 
-      <div ref={tableRef} className="overflow-auto max-w-full">
-        <table className="min-w-full border-collapse">
+      {/* Centered container + max width cap */}
+      <div
+        ref={tableRef}
+        className="mx-auto w-full max-w-[1100px] overflow-x-auto rounded-md border bg-background"
+      >
+        <table className="table-fixed w-full border-collapse">
           <thead>
-            <tr>
-              <th className="border px-3 py-2 text-left whitespace-nowrap">
+            <tr className="bg-gray-100">
+              {/* First column: functions */}
+              <th className="w-[260px] border px-3 py-2 text-left whitespace-nowrap bg-white">
                 Function \ Requirement
               </th>
+
+              {/* Requirement columns (fixed width, wrapping content) */}
               {reqOrder.length === 0 ? (
-                <th className="border px-3 py-2 text-left text-gray-500">
+                <th className="w-[220px] border px-3 py-2 text-left text-gray-500">
                   (No requirements)
                 </th>
               ) : (
                 reqOrder.map((req) => (
-                  <th key={req.id} className="border px-3 py-2 text-left align-bottom">
-                    <div className="font-medium">{req.text}</div>
+                  <th
+                    key={req.id}
+                    className="w-[180px] max-w-[220px] border px-3 py-2 text-left align-bottom"
+                  >
+                    <div className="font-medium text-sm break-words line-clamp-3">
+                      {req.text}
+                    </div>
                     {showIds && (
-                      <div className="text-xs text-gray-500">[{req.id}]</div>
+                      <div className="text-[10px] text-gray-500 break-all">
+                        [{req.id}]
+                      </div>
                     )}
                   </th>
                 ))
@@ -143,30 +139,42 @@ export default function DSM({
             </tr>
           </thead>
 
-            <tbody>
+          <tbody>
             {fnOrder.length === 0 ? (
               <tr>
-                <td className="border px-3 py-2 text-gray-500" colSpan={Math.max(2, reqOrder.length + 1)}>
+                <td
+                  className="border px-3 py-2 text-gray-500 bg-gray-50 text-center"
+                  colSpan={Math.max(2, reqOrder.length + 1)}
+                >
                   (No functions)
                 </td>
               </tr>
             ) : (
               fnOrder.map((fn) => (
                 <tr key={fn.id}>
-                  <td className="border px-3 py-2 whitespace-nowrap">
-                    <div className="font-medium">{fn.name}</div>
+                  {/* Function name column (fixed width) */}
+                  <td className="w-[260px] border px-3 py-2 whitespace-nowrap bg-gray-50 align-top">
+                    <div className="font-medium text-sm truncate" title={fn.name}>
+                      {fn.name || "(unnamed function)"}
+                    </div>
                     {showIds && (
-                      <div className="text-xs text-gray-500">[{fn.id}]</div>
+                      <div className="text-[10px] text-gray-500 break-all">
+                        [{fn.id}]
+                      </div>
                     )}
                   </td>
 
+                  {/* Matrix cells */}
                   {reqOrder.length === 0 ? (
-                    <td className="border px-3 py-2 text-gray-500">(No requirements)</td>
+                    <td className="border px-3 py-2 text-gray-500 text-center">
+                      (No requirements)
+                    </td>
                   ) : (
                     reqOrder.map((req) => (
                       <td
                         key={req.id}
                         className="border px-3 py-2 text-center align-middle"
+                        title={hit.has(`${fn.id}|${req.id}`) ? "Linked" : "—"}
                       >
                         {hit.has(`${fn.id}|${req.id}`) ? "X" : ""}
                       </td>
@@ -178,6 +186,6 @@ export default function DSM({
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }

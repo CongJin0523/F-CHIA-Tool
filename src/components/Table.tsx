@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -120,12 +118,23 @@ export default function EditableNestedTable() {
   const label = useZoneStore((s) =>
     s.zones.find(z => z.id === s.selectedId)?.label
   );
+
   console.log("Rendering Table for zone:", zoneId, "label:", label);
   // console.log('CauseNode render, zoneId:', zoneId);
   const storeHook = useMemo(() => (getGraphStoreHook(zoneId)), [zoneId]);
   const nodes = storeHook((state) => state.nodes);
   const edges = storeHook((state) => state.edges);
+  console.log("Graph nodes:", nodes);
 
+  const zoneNode = useMemo(() => nodes.filter(n => n.type === 'zone'), [nodes]);
+  let zoneDescription = "";
+  if (!zoneNode || zoneNode.length === 0) {
+    console.warn("No zone node found in the graph.");
+  } else if (zoneNode.length > 1) {
+    console.warn("Multiple zone nodes found in the graph.");
+  } else {
+    zoneDescription = zoneNode[0].data.content;
+  }
   const defaultValues = useMemo(() => {
     const ir: IR = graphToIR(nodes, edges);
     console.log("Derived IR:", ir);
@@ -277,28 +286,42 @@ export default function EditableNestedTable() {
   return (
 
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-20" key={zoneId}>
-      <div className="overflow-x-auto">
-        <Table className="table-fixed 80vw">
+      <header className="text-center mb-4">
+        <h2 className="text-xl font-bold tracking-tight">
+          Function-Centric Hazard Identification
+        </h2>
+      </header>
+      <div className="overflow-x-auto rounded-md border bg-background [&_th]:border [&_td]:border  [&_th]:border-gray-200 [&_td]:border-gray-200">
+        <Table className="table-fixed 80vw border-collapse">
           <TableHeader>
             <TableRow>
-              <TableHead colSpan={10} className="text-center text-lg font-semibold bg-gray-100">
+              <TableHead colSpan={10} className="text-center text-lg font-semibold bg-gray-200">
                 Hazard Zone: {label ?? "Unnamed Zone"}
               </TableHead>
             </TableRow>
             <TableRow>
-              <TableHead className="w-1/16">Task</TableHead>
-              <TableHead className="w-1/12">Function</TableHead>
-              <TableHead className="w-1/12">Realization</TableHead>
-              <TableHead className="w-1/12">Property</TableHead>
-              <TableHead className="w-1/16">Guide Word</TableHead>
-              <TableHead>Deviations</TableHead>
-              <TableHead>Causes</TableHead>
-              <TableHead >Consequences</TableHead>
-              <TableHead className="w-1/3">Requirements</TableHead>
-              <TableHead className="w-1/12">ISO Standard</TableHead>
+              <TableHead colSpan={10} className="bg-gray-100">
+                <div className="text-left text-sm text-muted-foreground px-2 py-1">
+                  {zoneDescription
+                    ? <>Zone Description: {zoneDescription}</>
+                    : <>Zone Description: <span className="italic">No description provided.</span></>}
+                </div>
+              </TableHead>
+            </TableRow>
+            <TableRow>
+              <TableHead className="w-1/16 bg-gray-50">Task</TableHead>
+              <TableHead className="w-1/12 bg-gray-50">Function</TableHead>
+              <TableHead className="w-1/12 bg-gray-50">Realization</TableHead>
+              <TableHead className="w-1/12 bg-gray-50">Property</TableHead>
+              <TableHead className="w-1/16 bg-gray-50">Guide Word</TableHead>
+              <TableHead className="bg-gray-50">Deviations</TableHead>
+              <TableHead className="bg-gray-50">Causes</TableHead>
+              <TableHead className="bg-gray-50">Consequences</TableHead>
+              <TableHead className="w-1/3 bg-gray-50">Requirements</TableHead>
+              <TableHead className="w-1/12 bg-gray-50">ISO Standard</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody >
             {taskFields.map((task, taskIndex) => {
               const functionFields = task.functions;
               const hasWarnings = taskHasWarnings(task);

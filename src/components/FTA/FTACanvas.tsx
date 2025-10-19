@@ -172,7 +172,7 @@ function FtaFlow() {
   return <FtaCanvas zoneId={zoneId} taskId={taskId} />;
 }
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/FTA/app-sidebar"
+import { AppSidebar } from "@/components/FTA/component/app-sidebar"
 
 export default function FtaDiagram() {
   return (

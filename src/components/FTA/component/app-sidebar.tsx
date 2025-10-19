@@ -1,6 +1,6 @@
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
-import TaskSelectorLocal from '@/components/FTA/TaskSelectorLocal';
+import TaskSelectorLocal from '@/components/FTA/component/sidebar/TaskSelectorLocal';
 import {
   Sidebar,
   SidebarContent,
@@ -12,7 +12,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import NodeSelector from '@/components/FTA/component/Sidebar';
+import NodeSelector from '@/components/FTA/component/sidebar/Sidebar';
+import { useSearchParams } from "react-router-dom";
+import { useTaskCauses } from "@/components/FTA/component/sidebar/useTaskCauses";
 // Menu items.
 const items = [
   {
@@ -43,6 +45,11 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const [params] = useSearchParams();
+  const zoneId = params.get("zone");
+  const taskId = params.get("task");
+
+  const causes = useTaskCauses(zoneId, taskId);
   return (
     <Sidebar>
       <SidebarHeader>
@@ -66,33 +73,36 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="text-xl font-bold flex justify-center">Basic Event Check</SidebarGroupLabel>
           <SidebarGroupContent>
-            <ul className="space-y-1">
-              <li className="flex items-center space-x-2">
-                <Checkbox id="basic-event-check" />
-                <label htmlFor="basic-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Basic Event 1
-                </label>
-              </li>
-              <li className="flex items-center space-x-2">
-                <Checkbox id="conditioning-event-check" />
-                <label htmlFor="conditioning-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Basic Event 2
-                </label>
-              </li>
-              <li className="flex items-center space-x-2">
-                <Checkbox id="basic-event-check" />
-                <label htmlFor="basic-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Basic Event 3
-                </label>
-              </li>
-              <li className="flex items-center space-x-2">
-                <Checkbox id="conditioning-event-check" />
-                <label htmlFor="conditioning-event-check" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Basic Event 2
-                </label>
-              </li>
-            </ul>
-          </SidebarGroupContent>
+        {(!zoneId || !taskId) ? (
+          <div className="text-xs text-neutral-500 px-1 py-1">
+            Select a task first.
+          </div>
+        ) : causes.length === 0 ? (
+          <div className="text-xs text-neutral-500 px-1 py-1">
+            No causes found in this task.
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {causes.map((c, idx) => {
+              const checkboxId = `cause-${c.id || idx}`;
+              return (
+                <li key={checkboxId} className="flex items-start gap-2">
+                  <Checkbox id={checkboxId} />
+                  <label
+                    htmlFor={checkboxId}
+                    className="text-sm leading-snug peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate"
+                    title={c.text}
+                  >
+                    {/* Short prefix “C1, C2, ...” + truncated text */}
+                    <span className="font-medium mr-1">C{idx + 1}:</span>
+                    <span className="align-middle">{c.text || "(empty)"}</span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </SidebarGroupContent>
 
         </SidebarGroup>
         {/* <SidebarGroup>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDnD } from './DnDContext';
+import { useDnD } from '../DnDContext';
 import { BaseNode } from '@/components/base-node';
 
 export default function NodeSelector() {
