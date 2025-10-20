@@ -50,13 +50,26 @@ function DownloadButton() {
     const prevPos = viewportEl.style.position;
     if (!prevPos) viewportEl.style.position = 'relative';
 
+
+    // overlay that cancels the parent transform
+    const overlay = document.createElement('div');
+    overlay.style.position = 'absolute';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = `${imageWidth}px`;
+    overlay.style.height = `${imageHeight}px`;
+    overlay.style.pointerEvents = 'none';
+    overlay.style.zIndex = '9999';
+    overlay.style.transformOrigin = '0 0';
+    overlay.style.transform = `translate(${-viewport.x}px, ${-viewport.y}px) scale(${1 / viewport.zoom})`;
+
     const badge = document.createElement('div');
-    badge.style.position = 'absolute';
-    badge.style.top = '12px';
-    badge.style.left = '12px';
-    badge.style.padding = '8px 12px';
-    badge.style.borderRadius = '8px';
-    badge.style.background = 'rgba(255,255,255,0.9)';
+    badge.style.position = 'fixed';
+    badge.style.top = '0';
+    badge.style.left = '0';
+    badge.style.padding = '3px 12px';
+    badge.style.borderRadius = '3px';
+    badge.style.background = 'rgba(240, 240, 240, 0.95)';
     badge.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
     badge.style.backdropFilter = 'blur(2px)';
     badge.style.fontFamily = 'system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
@@ -75,9 +88,11 @@ function DownloadButton() {
     subtitle.style.fontSize = '12px';
     subtitle.style.color = '#555';
 
+    console.log('projectName', projectName, 'zoneName', selected?.label);
     badge.appendChild(title);
     badge.appendChild(subtitle);
-    viewportEl.appendChild(badge);
+    overlay.appendChild(badge);
+    viewportEl.appendChild(overlay);
     toPng(viewportEl, {
       backgroundColor: '#ffffff',
       width: imageWidth,
@@ -103,8 +118,11 @@ function DownloadButton() {
       })
       .finally(() => {
         // cleanup overlay
-        try { viewportEl.removeChild(badge); } catch {}
-        if (!prevPos) viewportEl.style.position = '';
+        try { viewportEl.removeChild(badge); } catch { }
+        setTimeout(() => {
+          try { viewportEl.removeChild(overlay); } catch {}
+          if (!prevPos) viewportEl.style.position = '';
+        }, 300);
       });
   };
 
