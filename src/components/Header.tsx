@@ -1,6 +1,17 @@
 // Header.tsx
 import { type Edge } from "@xyflow/react";
+import { getNodesBounds, getViewportForBounds, type Node as RFNode } from "@xyflow/react";
+import { toPng } from "html-to-image";
+import jsPDF from "jspdf";
+import autoTable, { type RowInput, type CellInput } from "jspdf-autotable";
+import type { IR } from "@/common/ir";
 import { useRef, useState, useEffect } from "react";
+import { useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import { graphToIR } from "@/common/graphToIR";
+import { deriveRowSpans } from "@/common/deriveRowSpans";
+import ExportTablePDFButton from "@/components/ExportTablePDFButton";
+import DownloadButton from "@/components/DownloadButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -106,6 +117,55 @@ function ListItem({
   );
 }
 
+function HeaderExportActions() {
+  const { pathname } = useLocation();
+
+  // Project / Zone
+  const projectName = useZoneStore((s) => s.projectName);
+  const zoneId: string | undefined = useZoneStore((s) => s.selectedId);
+  const zones = useZoneStore((s) => s.zones);
+  const zoneLabel = zones.find((z) => z.id === zoneId)?.label ?? zoneId ?? "Unnamed Zone";
+
+  // Graph from current zone
+  const storeHook = useMemo(() => (zoneId ? getGraphStoreHook(zoneId) : null), [zoneId]);
+  const nodes = storeHook ? storeHook((state) => state.nodes) : [];
+  const edges = storeHook ? storeHook((state) => state.edges) : [];
+
+  // Zone description from zone node (if present)
+  const zoneDescription: string = useMemo(() => {
+    const zoneNode = Array.isArray(nodes) ? nodes.find((n: any) => n?.type === "zone") : undefined;
+    return zoneNode?.data?.content ?? "";
+  }, [nodes]);
+
+  // Table data (derived IR with rowSpans)
+  const defaultValues = useMemo(() => {
+    try {
+      const ir = graphToIR(nodes, edges);
+      return deriveRowSpans(ir);
+    } catch {
+      return { tasks: [] } as any;
+    }
+  }, [nodes, edges]);
+
+  // Guard: if no zone yet, only show PDF (it will handle empty data); keep Flow button off.
+  const canShowFlowButton = pathname.startsWith("/diagram");
+
+  return (
+    <div className="flex items-center gap-2">
+      {/* Flow PNG export only on Diagram page to avoid React Flow provider error */}
+      {canShowFlowButton ? <DownloadButton /> : null}
+
+      {/* Structured text-based PDF (tables) */}
+      <ExportTablePDFButton
+        data={defaultValues}
+        projectName={projectName}
+        zoneLabel={zoneLabel}
+        zoneDescription={zoneDescription}
+      />
+    </div>
+  );
+}
+
 export default function Header() {
   // 让 input 持久存在于 Header 根部
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -156,6 +216,403 @@ export default function Header() {
     )}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
     const fileName = `${safeName}_${timestamp}.json`;
     downloadJSON(payload, fileName);
+  };
+
+  // Export PDF (Flow + Tables)
+  const handleExportCombinedPDF = () => {
+    const { projectName, selectedId, zones } = useZoneStore.getState();
+    const zoneId = selectedId;
+    if (!zoneId) {
+      toast.error("No zone selected");
+      return;
+    }
+    const zone = zones.find(z => z.id === zoneId);
+    const zoneLabel = zone?.label || zoneId;
+
+    // Build IR/table data
+    const graphState = getGraphStoreHook(zoneId).getState();
+    const nodes = graphState.nodes || [];
+    const edges = graphState.edges || [];
+    const ir: IR = graphToIR(nodes, edges);
+    const data = deriveRowSpans(ir);
+
+    // zone description from graph
+    const zoneNode = (nodes || []).find((n: any) => n.type === "zone");
+    const zoneDescription = zoneNode?.data?.content || "";
+
+    // ---- 1) Capture Flow Image (dataURL) using viewport transform ----
+    const imageWidth = 1920;
+    const imageHeight = 1080;
+    const DPR = Math.min(3, window.devicePixelRatio || 1);
+
+    // compute viewport from nodes bounds
+    const rfNodes: RFNode[] = (nodes || []).map((n: any) => ({
+      id: n.id,
+      position: n.position || { x: 0, y: 0 },
+      width: (n.width as number) || 180,
+      height: (n.height as number) || 80,
+      data: n.data,
+      type: n.type,
+      selectable: false,
+      dragHandle: undefined,
+      dragging: false,
+      hidden: false,
+      selected: false,
+    })) as any;
+
+    const bounds = getNodesBounds(rfNodes);
+    const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.5, 2);
+
+    const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+    if (!viewportEl) {
+      toast.error("Flow canvas not found on this page");
+      return;
+    }
+
+    // Create overlay badge (project + zone) in the flow for capture
+    const prevPos = viewportEl.style.position;
+    if (!prevPos) viewportEl.style.position = "relative";
+
+    const overlay = document.createElement("div");
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.padding = "3px 12px";
+    overlay.style.borderRadius = "3px";
+    overlay.style.background = "rgba(243, 244, 246, 0.95)"; // gray-100
+    overlay.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
+    overlay.style.backdropFilter = "blur(2px)";
+    overlay.style.fontFamily = "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
+    overlay.style.pointerEvents = "none";
+    overlay.style.lineHeight = "1.2";
+    overlay.style.maxWidth = "70%";
+    overlay.style.wordBreak = "break-word";
+    overlay.style.zIndex = "9999";
+
+    const t1 = document.createElement("div");
+    t1.textContent = projectName || "Untitled Project";
+    t1.style.fontWeight = "700";
+    t1.style.fontSize = "14px";
+    const t2 = document.createElement("div");
+    t2.textContent = `Zone: ${zoneLabel}`;
+    t2.style.fontSize = "12px";
+    t2.style.color = "#444";
+    overlay.appendChild(t1);
+    overlay.appendChild(t2);
+    viewportEl.appendChild(overlay);
+
+    toPng(viewportEl, {
+      backgroundColor: "#ffffff",
+      width: imageWidth,
+      height: imageHeight,
+      pixelRatio: DPR,
+      cacheBust: true,
+      style: {
+        width: `${imageWidth}px`,
+        height: `${imageHeight}px`,
+        transformOrigin: "0 0",
+        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+        imageRendering: "crisp-edges",
+      } as any,
+    })
+      .then((dataUrl) => {
+        // ---- 2) Build PDF with header, image, then tables ----
+        const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const marginX = 10;
+        const headerBottomY = 20;   // line at y=20
+        const contentTop = 24;      // start content after header
+        const footerGap = 10;
+
+        // Header
+        const title = "Project Report";
+        const sub = `Project: ${projectName || "Untitled Project"}  •  Zone: ${zoneLabel}`;
+        const dateStr = new Date().toLocaleString();
+        const drawHeader = () => {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          doc.text(title, marginX, 12, { align: "left" });
+
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(10);
+          doc.text(sub, marginX, 18, { align: "left" });
+
+          doc.setTextColor(120);
+          doc.text(dateStr, pageWidth - marginX, 12, { align: "right" });
+          doc.setTextColor(0);
+
+          doc.setDrawColor(220);
+          doc.line(marginX, headerBottomY, pageWidth - marginX, headerBottomY);
+        };
+
+        const drawCenteredTitle = (text: string, y: number, isLightHeader?: boolean) => {
+          if (isLightHeader) doc.setTextColor(107); // gray-600
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          doc.text(text, pageWidth / 2, y, { align: "center" });
+          doc.setTextColor(0);
+        };
+
+        drawHeader();
+
+        // available drawing box below the header to bottom
+        const availH = pageHeight - contentTop - footerGap;
+        const maxW = pageWidth - marginX * 2;
+
+        // image native ratio
+        const imgW = imageWidth;
+        const imgH = imageHeight;
+
+        // scale to fill height but never overflow width
+        const scaleH = availH / imgH;
+        const scaleW = maxW / imgW;
+        const scale = Math.min(scaleH, scaleW);
+
+        const finalW = imgW * scale;
+        const finalH = imgH * scale;
+        const imgX = marginX + (maxW - finalW) / 2;
+        const imgY = contentTop;
+
+        doc.addImage(dataUrl, "PNG", imgX, imgY, finalW, finalH);
+
+        // ---- Second page: center the tables (and titles) horizontally ----
+        doc.addPage("a4", "landscape");
+        drawHeader();
+
+        // helper to center a given desired table width
+        const centerMargin = (desiredWidth: number) => {
+          const clamped = Math.min(desiredWidth, pageWidth - marginX * 2);
+          const left = (pageWidth - clamped) / 2;
+          return { left, right: left };
+        };
+
+        // ── 1) Function-Centric Hazard Identification (title + optional description)
+        let cursorY = contentTop;
+        drawCenteredTitle("Function-Centric Hazard Identification", cursorY, true);
+        cursorY += 6;
+
+        if (zoneDescription) {
+          doc.setFontSize(9);
+          doc.setTextColor(90);
+          const descLines = doc.splitTextToSize(
+            `Zone Description: ${zoneDescription}`,
+            pageWidth * 0.9  // wrap width relative to page
+          );
+          // horizontally center the description by computing its x start
+          const descBlockWidth = Math.min(pageWidth * 0.9, pageWidth - marginX * 2);
+          const descLeft = (pageWidth - descBlockWidth) / 2;
+          doc.text(descLines, descLeft, cursorY);
+          doc.setTextColor(0);
+          cursorY += descLines.length * 4 + 2;
+        }
+
+        // Build rows from data (mirrors your UI with rowSpan)
+        const rows: RowInput[] = [];
+        (data.tasks || []).forEach(task => {
+          const taskName = task.taskName || "";
+          const taskRowSpan = Math.max(1, task.rowSpan || 1);
+          const fns = task.functions || [];
+          if (!fns.length) {
+            rows.push([{ content: taskName, rowSpan: 1 } as CellInput, "(No function)", "", "", "", "", "", "", "", ""]);
+            return;
+          }
+          let taskPrinted = false;
+          fns.forEach(fn => {
+            const fnName = fn.functionName || "";
+            const fnRowSpan = Math.max(1, fn.rowSpan || 1);
+            const reals = fn.realizations || [];
+            if (!reals.length) {
+              rows.push([
+                taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
+                { content: fnName, rowSpan: 1 } as CellInput,
+                "(No realization)", "", "", "", "", "", "", "",
+              ]);
+              taskPrinted = true;
+              return;
+            }
+            let fnPrinted = false;
+            reals.forEach(real => {
+              const realName = real.realizationName || "";
+              const realRowSpan = Math.max(1, real.rowSpan || 1);
+              const props = real.properties || [];
+              if (!props.length) {
+                rows.push([
+                  taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
+                  fnPrinted ? "" : ({ content: fnName, rowSpan: fnRowSpan } as CellInput),
+                  { content: realName, rowSpan: 1 } as CellInput,
+                  "(No property)", "", "", "", "", "", "",
+                ]);
+                taskPrinted = true; fnPrinted = true;
+                return;
+              }
+              let realPrinted = false;
+              props.forEach(prop => {
+                const propText = (prop.properties || []).filter(Boolean).join("\n");
+                const propRowSpan = Math.max(1, prop.rowSpan || 1);
+                const inters = prop.interpretations || [];
+                if (!inters.length) {
+                  rows.push([
+                    taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
+                    fnPrinted ? "" : ({ content: fnName, rowSpan: fnRowSpan } as CellInput),
+                    realPrinted ? "" : ({ content: realName, rowSpan: realRowSpan } as CellInput),
+                    { content: propText || "(No property text)", rowSpan: 1 } as CellInput,
+                    "(No interpretation)", "", "", "", "", "",
+                  ]);
+                  taskPrinted = true; fnPrinted = true; realPrinted = true;
+                  return;
+                }
+                let propPrinted = false;
+                inters.forEach(inter => {
+                  const guide = inter.guideWord || "";
+                  const list = (arr?: any[]) => (arr || []).map((x, i) => x?.text ? `${i + 1}. ${x.text}` : "").filter(Boolean).join("\n");
+                  const deviations = list(inter.deviations);
+                  const causes = list(inter.causes);
+                  const consequences = list(inter.consequences);
+                  const requirements = list(inter.requirements);
+                  const iso = (inter.isoMatches || []).map((i: any) => i.iso_number || i.title || "").filter(Boolean).join(", ");
+
+                  rows.push([
+                    taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
+                    fnPrinted ? "" : ({ content: fnName, rowSpan: fnRowSpan } as CellInput),
+                    realPrinted ? "" : ({ content: realName, rowSpan: realRowSpan } as CellInput),
+                    propPrinted ? "" : ({ content: propText, rowSpan: propRowSpan } as CellInput),
+                    guide, deviations, causes, consequences, requirements, iso,
+                  ]);
+                  taskPrinted = true; fnPrinted = true; realPrinted = true; propPrinted = true;
+                });
+              });
+            });
+          });
+        });
+
+        autoTable(doc, {
+          startY: cursorY,
+          theme: "grid",
+          head: [[
+            "Task", "Function", "Realization", "Property",
+            "Guide Word", "Deviations", "Causes", "Consequences", "Requirements", "ISO",
+          ]],
+          body: rows,
+          styles: {
+            font: "helvetica",
+            fontSize: 9,
+            cellPadding: 2,
+            valign: "top",
+            overflow: "linebreak",
+          },
+          // Only the original column header row uses gray-50
+          headStyles: { fillColor: [249, 250, 251], textColor: 20, fontStyle: "bold" },
+          columnStyles: {
+            0: { cellWidth: 24 }, 1: { cellWidth: 24 }, 2: { cellWidth: 24 }, 3: { cellWidth: 28 },
+            4: { cellWidth: 20 }, 5: { cellWidth: 34 }, 6: { cellWidth: 34 }, 7: { cellWidth: 34 },
+            8: { cellWidth: 42 }, 9: { cellWidth: 24 },
+          },
+          // Center the table block on the page
+          tableWidth: pageWidth * 0.92,
+          margin: centerMargin(pageWidth * 0.92),
+          didDrawPage: () => drawHeader(),
+        });
+        // If there’s room DSM stays on this page; else it flows to the next
+        const afterFirstTableY = (doc as any).lastAutoTable.finalY + 8;
+
+        // ── 2) DSM (title centered + table centered)
+        drawCenteredTitle("Function–Requirement DSM", afterFirstTableY, true);
+
+        // build DSM pieces (your existing DSM build code) …
+        const dsmTitleBottomY = afterFirstTableY + 6;
+        // If there is room, DSM stays on same page; otherwise it flows naturally
+        // --- Second table: Function–Requirement DSM ---
+        const buildDSM = (irData: IR) => {
+          const pairs: { functionId: string; functionName: string; requirementId: string; requirementText: string }[] = [];
+          (irData.tasks || []).forEach(t => {
+            (t.functions || []).forEach(fn => {
+              const seen = new Set<string>();
+              (fn.realizations || []).forEach(r => {
+                (r.properties || []).forEach(p => {
+                  (p.interpretations || []).forEach(i => {
+                    (i.requirements || []).forEach(req => {
+                      const key = `${fn.id}|${req.id}`;
+                      if (seen.has(key)) return;
+                      seen.add(key);
+                      pairs.push({
+                        functionId: fn.id, functionName: fn.functionName, requirementId: req.id, requirementText: req.text,
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+          const fnOrder: { id: string; name: string }[] = [];
+          const reqOrder: { id: string; text: string }[] = [];
+          const fnSeen = new Set<string>();
+          const reqSeen = new Set<string>();
+          pairs.forEach(p => {
+            if (!fnSeen.has(p.functionId)) { fnSeen.add(p.functionId); fnOrder.push({ id: p.functionId, name: p.functionName }); }
+            if (!reqSeen.has(p.requirementId)) { reqSeen.add(p.requirementId); reqOrder.push({ id: p.requirementId, text: p.requirementText }); }
+          });
+          const hit = new Set<string>();
+          pairs.forEach(p => hit.add(`${p.functionId}|${p.requirementId}`));
+          return { fnOrder, reqOrder, hit };
+        };
+
+        const { fnOrder, reqOrder, hit } = buildDSM(ir);
+
+        // Title centered
+        const afterFirst = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : (doc as any).lastAutoTable?.finalY + 8 || doc.previousAutoTable?.finalY + 8 || 30;
+        drawCenteredTitle("Function–Requirement DSM", afterFirst, true);
+
+        // Build DSM body: first col = function names; subsequent cols = X/blank
+        const dsmHead = [["Function \\ Requirement", ...reqOrder.map(r => r.text || r.id || "")]];
+        const dsmBody: RowInput[] = fnOrder.length
+          ? fnOrder.map(fn => [
+            fn.name || "(unnamed function)",
+            ...reqOrder.map(r => (hit.has(`${fn.id}|${r.id}`) ? "X" : "")),
+          ])
+          : [["(No functions)"]];
+
+        autoTable(doc, {
+          startY: dsmTitleBottomY,
+          theme: "grid",
+          head: [["Function \\ Requirement", ...reqOrder.map(r => r.text || r.id || "")]],
+          body: fnOrder.length
+            ? fnOrder.map(fn => [
+              fn.name || "(unnamed function)",
+              ...reqOrder.map(r => (hit.has(`${fn.id}|${r.id}`) ? "X" : "")),
+            ])
+            : [["(No functions)"]],
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "top", overflow: "linebreak" },
+          headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" }, // gray-100 for DSM table head
+          columnStyles: {
+            0: { cellWidth: 36 },
+            ...Object.fromEntries(reqOrder.map((_, idx) => [idx + 1, { cellWidth: 24 }]))
+          },
+          // Center the DSM table on the page
+          tableWidth: pageWidth * 0.92,
+          margin: centerMargin(pageWidth * 0.92),
+          didDrawPage: () => drawHeader(),
+        });
+
+        // Save
+        const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
+        const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
+        const name = `${safe(projectName || "Project")}_${safe(zoneLabel)}_${ts}.pdf`;
+        doc.save(name);
+      })
+      .catch((err) => {
+        console.error("PNG capture failed:", err);
+        toast.error("Failed to capture flow image");
+      })
+      .finally(() => {
+        // cleanup overlay after a short delay to ensure capture finished
+        setTimeout(() => {
+          try { viewportEl.removeChild(overlay); } catch { }
+          if (!prevPos) viewportEl.style.position = "";
+        }, 300);
+      });
   };
 
   // 导入回调（这里一定会触发）
@@ -314,6 +771,7 @@ export default function Header() {
 
         {/* 右侧菜单 */}
         <div className="ml-auto flex items-center gap-3">
+          <HeaderExportActions />
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
@@ -331,6 +789,13 @@ export default function Header() {
 
                     <div className="my-1 h-px bg-border" />
                     {/* Existing items */}
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
+                      onClick={handleExportCombinedPDF}
+                    >
+                      Export PDF (Flow + Tables)
+                    </button>
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"

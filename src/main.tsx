@@ -15,6 +15,7 @@ import ZoneSelecter from '@/components/ZoneSelecter.tsx'
 import Stepper from '@/components/Stepper.tsx'
 import Header from '@/components/Header'
 import Docs from '@/components/Docs.tsx'
+import { ReactFlowProvider } from '@xyflow/react';
 
 function App() {
   const location = useLocation();
@@ -43,8 +44,10 @@ function App() {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <ReactFlowProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ReactFlowProvider>
   </StrictMode>,
 )
