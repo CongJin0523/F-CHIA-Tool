@@ -21,6 +21,7 @@ import { getFtaStoreHook } from '@/store/fta-registry';
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner"
 import ExportPDFButton from "@/Test.tsx"
+import ExportTextPDFButton from "@/components/ExportTablePDFButton.tsx";
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   const updates: Update[] = [];
 
@@ -804,7 +805,11 @@ export default function EditableNestedTable() {
       <div className="mt-4">
         <DSM data={defaultValues} />
       </div>
-      <ExportPDFButton />
+      <ExportTextPDFButton
+        data={defaultValues}
+        projectName={useZoneStore.getState().projectName}
+        zoneLabel={label ?? "Unnamed Zone"}
+      />
     </form >
   );
 }
