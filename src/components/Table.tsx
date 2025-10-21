@@ -806,6 +806,7 @@ export default function EditableNestedTable() {
         <DSM data={defaultValues} />
       </div>
       <ExportTextPDFButton
+        zoneDescription={zoneDescription}
         data={defaultValues}
         projectName={useZoneStore.getState().projectName}
         zoneLabel={label ?? "Unnamed Zone"}

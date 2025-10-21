@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import jsPDF from "jspdf";
 import autoTable, { type CellInput, type RowInput } from "jspdf-autotable";
 import type { FormValues } from "@/common/types";
-
+import Tooltip from "@mui/material/Tooltip";
+import Fab from "@mui/material/Fab";
+import { FileDown } from "lucide-react";
+import { grey } from '@mui/material/colors';
+const buttonColor = grey[500];
 /**
  * Exports a text-based PDF that mirrors the browser table:
  * - Task / Function / Realization / Property cells use rowSpan
@@ -13,6 +17,7 @@ type Props = {
   data: FormValues;       // your deriveRowSpans(...) output (it includes rowSpan on each level)
   projectName?: string;
   zoneLabel?: string;
+  zoneDescription?: string;
   fileName?: string;
 };
 
@@ -20,6 +25,7 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
   data,
   projectName = "Project",
   zoneLabel = "Zone",
+  zoneDescription,
   fileName,
 }) => {
   const buildRowsWithRowSpan = (): RowInput[] => {
@@ -273,8 +279,7 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
     const pageHeight = doc.internal.pageSize.getHeight();
 
     // header/footer
-    const title = "Function-Centric Hazard Identification";
-    const sub = `Project: ${projectName}    •    Zone: ${zoneLabel}`;
+    const title = `Project: ${projectName}    •    Zone: ${zoneLabel}`;
     const dateStr = new Date().toLocaleString();
 
     const header = () => {
@@ -283,7 +288,6 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
       doc.text(title, 10, 12);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.text(sub, 10, 18);
       doc.setTextColor(120);
       doc.text(dateStr, pageWidth - 10, 12, { align: "right" });
       doc.setTextColor(0);
@@ -302,21 +306,89 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
 
     const rows = buildRowsWithRowSpan();
 
+    // Build PDF table head with zone label + description rows
+    const headRows: (string | CellInput)[][] = [
+      [
+        {
+          content: `Hazard Zone: ${zoneLabel || "Unnamed Zone"}`,
+          colSpan: 10,
+          styles: {
+            halign: "center",
+            fontStyle: "bold",
+            fillColor: [229, 231, 235], // gray-200
+          },
+        } as CellInput,
+      ],
+      [
+        {
+          content:
+            zoneDescription && zoneDescription.trim().length > 0
+              ? `Zone Description: ${zoneDescription}`
+              : "Zone Description: —",
+          colSpan: 10,
+          styles: {
+            halign: "left",
+            fontStyle: "normal",
+            fillColor: [243, 244, 246], // gray-100
+          },
+        } as CellInput,
+      ],
+      [
+        {
+          content: "Task",
+          styles: { fillColor: [249, 250, 251] }, // gray-50
+        },
+        {
+          content: "Function",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "Realization",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "Property",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "Guide Word",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "Deviations",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "Causes",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "Consequences",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "Requirements",
+          styles: { fillColor: [249, 250, 251] },
+        },
+        {
+          content: "ISO",
+          styles: { fillColor: [249, 250, 251] },
+        },
+      ],
+    ];
+
+    // --- Section title for the first table (outside the table) ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    const fchiTitle = "Function-Centric Hazard Identification";
+    const fchiTitleY = 24;
+    doc.text(fchiTitle, pageWidth / 2, fchiTitleY, { align: "center" });
+    const firstTableStartY = fchiTitleY + 6;
+
     autoTable(doc, {
       theme: "grid",
-      startY: 24,
-      head: [[
-        "Task",
-        "Function",
-        "Realization",
-        "Property",
-        "Guide Word",
-        "Deviations",
-        "Causes",
-        "Consequences",
-        "Requirements",
-        "ISO",
-      ]],
+      startY: firstTableStartY,
+      head: headRows,
       body: rows,
       styles: {
         font: "helvetica",
@@ -341,9 +413,12 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
         6: { cellWidth: 32 },  // Causes
         7: { cellWidth: 32 },  // Consequences
         8: { cellWidth: 40 },  // Requirements
-        9: { cellWidth: 26 },  // ISO
+        9: { cellWidth: 30 },  // ISO
       },
       margin: { left: 10, right: 10 },
+      tableLineColor: 200,
+      tableLineWidth: 0.1,
+      horizontalPageBreak: false,
       didDrawPage: () => {
         header();
         const pageNumber = doc.internal.getNumberOfPages();
@@ -353,23 +428,23 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
     // ---------- DSM PAGE ----------
     const { fnOrder, reqOrder, hit } = buildDSMMatrixFromForm(data);
 
-    // Only create DSM page if there is something to show
+    // Only create DSM table if there is something to show
     if (fnOrder.length > 0) {
-      doc.addPage();
-      // Header for DSM
+      // Try to continue on the same page if there is vertical space
+      const prevTable = (doc as any).lastAutoTable;
+      const firstPageNoBeforeDSM = doc.internal.getNumberOfPages();
+
+      // --- Section title for DSM (outside the table) ---
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
-      doc.text("Function–Requirement DSM", 10, 12);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text(`Project: ${projectName}    •    Zone: ${zoneLabel}`, 10, 18);
-      doc.setDrawColor(220);
-      doc.line(10, 20, pageWidth - 10, 20);
-      doc.setDrawColor(0);
+      const dsmTitle = "Function–Requirement DSM";
+      const dsmTitleY = Math.max(24, ((prevTable?.finalY as number) ?? 24) + 10);
+      doc.text(dsmTitle, pageWidth / 2, dsmTitleY, { align: "center" });
+      const startYDSM = dsmTitleY + 6;
 
-      // Build head row: first column is the function label
-      const dsmHead: string[][] = [
-        ["Function \\ Requirement", ...reqOrder.map(r => (r.text || `[${r.id}]`))]
+      // Build head rows: header row only (no DSM title row)
+      const dsmHead: (string | CellInput)[][] = [
+        ["Function \\\\ Requirement", ...reqOrder.map(r => (r.text || `[${r.id}]`))]
       ];
 
       // Build body rows
@@ -386,10 +461,12 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
         return row as RowInput;
       });
 
-      // Calculate simple column widths: first col wider, others compact
-      // A4 usable width ≈ 190mm with 10mm margins; we keep it conservative.
-      const firstColWidth = 60; // mm
-      const otherColWidth = Math.max(16, Math.floor((pageWidth - 20 - firstColWidth) / Math.max(1, reqOrder.length)));
+      // Column widths: clamp each DSM cell width to keep columns readable
+      const firstColWidth = 60; // mm for the Function column
+      const minOtherCol = 12;   // minimum width for requirement columns
+      const maxOtherCol = 28;   // maximum width for requirement columns
+      const computedOther = Math.floor((pageWidth - 20 - firstColWidth) / Math.max(1, reqOrder.length));
+      const otherColWidth = Math.min(maxOtherCol, Math.max(minOtherCol, computedOther));
 
       const dsmColumnStyles: Record<number, any> = { 0: { cellWidth: firstColWidth } };
       for (let i = 1; i <= reqOrder.length; i++) {
@@ -398,7 +475,7 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
 
       autoTable(doc, {
         theme: "grid",
-        startY: 24,
+        startY: startYDSM, // try rendering just below the previous table
         head: dsmHead,
         body: dsmBody,
         styles: {
@@ -414,30 +491,53 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
           fontStyle: "bold",
         },
         columnStyles: dsmColumnStyles,
-        margin: { left: 10, right: 10 },
+        margin: {
+          left: (pageWidth - (firstColWidth + reqOrder.length * otherColWidth)) / 2,
+          right: 10,
+        },
         didDrawPage: () => {
-          // footer similar to first page
-          const pageNo = doc.internal.getCurrentPageInfo().pageNumber;
+          const current = doc.internal.getCurrentPageInfo().pageNumber;
+
+          // When DSM continues on a NEW page, draw the DSM title at the top of that page.
+          if (current > firstPageNoBeforeDSM) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.text("Function–Requirement DSM", pageWidth / 2, 24, { align: "center" });
+          }
+
+          // Footer on every page
           const total = doc.getNumberOfPages();
           doc.setDrawColor(220);
           doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
           doc.setDrawColor(0);
           doc.setFontSize(10);
-          doc.text(`Page ${pageNo} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
+          doc.text(`Page ${current} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
         },
       });
     }
 
-    const safe = (s: string) => (s || "").replace(/[^\w\-]+/g, "_");
+    const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
     const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
     const name = fileName || `${safe(projectName)}_${safe(zoneLabel)}_${ts}.pdf`;
     doc.save(name);
   };
 
   return (
-    <Button variant="outline" onClick={handleExport}>
-      Export (Structured PDF)
-    </Button>
+    <Tooltip title="Download as PDF">
+      <Fab
+        size="small"
+        color={buttonColor}
+        onClick={handleExport}
+        sx={{
+          position: "fixed",
+          right: 18,
+          top: "15vh", // 150px from top
+        }}
+
+      >
+        <FileDown />
+      </Fab>
+    </Tooltip>
   );
 };
 
