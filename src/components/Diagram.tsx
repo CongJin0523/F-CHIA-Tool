@@ -29,6 +29,11 @@ import Fab from "@mui/material/Fab";
 import { grey } from '@mui/material/colors';
 const buttonColor = grey[500];
 
+//toPng
+import { useLocation, useNavigate } from "react-router";
+import { toPng } from "html-to-image";
+
+
 const selector = (state: AppState) => ({
   nodes: state.nodes,
   edges: state.edges,
@@ -46,6 +51,49 @@ const nodeOrigin: [number, number] = [0.5, 0];
 function LayoutFlow({ zoneId }: { zoneId: string }) {
   // console.log('LayoutFlow render, zoneId:', zoneId);
   const storeHook = useMemo(() => getGraphStoreHook(zoneId), [zoneId]);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // to png
+  useEffect(() => {
+
+
+    const run = async () => {
+      const state: any = location.state;
+      if (!state?.captureForExport) return;
+
+      const zoneId = state.forZoneId as string | undefined;
+      const returnTo = state.returnTo || "/";
+
+      try {
+        if (zoneId) {
+          // switch selected zone so the correct graph renders
+          useZoneStore.getState().setSelected(zoneId);
+          // give React a frame to render the graph
+          await new Promise(r => setTimeout(r, 0));
+        }
+
+        const el = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+        let dataUrl: string | null = null;
+
+        if (el) {
+          dataUrl = await toPng(el, {
+            backgroundColor: "#ffffff",
+            pixelRatio: Math.min(3, window.devicePixelRatio || 1),
+          });
+        }
+
+        // Send back (include zoneId so the listener knows which zone this belongs to)
+        window.dispatchEvent(new CustomEvent("flow-snapshot-ready", { detail: { zoneId, dataUrl } }));
+      } catch (e) {
+        console.error("flow capture failed", e);
+        window.dispatchEvent(new CustomEvent("flow-snapshot-ready", { detail: { zoneId, dataUrl: null } }));
+      } finally {
+        navigate(returnTo, { replace: true, state: {} });
+      }
+    };
+
+    run();
+  }, []);
 
   const reactFlowWrapper = useRef(null);
   const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, updateNodeText, onLayout: storeOnLayout } = useStore(storeHook,

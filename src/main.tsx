@@ -7,8 +7,7 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import Diagram from '@/components/Diagram.tsx'
-import FtaDiagram from '@/components/FTA/FTACanvas'
-import FtaPage from '@/components/FTA/FTApage';
+import FtaPage from '@/components/FTA/FTAPage';
 import { Toaster } from '@/components/ui/sonner'
 import EditableNestedTable from '@/components/Table.tsx'
 import ZoneSelecter from '@/components/ZoneSelecter.tsx'
