@@ -382,34 +382,7 @@ export default function Header() {
         doc.addPage("a4", "landscape");
         drawHeader();
 
-        // helper to center a given desired table width
-        const centerMargin = (desiredWidth: number) => {
-          const clamped = Math.min(desiredWidth, pageWidth - marginX * 2);
-          const left = (pageWidth - clamped) / 2;
-          return { left, right: left };
-        };
-
-        // ── 1) Function-Centric Hazard Identification (title + optional description)
-        let cursorY = contentTop;
-        drawCenteredTitle("Function-Centric Hazard Identification", cursorY, true);
-        cursorY += 6;
-
-        if (zoneDescription) {
-          doc.setFontSize(9);
-          doc.setTextColor(90);
-          const descLines = doc.splitTextToSize(
-            `Zone Description: ${zoneDescription}`,
-            pageWidth * 0.9  // wrap width relative to page
-          );
-          // horizontally center the description by computing its x start
-          const descBlockWidth = Math.min(pageWidth * 0.9, pageWidth - marginX * 2);
-          const descLeft = (pageWidth - descBlockWidth) / 2;
-          doc.text(descLines, descLeft, cursorY);
-          doc.setTextColor(0);
-          cursorY += descLines.length * 4 + 2;
-        }
-
-        // Build rows from data (mirrors your UI with rowSpan)
+        // Build rows from data (rowSpan logic) — identical to ExportStructuredPDFButton
         const rows: RowInput[] = [];
         (data.tasks || []).forEach(task => {
           const taskName = task.taskName || "";
@@ -425,11 +398,18 @@ export default function Header() {
             const fnRowSpan = Math.max(1, fn.rowSpan || 1);
             const reals = fn.realizations || [];
             if (!reals.length) {
-              rows.push([
-                taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
-                { content: fnName, rowSpan: 1 } as CellInput,
-                "(No realization)", "", "", "", "", "", "", "",
-              ]);
+              const row: RowInput = [];
+              if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+              row.push({ content: fnName, rowSpan: 1 } as CellInput);
+              row.push("(No realization)");
+              row.push(""); // Property
+              row.push(""); // Guide Word
+              row.push(""); // Deviations
+              row.push(""); // Causes
+              row.push(""); // Consequences
+              row.push(""); // Requirements
+              row.push(""); // ISO
+              rows.push(row);
               taskPrinted = true;
               return;
             }
@@ -439,12 +419,18 @@ export default function Header() {
               const realRowSpan = Math.max(1, real.rowSpan || 1);
               const props = real.properties || [];
               if (!props.length) {
-                rows.push([
-                  taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
-                  fnPrinted ? "" : ({ content: fnName, rowSpan: fnRowSpan } as CellInput),
-                  { content: realName, rowSpan: 1 } as CellInput,
-                  "(No property)", "", "", "", "", "", "",
-                ]);
+                const row: RowInput = [];
+                if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+                if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
+                row.push({ content: realName, rowSpan: 1 } as CellInput);
+                row.push("(No property)");
+                row.push(""); // Guide Word
+                row.push(""); // Deviations
+                row.push(""); // Causes
+                row.push(""); // Consequences
+                row.push(""); // Requirements
+                row.push(""); // ISO
+                rows.push(row);
                 taskPrinted = true; fnPrinted = true;
                 return;
               }
@@ -454,13 +440,18 @@ export default function Header() {
                 const propRowSpan = Math.max(1, prop.rowSpan || 1);
                 const inters = prop.interpretations || [];
                 if (!inters.length) {
-                  rows.push([
-                    taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
-                    fnPrinted ? "" : ({ content: fnName, rowSpan: fnRowSpan } as CellInput),
-                    realPrinted ? "" : ({ content: realName, rowSpan: realRowSpan } as CellInput),
-                    { content: propText || "(No property text)", rowSpan: 1 } as CellInput,
-                    "(No interpretation)", "", "", "", "", "",
-                  ]);
+                  const row: RowInput = [];
+                  if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+                  if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
+                  if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
+                  row.push({ content: propText || "(No property text)", rowSpan: 1 } as CellInput);
+                  row.push("(No interpretation)");
+                  row.push(""); // Deviations
+                  row.push(""); // Causes
+                  row.push(""); // Consequences
+                  row.push(""); // Requirements
+                  row.push(""); // ISO
+                  rows.push(row);
                   taskPrinted = true; fnPrinted = true; realPrinted = true;
                   return;
                 }
@@ -474,13 +465,14 @@ export default function Header() {
                   const requirements = list(inter.requirements);
                   const iso = (inter.isoMatches || []).map((i: any) => i.iso_number || i.title || "").filter(Boolean).join(", ");
 
-                  rows.push([
-                    taskPrinted ? "" : ({ content: taskName, rowSpan: taskRowSpan } as CellInput),
-                    fnPrinted ? "" : ({ content: fnName, rowSpan: fnRowSpan } as CellInput),
-                    realPrinted ? "" : ({ content: realName, rowSpan: realRowSpan } as CellInput),
-                    propPrinted ? "" : ({ content: propText, rowSpan: propRowSpan } as CellInput),
-                    guide, deviations, causes, consequences, requirements, iso,
-                  ]);
+                  const row: RowInput = [];
+                  if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+                  if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
+                  if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
+                  if (!propPrinted) row.push({ content: propText, rowSpan: propRowSpan } as CellInput);
+                  row.push(guide, deviations || "", causes || "", consequences || "", requirements || "", iso || "");
+                  rows.push(row);
+
                   taskPrinted = true; fnPrinted = true; realPrinted = true; propPrinted = true;
                 });
               });
@@ -488,44 +480,77 @@ export default function Header() {
           });
         });
 
+        const headRows: (string | CellInput)[][] = [
+          [
+            {
+              content: `Hazard Zone: ${zoneLabel || "Unnamed Zone"}`,
+              colSpan: 10,
+              styles: { halign: "center", fontStyle: "bold", fillColor: [229, 231, 235] }, // gray-200
+            } as CellInput,
+          ],
+          [
+            {
+              content:
+                zoneDescription && zoneDescription.trim().length > 0
+                  ? `Zone Description: ${zoneDescription}`
+                  : "Zone Description: —",
+              colSpan: 10,
+              styles: { halign: "left", fontStyle: "normal", fillColor: [243, 244, 246] }, // gray-100
+            } as CellInput,
+          ],
+          [
+            { content: "Task", styles: { fillColor: [249, 250, 251] } }, // gray-50
+            { content: "Function", styles: { fillColor: [249, 250, 251] } },
+            { content: "Realization", styles: { fillColor: [249, 250, 251] } },
+            { content: "Property", styles: { fillColor: [249, 250, 251] } },
+            { content: "Guide Word", styles: { fillColor: [249, 250, 251] } },
+            { content: "Deviations", styles: { fillColor: [249, 250, 251] } },
+            { content: "Causes", styles: { fillColor: [249, 250, 251] } },
+            { content: "Consequences", styles: { fillColor: [249, 250, 251] } },
+            { content: "Requirements", styles: { fillColor: [249, 250, 251] } },
+            { content: "ISO", styles: { fillColor: [249, 250, 251] } },
+          ],
+        ];
+
+        // Title outside table (centered)
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        const fchiTitle = "Function-Centric Hazard Identification";
+        const fchiTitleY = 24;
+        doc.text(fchiTitle, pageWidth / 2, fchiTitleY, { align: "center" });
+        const firstTableStartY = fchiTitleY + 6;
+
         autoTable(doc, {
-          startY: cursorY,
           theme: "grid",
-          head: [[
-            "Task", "Function", "Realization", "Property",
-            "Guide Word", "Deviations", "Causes", "Consequences", "Requirements", "ISO",
-          ]],
+          startY: firstTableStartY,
+          head: headRows,
           body: rows,
-          styles: {
-            font: "helvetica",
-            fontSize: 9,
-            cellPadding: 2,
-            valign: "top",
-            overflow: "linebreak",
-          },
-          // Only the original column header row uses gray-50
-          headStyles: { fillColor: [249, 250, 251], textColor: 20, fontStyle: "bold" },
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "top", overflow: "linebreak" },
+          headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" },
           columnStyles: {
-            0: { cellWidth: 24 }, 1: { cellWidth: 24 }, 2: { cellWidth: 24 }, 3: { cellWidth: 28 },
-            4: { cellWidth: 20 }, 5: { cellWidth: 34 }, 6: { cellWidth: 34 }, 7: { cellWidth: 34 },
-            8: { cellWidth: 42 }, 9: { cellWidth: 24 },
+            0: { cellWidth: 22 }, 1: { cellWidth: 22 }, 2: { cellWidth: 22 }, 3: { cellWidth: 26 },
+            4: { cellWidth: 18 }, 5: { cellWidth: 32 }, 6: { cellWidth: 32 }, 7: { cellWidth: 32 },
+            8: { cellWidth: 40 }, 9: { cellWidth: 30 },
           },
-          // Center the table block on the page
-          tableWidth: pageWidth * 0.92,
-          margin: centerMargin(pageWidth * 0.92),
-          didDrawPage: () => drawHeader(),
+          margin: { left: 10, right: 10 },
+          tableLineColor: 200,
+          tableLineWidth: 0.1,
+          horizontalPageBreak: false,
+          didDrawPage: () => {
+            drawHeader();
+            const pageNumber = doc.internal.getNumberOfPages();
+            const total = doc.getNumberOfPages();
+            // footer same as your working button
+            doc.setDrawColor(220);
+            doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
+            doc.setDrawColor(0);
+            doc.setFontSize(10);
+            doc.text(`Page ${pageNumber} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
+          },
         });
-        // If there’s room DSM stays on this page; else it flows to the next
-        const afterFirstTableY = (doc as any).lastAutoTable.finalY + 8;
 
-        // ── 2) DSM (title centered + table centered)
-        drawCenteredTitle("Function–Requirement DSM", afterFirstTableY, true);
-
-        // build DSM pieces (your existing DSM build code) …
-        const dsmTitleBottomY = afterFirstTableY + 6;
-        // If there is room, DSM stays on same page; otherwise it flows naturally
-        // --- Second table: Function–Requirement DSM ---
-        const buildDSM = (irData: IR) => {
+        // ---------- DSM PAGE (match your DSM layout) ----------
+        const buildDSMMatrixFromIR = (irData: IR) => {
           const pairs: { functionId: string; functionName: string; requirementId: string; requirementText: string }[] = [];
           (irData.tasks || []).forEach(t => {
             (t.functions || []).forEach(fn => {
@@ -559,41 +584,70 @@ export default function Header() {
           return { fnOrder, reqOrder, hit };
         };
 
-        const { fnOrder, reqOrder, hit } = buildDSM(ir);
+        const { fnOrder, reqOrder, hit } = buildDSMMatrixFromIR(ir);
 
-        // Title centered
-        const afterFirst = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : (doc as any).lastAutoTable?.finalY + 8 || doc.previousAutoTable?.finalY + 8 || 30;
-        drawCenteredTitle("Function–Requirement DSM", afterFirst, true);
+        const prevTable = (doc as any).lastAutoTable;
+        const firstPageNoBeforeDSM = doc.internal.getNumberOfPages();
 
-        // Build DSM body: first col = function names; subsequent cols = X/blank
-        const dsmHead = [["Function \\ Requirement", ...reqOrder.map(r => r.text || r.id || "")]];
-        const dsmBody: RowInput[] = fnOrder.length
-          ? fnOrder.map(fn => [
-            fn.name || "(unnamed function)",
-            ...reqOrder.map(r => (hit.has(`${fn.id}|${r.id}`) ? "X" : "")),
-          ])
-          : [["(No functions)"]];
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        const dsmTitle = "Function–Requirement DSM";
+        const dsmTitleY = Math.max(24, ((prevTable?.finalY as number) ?? 24) + 10);
+        doc.text(dsmTitle, pageWidth / 2, dsmTitleY, { align: "center" });
+        const startYDSM = dsmTitleY + 6;
+
+        const dsmHead: (string | CellInput)[][] = [
+          ["Function \\\\ Requirement", ...reqOrder.map(r => (r.text || `[${r.id}]`))]
+        ];
+        const dsmBody: RowInput[] = fnOrder.map(fn => {
+          const row: (string | CellInput)[] = [];
+          row.push(fn.name || "(unnamed function)");
+          if (reqOrder.length === 0) {
+            row.push("(No requirements)");
+          } else {
+            for (const req of reqOrder) row.push(hit.has(`${fn.id}|${req.id}`) ? "X" : "");
+          }
+          return row as RowInput;
+        });
+
+        // column widths & centered block identical to your working code
+        const firstColWidth = 60;
+        const minOtherCol = 12;
+        const maxOtherCol = 28;
+        const computedOther = Math.floor((pageWidth - 20 - firstColWidth) / Math.max(1, reqOrder.length));
+        const otherColWidth = Math.min(maxOtherCol, Math.max(minOtherCol, computedOther));
+        const dsmColumnStyles: Record<number, any> = { 0: { cellWidth: firstColWidth } };
+        for (let i = 1; i <= reqOrder.length; i++) {
+          dsmColumnStyles[i] = { cellWidth: otherColWidth, halign: "center", valign: "middle" };
+        }
 
         autoTable(doc, {
-          startY: dsmTitleBottomY,
           theme: "grid",
-          head: [["Function \\ Requirement", ...reqOrder.map(r => r.text || r.id || "")]],
-          body: fnOrder.length
-            ? fnOrder.map(fn => [
-              fn.name || "(unnamed function)",
-              ...reqOrder.map(r => (hit.has(`${fn.id}|${r.id}`) ? "X" : "")),
-            ])
-            : [["(No functions)"]],
-          styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "top", overflow: "linebreak" },
-          headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" }, // gray-100 for DSM table head
-          columnStyles: {
-            0: { cellWidth: 36 },
-            ...Object.fromEntries(reqOrder.map((_, idx) => [idx + 1, { cellWidth: 24 }]))
+          startY: startYDSM,
+          head: dsmHead,
+          body: dsmBody,
+          styles: { font: "helvetica", fontSize: 9, cellPadding: 2, overflow: "linebreak", valign: "top" },
+          headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" },
+          columnStyles: dsmColumnStyles,
+          margin: {
+            left: (pageWidth - (firstColWidth + reqOrder.length * otherColWidth)) / 2,
+            right: 10,
           },
-          // Center the DSM table on the page
-          tableWidth: pageWidth * 0.92,
-          margin: centerMargin(pageWidth * 0.92),
-          didDrawPage: () => drawHeader(),
+          didDrawPage: () => {
+            const current = doc.internal.getCurrentPageInfo().pageNumber;
+            if (current > firstPageNoBeforeDSM) {
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(12);
+              doc.text("Function–Requirement DSM", pageWidth / 2, 24, { align: "center" });
+            }
+            // Footer on every page
+            const total = doc.getNumberOfPages();
+            doc.setDrawColor(220);
+            doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
+            doc.setDrawColor(0);
+            doc.setFontSize(10);
+            doc.text(`Page ${current} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
+          },
         });
 
         // Save
