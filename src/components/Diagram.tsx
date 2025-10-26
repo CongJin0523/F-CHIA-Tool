@@ -8,6 +8,7 @@ import {
   type Edge,
   addEdge,
   Controls,
+  getNodesBounds, getViewportForBounds
 } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
@@ -33,6 +34,20 @@ const buttonColor = grey[500];
 import { useLocation, useNavigate } from "react-router";
 import { toPng } from "html-to-image";
 
+declare global {
+  interface Window {
+    FlowCapture?: {
+      zoneId?: string;
+      ready: boolean;
+      capture: (opts?: {
+        width?: number;
+        height?: number;
+        pixelRatio?: number;
+        bg?: string;
+      }) => Promise<string>;
+    };
+  }
+}
 
 const selector = (state: AppState) => ({
   nodes: state.nodes,
@@ -51,56 +66,96 @@ const nodeOrigin: [number, number] = [0.5, 0];
 function LayoutFlow({ zoneId }: { zoneId: string }) {
   // console.log('LayoutFlow render, zoneId:', zoneId);
   const storeHook = useMemo(() => getGraphStoreHook(zoneId), [zoneId]);
-  const location = useLocation();
-  const navigate = useNavigate();
-  // to png
-  useEffect(() => {
-
-
-    const run = async () => {
-      const state: any = location.state;
-      if (!state?.captureForExport) return;
-
-      const zoneId = state.forZoneId as string | undefined;
-      const returnTo = state.returnTo || "/";
-
-      try {
-        if (zoneId) {
-          // switch selected zone so the correct graph renders
-          useZoneStore.getState().setSelected(zoneId);
-          // give React a frame to render the graph
-          await new Promise(r => setTimeout(r, 0));
-        }
-
-        const el = document.querySelector(".react-flow__viewport") as HTMLElement | null;
-        let dataUrl: string | null = null;
-
-        if (el) {
-          dataUrl = await toPng(el, {
-            backgroundColor: "#ffffff",
-            pixelRatio: Math.min(3, window.devicePixelRatio || 1),
-          });
-        }
-
-        // Send back (include zoneId so the listener knows which zone this belongs to)
-        window.dispatchEvent(new CustomEvent("flow-snapshot-ready", { detail: { zoneId, dataUrl } }));
-      } catch (e) {
-        console.error("flow capture failed", e);
-        window.dispatchEvent(new CustomEvent("flow-snapshot-ready", { detail: { zoneId, dataUrl: null } }));
-      } finally {
-        navigate(returnTo, { replace: true, state: {} });
-      }
-    };
-
-    run();
-  }, []);
 
   const reactFlowWrapper = useRef(null);
   const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, updateNodeText, onLayout: storeOnLayout } = useStore(storeHook,
     useShallow(selector),
   );
   const { fitView, getEdges, getNodes } = useReactFlow();
+  const rf = useReactFlow();
+  const selectedId = zoneId;
+  useEffect(() => {
+    let alive = true;
 
+    // (re)arm FlowCapture for the currently selected zone
+    window.FlowCapture = {
+      zoneId: selectedId,
+      ready: false,
+      capture: async (opts) => {
+        const {
+          width = 1920,
+          height = 1080,
+          pixelRatio = Math.min(3, window.devicePixelRatio || 1),
+          bg = "#ffffff",
+        } = opts || {};
+
+        // IMPORTANT: use hooks API values so subflows/handles are correct
+        const nodes = rf.getNodes();
+        const bounds = getNodesBounds(nodes);
+        const vp = getViewportForBounds(bounds, width, height, 0.5, 2);
+
+        const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+        if (!viewportEl) throw new Error("Flow viewport not found");
+
+        // optional small badge
+        const prevPos = viewportEl.style.position;
+        if (!prevPos) viewportEl.style.position = "relative";
+        const badge = document.createElement("div");
+        badge.style.position = "fixed";
+        badge.style.top = "0";
+        badge.style.left = "0";
+        badge.style.padding = "3px 10px";
+        badge.style.borderRadius = "4px";
+        badge.style.background = "rgba(243,244,246,0.95)";
+        badge.style.fontSize = "12px";
+        badge.style.pointerEvents = "none";
+        badge.textContent = `Zone: ${selectedId ?? ""}`;
+        viewportEl.appendChild(badge);
+
+        try {
+          const dataUrl = await toPng(viewportEl, {
+            backgroundColor: bg,
+            width,
+            height,
+            pixelRatio,
+            cacheBust: true,
+            style: {
+              width: `${width}px`,
+              height: `${height}px`,
+              transformOrigin: "0 0",
+              transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})`,
+            } as any,
+          });
+          return dataUrl;
+        } finally {
+          // cleanup
+          try { viewportEl.removeChild(badge); } catch {}
+          if (!prevPos) viewportEl.style.position = "";
+        }
+      },
+    };
+
+    (async () => {
+      // give RF time to mount & layout (2 RAFs is a good heuristic)
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      if (!alive) return;
+
+      if (window.FlowCapture) {
+        window.FlowCapture.zoneId = selectedId;
+        window.FlowCapture.ready = true;
+      }
+      // signal to the outside world that this zone is capture-ready
+      window.dispatchEvent(new CustomEvent("flow:ready", { detail: { zoneId: selectedId } }));
+    })();
+
+    return () => {
+      alive = false;
+      // mark not-ready; leave the object so listeners don't crash during route swaps
+      if (window.FlowCapture?.zoneId === selectedId) {
+        window.FlowCapture.ready = false;
+      }
+    };
+  }, [rf, selectedId]);
   const onLayout = useCallback(
     ({ direction }: { direction: 'DOWN' | 'RIGHT' }) => {
       storeOnLayout(direction);

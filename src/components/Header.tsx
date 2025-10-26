@@ -33,7 +33,24 @@ import { clearAppLocalStorage } from "@/common/utils/claarLocalStorage";
 import { getFtaStoreHook } from "@/store/fta-registry";
 import type { ChecksMap } from "@/store/fta-store";
 import type { FtaNodeTypes } from "@/common/fta-node-type";
-
+import { useNavigate } from "react-router-dom";
+import { sl } from "zod/v4/locales";
+declare global {
+  interface Window {
+    FlowCapture?: {
+      zoneId?: string;
+      ready: boolean;
+      capture: (opts?: {
+        width?: number;
+        height?: number;
+        pixelRatio?: number;
+        bg?: string;
+      }) => Promise<string>;
+    };
+    appNavigate?: (to: any, opts?: any) => void;
+  }
+}
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 function downloadJSON(data: any, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -109,7 +126,134 @@ function ListItem({
   );
 }
 
+function waitForFlowReady(zoneId: string, timeoutMs = 30000) {
+  return new Promise<void>((resolve, reject) => {
+    // fast path
+    if (window.FlowCapture?.ready && window.FlowCapture.zoneId === zoneId) {
+      resolve(); return;
+    }
+    const on = (e: any) => {
+      if (e?.detail?.zoneId === zoneId) {
+        cleanup(); resolve();
+      }
+    };
+    const to = setTimeout(() => { cleanup(); reject(new Error("flow:ready timeout")); }, timeoutMs);
+    const cleanup = () => { clearTimeout(to); window.removeEventListener("flow:ready", on as any); };
+    window.addEventListener("flow:ready", on as any);
+  });
+}
+export async function handleExportAllZonesOnTheFly(opts?: { navigate?: (to: any, options?: any) => void }) {
+  const { zones, projectName } = useZoneStore.getState();
+  const nav = opts?.navigate ?? (window as any).appNavigate;
+  if (typeof nav !== "function") {
+    toast.error("Navigation is not available. Initialize routing (open any routed page) and try again.");
+    return;
+  }
+  if (!zones.length) {
+    toast.error("No zones to export");
+    return;
+  }
 
+  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginX = 10;
+
+  const drawHeader = (left: string) => {
+    const dateStr = new Date().toLocaleString();
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+    doc.text(left, 10, 12);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+    doc.setTextColor(120); doc.text(dateStr, pageW - 10, 12, { align: "right" });
+    doc.setTextColor(0); doc.setDrawColor(220);
+    doc.line(10, 20, pageW - 10, 20);
+  };
+
+  for (let i = 0; i < zones.length; i++) {
+    const z = zones[i];
+    useZoneStore.setState({ selectedId: z.id });
+
+    // 1) navigate to /diagram
+    nav("/diagram", { replace: true });
+    // 2) wait for ready
+    try {
+      await waitForFlowReady(z.id, 15000);
+    } catch {
+      toast.warning(`Diagram not ready for "${z.label ?? z.id}", capturing anyway…`);
+    }
+    // 3) capture directly (no localStorage)
+    const dataUrl = await window.FlowCapture!.capture({
+      width: 1920, height: 1080, pixelRatio: Math.min(3, window.devicePixelRatio || 1), bg: "#fff",
+    });
+
+    if (i > 0) doc.addPage("a4", "landscape");
+    const hdr = `Project: ${projectName || "Untitled"}    •    Zone: ${z.label || z.id}`;
+    drawHeader(hdr);
+
+    // Fit to page (same logic you used)
+    const topY = 24;
+    const maxW = pageW - marginX * 2;
+    const maxH = pageH - topY - 14;
+    const aspect = 1920 / 1080;
+    let drawW = maxH * aspect, drawH = maxH;
+    if (drawW > maxW) { drawW = maxW; drawH = drawW / aspect; }
+    const imgX = marginX + (maxW - drawW) / 2;
+    doc.addImage(dataUrl, "PNG", imgX, topY, drawW, drawH);
+
+    // ---------- Page 2: tables ----------
+    doc.addPage("a4", "landscape");
+    drawHeader(hdr);
+
+    const graph = getGraphStoreHook(z.id).getState();
+    const ir = deriveRowSpans(graphToIR(graph.nodes || [], graph.edges || []));
+    const zoneNode = (graph.nodes || []).find((n: any) => n.type === "zone");
+    const zoneDescription = zoneNode?.data?.content ?? "";
+
+    // Build body rows (re-using your rowSpan function is fine too)
+    const rows: RowInput[] = /* build exactly like your ExportStructuredPDFButton */[];
+
+    const headRows: (string | CellInput)[][] = [
+      [{ content: `Hazard Zone: ${z.label || z.id}`, colSpan: 10, styles: { halign: "center", fontStyle: "bold", fillColor: [229, 231, 235] } } as CellInput],
+      [{ content: zoneDescription?.trim() ? `Zone Description: ${zoneDescription}` : "Zone Description: —", colSpan: 10, styles: { halign: "left", fillColor: [243, 244, 246] } } as CellInput],
+      [
+        { content: "Task" }, { content: "Function" }, { content: "Realization" }, { content: "Property" },
+        { content: "Guide Word" }, { content: "Deviations" }, { content: "Causes" },
+        { content: "Consequences" }, { content: "Requirements" }, { content: "ISO" },
+      ],
+    ];
+
+    doc.setFont("helvetica", "bold"); doc.setFontSize(12);
+    doc.text("Function-Centric Hazard Identification", pageW / 2, 24, { align: "center" });
+
+    autoTable(doc, {
+      theme: "grid",
+      startY: 30,
+      head: headRows,
+      body: rows,
+      styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "top", overflow: "linebreak" },
+      headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" },
+      columnStyles: {
+        0: { cellWidth: 22 }, 1: { cellWidth: 22 }, 2: { cellWidth: 22 }, 3: { cellWidth: 26 },
+        4: { cellWidth: 18 }, 5: { cellWidth: 32 }, 6: { cellWidth: 32 }, 7: { cellWidth: 32 },
+        8: { cellWidth: 40 }, 9: { cellWidth: 30 },
+      },
+      margin: { left: 10, right: 10 },
+      tableLineColor: 200, tableLineWidth: 0.1,
+      didDrawPage: () => drawHeader(hdr),
+    });
+    // DSM section (same as your current working code) ...
+    // build { fnOrder, reqOrder, hit } and add the second table
+  }
+
+  // 5) Save once
+  const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
+  const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
+  const name = `${safe(projectName || "Project")}_ALL_ZONES_${ts}.pdf`;
+  doc.save(name);
+
+  // optional: return to the page user started from
+  // (window as any).appNavigate?.((history.state && history.state.idx > 0) ? -1 : "/", { replace: true });
+}
 
 export default function Header() {
   // 让 input 持久存在于 Header 根部
@@ -123,7 +267,10 @@ export default function Header() {
   const [nameDraft, setNameDraft] = useState(projectName);
   const [newProjectName, setNewProjectName] = useState("");
   useEffect(() => setNameDraft(projectName), [projectName]);
-
+  const navigate = useNavigate();
+  useEffect(() => {
+    (window as any).appNavigate = navigate;
+  }, [navigate]);
   const commitProjectName = () => {
     setProjectName(nameDraft);
     setEditingName(false);
@@ -206,7 +353,7 @@ export default function Header() {
     })) as any;
 
     const bounds = getNodesBounds(rfNodes);
-    const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.5, 2);
+    const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.5, 2, 0);
 
     const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
     if (!viewportEl) {
@@ -830,7 +977,11 @@ export default function Header() {
                     >
                       New Project…
                     </button>
-
+                    <button type="button"
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
+                      onClick={() => handleExportAllZonesOnTheFly({ navigate })}>
+                      Export PDF (All Zones, on the fly)
+                    </button>
                     <div className="my-1 h-px bg-border" />
                     {/* Existing items */}
                     <button
