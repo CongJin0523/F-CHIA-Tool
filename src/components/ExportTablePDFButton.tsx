@@ -384,6 +384,19 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
     const fchiTitleY = 24;
     doc.text(fchiTitle, pageWidth / 2, fchiTitleY, { align: "center" });
     const firstTableStartY = fchiTitleY + 6;
+    // ---- Fit FCHI table to content width and keep proportions ----
+    const contentMargin = { left: 10, right: 10 };
+    const contentWidth = pageWidth - contentMargin.left - contentMargin.right;
+
+    // Intended column widths (mm)
+    const fchiCols = [22, 22, 22, 26, 18, 32, 32, 32, 40, 30];
+    const fchiSum = fchiCols.reduce((a, b) => a + b, 0);
+
+    // Scale down if needed to fit content width
+    const fchiScale = Math.min(1, contentWidth / fchiSum);
+    const fchiColumnStyles = Object.fromEntries(
+      fchiCols.map((w, i) => [i, { cellWidth: Math.floor(w * fchiScale) }])
+    );
 
     autoTable(doc, {
       theme: "grid",
@@ -403,19 +416,8 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
         fontStyle: "bold",
       },
       // width tuning to mirror your Tailwind widths
-      columnStyles: {
-        0: { cellWidth: 22 },  // Task
-        1: { cellWidth: 22 },  // Function
-        2: { cellWidth: 22 },  // Realization
-        3: { cellWidth: 26 },  // Property
-        4: { cellWidth: 18 },  // Guide Word
-        5: { cellWidth: 32 },  // Deviations
-        6: { cellWidth: 32 },  // Causes
-        7: { cellWidth: 32 },  // Consequences
-        8: { cellWidth: 40 },  // Requirements
-        9: { cellWidth: 30 },  // ISO
-      },
-      margin: { left: 10, right: 10 },
+      columnStyles: fchiColumnStyles,
+      margin: contentMargin,
       tableLineColor: 200,
       tableLineWidth: 0.1,
       horizontalPageBreak: false,
@@ -461,17 +463,24 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
         return row as RowInput;
       });
 
-      // Column widths: clamp each DSM cell width to keep columns readable
+      // ---- DSM sizing that always fits the page and centers the table ----
+      const dsmContentWidth = contentWidth; // reuse the same content width
       const firstColWidth = 60; // mm for the Function column
-      const minOtherCol = 12;   // minimum width for requirement columns
-      const maxOtherCol = 28;   // maximum width for requirement columns
-      const computedOther = Math.floor((pageWidth - 20 - firstColWidth) / Math.max(1, reqOrder.length));
-      const otherColWidth = Math.min(maxOtherCol, Math.max(minOtherCol, computedOther));
+      const minOtherCol = 12;
+      const maxOtherCol = 28;
+
+      const remaining = Math.max(0, dsmContentWidth - firstColWidth);
+      const safePerCol = reqOrder.length > 0 ? Math.floor(remaining / reqOrder.length) : remaining;
+      const otherColWidth = Math.min(maxOtherCol, Math.max(minOtherCol, safePerCol));
 
       const dsmColumnStyles: Record<number, any> = { 0: { cellWidth: firstColWidth } };
       for (let i = 1; i <= reqOrder.length; i++) {
         dsmColumnStyles[i] = { cellWidth: otherColWidth, halign: "center", valign: "middle" };
       }
+
+      const dsmTableWidth = firstColWidth + otherColWidth * Math.max(1, reqOrder.length);
+      const side = Math.max(0, (pageWidth - dsmTableWidth) / 2);
+      const dsmMargin = { left: side, right: side };
 
       autoTable(doc, {
         theme: "grid",
@@ -491,10 +500,7 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
           fontStyle: "bold",
         },
         columnStyles: dsmColumnStyles,
-        margin: {
-          left: (pageWidth - (firstColWidth + reqOrder.length * otherColWidth)) / 2,
-          right: 10,
-        },
+        margin: dsmMargin,
         didDrawPage: () => {
           const current = doc.internal.getCurrentPageInfo().pageNumber;
 
