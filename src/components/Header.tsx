@@ -34,7 +34,6 @@ import { getFtaStoreHook } from "@/store/fta-registry";
 import type { ChecksMap } from "@/store/fta-store";
 import type { FtaNodeTypes } from "@/common/fta-node-type";
 import { useNavigate } from "react-router-dom";
-import { sl } from "zod/v4/locales";
 declare global {
   interface Window {
     FlowCapture?: {
@@ -50,7 +49,6 @@ declare global {
     appNavigate?: (to: any, opts?: any) => void;
   }
 }
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 function downloadJSON(data: any, filename: string) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -126,134 +124,8 @@ function ListItem({
   );
 }
 
-function waitForFlowReady(zoneId: string, timeoutMs = 30000) {
-  return new Promise<void>((resolve, reject) => {
-    // fast path
-    if (window.FlowCapture?.ready && window.FlowCapture.zoneId === zoneId) {
-      resolve(); return;
-    }
-    const on = (e: any) => {
-      if (e?.detail?.zoneId === zoneId) {
-        cleanup(); resolve();
-      }
-    };
-    const to = setTimeout(() => { cleanup(); reject(new Error("flow:ready timeout")); }, timeoutMs);
-    const cleanup = () => { clearTimeout(to); window.removeEventListener("flow:ready", on as any); };
-    window.addEventListener("flow:ready", on as any);
-  });
-}
-export async function handleExportAllZonesOnTheFly(opts?: { navigate?: (to: any, options?: any) => void }) {
-  const { zones, projectName } = useZoneStore.getState();
-  const nav = opts?.navigate ?? (window as any).appNavigate;
-  if (typeof nav !== "function") {
-    toast.error("Navigation is not available. Initialize routing (open any routed page) and try again.");
-    return;
-  }
-  if (!zones.length) {
-    toast.error("No zones to export");
-    return;
-  }
 
-  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-  const marginX = 10;
 
-  const drawHeader = (left: string) => {
-    const dateStr = new Date().toLocaleString();
-    doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-    doc.text(left, 10, 12);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(10);
-    doc.setTextColor(120); doc.text(dateStr, pageW - 10, 12, { align: "right" });
-    doc.setTextColor(0); doc.setDrawColor(220);
-    doc.line(10, 20, pageW - 10, 20);
-  };
-
-  for (let i = 0; i < zones.length; i++) {
-    const z = zones[i];
-    useZoneStore.setState({ selectedId: z.id });
-
-    // 1) navigate to /diagram
-    nav("/diagram", { replace: true });
-    // 2) wait for ready
-    try {
-      await waitForFlowReady(z.id, 15000);
-    } catch {
-      toast.warning(`Diagram not ready for "${z.label ?? z.id}", capturing anyway…`);
-    }
-    // 3) capture directly (no localStorage)
-    const dataUrl = await window.FlowCapture!.capture({
-      width: 1920, height: 1080, pixelRatio: Math.min(3, window.devicePixelRatio || 1), bg: "#fff",
-    });
-
-    if (i > 0) doc.addPage("a4", "landscape");
-    const hdr = `Project: ${projectName || "Untitled"}    •    Zone: ${z.label || z.id}`;
-    drawHeader(hdr);
-
-    // Fit to page (same logic you used)
-    const topY = 24;
-    const maxW = pageW - marginX * 2;
-    const maxH = pageH - topY - 14;
-    const aspect = 1920 / 1080;
-    let drawW = maxH * aspect, drawH = maxH;
-    if (drawW > maxW) { drawW = maxW; drawH = drawW / aspect; }
-    const imgX = marginX + (maxW - drawW) / 2;
-    doc.addImage(dataUrl, "PNG", imgX, topY, drawW, drawH);
-
-    // ---------- Page 2: tables ----------
-    doc.addPage("a4", "landscape");
-    drawHeader(hdr);
-
-    const graph = getGraphStoreHook(z.id).getState();
-    const ir = deriveRowSpans(graphToIR(graph.nodes || [], graph.edges || []));
-    const zoneNode = (graph.nodes || []).find((n: any) => n.type === "zone");
-    const zoneDescription = zoneNode?.data?.content ?? "";
-
-    // Build body rows (re-using your rowSpan function is fine too)
-    const rows: RowInput[] = /* build exactly like your ExportStructuredPDFButton */[];
-
-    const headRows: (string | CellInput)[][] = [
-      [{ content: `Hazard Zone: ${z.label || z.id}`, colSpan: 10, styles: { halign: "center", fontStyle: "bold", fillColor: [229, 231, 235] } } as CellInput],
-      [{ content: zoneDescription?.trim() ? `Zone Description: ${zoneDescription}` : "Zone Description: —", colSpan: 10, styles: { halign: "left", fillColor: [243, 244, 246] } } as CellInput],
-      [
-        { content: "Task" }, { content: "Function" }, { content: "Realization" }, { content: "Property" },
-        { content: "Guide Word" }, { content: "Deviations" }, { content: "Causes" },
-        { content: "Consequences" }, { content: "Requirements" }, { content: "ISO" },
-      ],
-    ];
-
-    doc.setFont("helvetica", "bold"); doc.setFontSize(12);
-    doc.text("Function-Centric Hazard Identification", pageW / 2, 24, { align: "center" });
-
-    autoTable(doc, {
-      theme: "grid",
-      startY: 30,
-      head: headRows,
-      body: rows,
-      styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "top", overflow: "linebreak" },
-      headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" },
-      columnStyles: {
-        0: { cellWidth: 22 }, 1: { cellWidth: 22 }, 2: { cellWidth: 22 }, 3: { cellWidth: 26 },
-        4: { cellWidth: 18 }, 5: { cellWidth: 32 }, 6: { cellWidth: 32 }, 7: { cellWidth: 32 },
-        8: { cellWidth: 40 }, 9: { cellWidth: 30 },
-      },
-      margin: { left: 10, right: 10 },
-      tableLineColor: 200, tableLineWidth: 0.1,
-      didDrawPage: () => drawHeader(hdr),
-    });
-    // DSM section (same as your current working code) ...
-    // build { fnOrder, reqOrder, hit } and add the second table
-  }
-
-  // 5) Save once
-  const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
-  const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
-  const name = `${safe(projectName || "Project")}_ALL_ZONES_${ts}.pdf`;
-  doc.save(name);
-
-  // optional: return to the page user started from
-  // (window as any).appNavigate?.((history.state && history.state.idx > 0) ? -1 : "/", { replace: true });
-}
 
 export default function Header() {
   // 让 input 持久存在于 Header 根部
@@ -805,7 +677,269 @@ export default function Header() {
   };
   // All Zones
 
+  const handleExportAllZonesOnTheFly = async () => {
+  const { zones, projectName } = useZoneStore.getState();
+  if (!zones.length) {
+    toast.error("No zones to export"); 
+    return;
+  }
+  const returnTo = location.pathname;
 
+  // one-time event helper
+  const once = (type: string, predicate: (e: any) => boolean, timeoutMs = 15000) =>
+    new Promise<any>((resolve, reject) => {
+      const on = (e: any) => { if (predicate(e)) { cleanup(); resolve(e.detail); } };
+      const to = setTimeout(() => { cleanup(); reject(new Error(`Timeout waiting for ${type}`)); }, timeoutMs);
+      const cleanup = () => { clearTimeout(to); window.removeEventListener(type, on as any); };
+      window.addEventListener(type, on as any, { once: true });
+    });
+
+  const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginX = 10;
+
+  const drawHeader = (zoneLabel: string) => {
+    const t = `Project: ${projectName || "Untitled Project"}    •    Zone: ${zoneLabel}`;
+    const dateStr = new Date().toLocaleString();
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text(t, marginX, 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(dateStr, pageW - marginX, 12, { align: "right" });
+    doc.setTextColor(0);
+    doc.setDrawColor(220);
+    doc.line(marginX, 20, pageW - marginX, 20);
+  };
+  const drawFooter = () => {
+    const current = doc.internal.getCurrentPageInfo().pageNumber;
+    const total = doc.getNumberOfPages();
+    doc.setDrawColor(220);
+    doc.line(10, pageH - 12, pageW - 10, pageH - 12);
+    doc.setDrawColor(0);
+    doc.setFontSize(10);
+    doc.text(`Page ${current} / ${total}`, pageW - 10, pageH - 6, { align: "right" });
+  };
+
+  let first = true;
+
+  for (const z of zones) {
+    // switch zone + go to /diagram
+    useZoneStore.setState({ selectedId: z.id });
+    navigate("/diagram", { replace: true });
+
+    // wait until Diagram says it's truly ready for THIS zone
+    try {
+      await once("flow:ready", (e) => e?.detail?.zoneId === z.id, 15000);
+    } catch {
+      // fallback: give a little extra time (layout/measure)
+      await new Promise((r) => setTimeout(r, 800));
+    }
+    // tiny settle to ensure layout applied
+    await new Promise((r) => setTimeout(r, 400));
+
+    // capture at native 1920x1080 using the in-page FlowCapture
+    const dataUrl = await window.FlowCapture!.capture({
+      width: 1920,
+      height: 1080,
+      pixelRatio: Math.min(3, window.devicePixelRatio || 1),
+      bg: "#ffffff",
+    });
+
+    if (!first) doc.addPage("a4", "landscape");
+    first = false;
+
+    // --- Page 1: Diagram ---
+    drawHeader(z.label || z.id);
+    const topY = 24, footerGap = 10;
+    const maxW = pageW - marginX * 2;
+    const maxH = pageH - topY - footerGap;
+    const aspect = 1920 / 1080;
+    let drawW = maxH * aspect, drawH = maxH;
+    if (drawW > maxW) { drawW = maxW; drawH = drawW / aspect; }
+    const imgX = marginX + (maxW - drawW) / 2;
+    doc.addImage(dataUrl, "PNG", imgX, topY, drawW, drawH);
+    drawFooter();
+
+    // --- Page 2: Tables (identical to ExportStructuredPDFButton) ---
+    doc.addPage("a4", "landscape");
+    drawHeader(z.label || z.id);
+
+    const graph = getGraphStoreHook(z.id).getState();
+    const ir = graphToIR(graph.nodes || [], graph.edges || []);
+    const formLike = deriveRowSpans(ir);
+
+    // build rows with rowSpan (identical to ExportStructuredPDFButton)
+    const rows: RowInput[] = [];
+    (formLike.tasks || []).forEach((task: any) => {
+      const taskName = task.taskName || "";
+      const taskRowSpan = Math.max(1, task.rowSpan || 1);
+      const fns = task.functions || [];
+
+      if (!fns.length) {
+        rows.push([{ content: taskName, rowSpan: 1 } as CellInput, "(No function)", "", "", "", "", "", "", "", ""]);
+        return;
+      }
+
+      let taskPrinted = false;
+
+      fns.forEach((fn: any) => {
+        const fnName = fn.functionName || "";
+        const fnRowSpan = Math.max(1, fn.rowSpan || 1);
+        const reals = fn.realizations || [];
+
+        if (!reals.length) {
+          const row: RowInput = [];
+          if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+          row.push({ content: fnName, rowSpan: 1 } as CellInput);
+          row.push("(No realization)");
+          row.push(""); // Property
+          row.push(""); // Guide Word
+          row.push(""); // Deviations
+          row.push(""); // Causes
+          row.push(""); // Consequences
+          row.push(""); // Requirements
+          row.push(""); // ISO
+          rows.push(row);
+          taskPrinted = true;
+          return;
+        }
+
+        let fnPrinted = false;
+
+        reals.forEach((real: any) => {
+          const realName = real.realizationName || "";
+          const realRowSpan = Math.max(1, real.rowSpan || 1);
+          const props = real.properties || [];
+
+          if (!props.length) {
+            const row: RowInput = [];
+            if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+            if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
+            row.push({ content: realName, rowSpan: 1 } as CellInput);
+            row.push("(No property)");
+            row.push(""); // Guide Word
+            row.push(""); // Deviations
+            row.push(""); // Causes
+            row.push(""); // Consequences
+            row.push(""); // Requirements
+            row.push(""); // ISO
+            rows.push(row);
+            taskPrinted = true; fnPrinted = true;
+            return;
+          }
+
+          let realPrinted = false;
+
+          props.forEach((prop: any) => {
+            const propText = (prop.properties || []).filter(Boolean).join("\n");
+            const propRowSpan = Math.max(1, prop.rowSpan || 1);
+            const inters = prop.interpretations || [];
+
+            if (!inters.length) {
+              const row: RowInput = [];
+              if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+              if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
+              if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
+              row.push({ content: propText || "(No property text)", rowSpan: 1 } as CellInput);
+              row.push("(No interpretation)");
+              row.push(""); // Deviations
+              row.push(""); // Causes
+              row.push(""); // Consequences
+              row.push(""); // Requirements
+              row.push(""); // ISO
+              rows.push(row);
+              taskPrinted = true; fnPrinted = true; realPrinted = true;
+              return;
+            }
+
+            let propPrinted = false;
+
+            inters.forEach((inter: any) => {
+              const guide = inter.guideWord || "";
+              const list = (arr?: any[]) => (arr || [])
+                .map((x, i) => (x?.text ? `${i + 1}. ${x.text}` : ""))
+                .filter(Boolean)
+                .join("\n");
+              const deviations = list(inter.deviations);
+              const causes = list(inter.causes);
+              const consequences = list(inter.consequences);
+              const requirements = list(inter.requirements);
+              const iso = (inter.isoMatches || [])
+                .map((i: any) => i.iso_number || i.title || "")
+                .filter(Boolean)
+                .join(", ");
+
+              const row: RowInput = [];
+              if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+              if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
+              if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
+              if (!propPrinted) row.push({ content: propText, rowSpan: propRowSpan } as CellInput);
+              row.push(guide, deviations || "", causes || "", consequences || "", requirements || "", iso || "");
+              rows.push(row);
+
+              taskPrinted = true; fnPrinted = true; realPrinted = true; propPrinted = true;
+            });
+          });
+        });
+      });
+    });
+
+    if (!rows.length) {
+      rows.push(["(No tasks)", "", "", "", "", "", "", "", "", ""]);
+    }
+
+    const zoneNode = (graph.nodes || []).find((n: any) => n.type === "zone");
+    const zoneDescription = zoneNode?.data?.content || "";
+
+    const headRows: (string | CellInput)[][] = [
+      [{ content: `Hazard Zone: ${z.label || z.id}`, colSpan: 10, styles: { halign: "center", fontStyle: "bold", fillColor: [229,231,235] } } as CellInput],
+      [{ content: zoneDescription?.trim() ? `Zone Description: ${zoneDescription}` : "Zone Description: —", colSpan: 10, styles: { halign: "left", fontStyle: "normal", fillColor: [243,244,246] } } as CellInput],
+      [
+        { content: "Task", styles: { fillColor: [249,250,251] } },
+        { content: "Function", styles: { fillColor: [249,250,251] } },
+        { content: "Realization", styles: { fillColor: [249,250,251] } },
+        { content: "Property", styles: { fillColor: [249,250,251] } },
+        { content: "Guide Word", styles: { fillColor: [249,250,251] } },
+        { content: "Deviations", styles: { fillColor: [249,250,251] } },
+        { content: "Causes", styles: { fillColor: [249,250,251] } },
+        { content: "Consequences", styles: { fillColor: [249,250,251] } },
+        { content: "Requirements", styles: { fillColor: [249,250,251] } },
+        { content: "ISO", styles: { fillColor: [249,250,251] } },
+      ],
+    ];
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Function-Centric Hazard Identification", pageW / 2, 24, { align: "center" });
+
+    autoTable(doc, {
+      theme: "grid",
+      startY: 30,
+      head: headRows,
+      body: rows,
+      styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "top", overflow: "linebreak" },
+      headStyles: { fillColor: [243,244,246], textColor: 20, fontStyle: "bold" },
+      columnStyles: { 0:{cellWidth:22},1:{cellWidth:22},2:{cellWidth:22},3:{cellWidth:26},4:{cellWidth:18},5:{cellWidth:32},6:{cellWidth:32},7:{cellWidth:32},8:{cellWidth:40},9:{cellWidth:30} },
+      margin: { left: 10, right: 10 },
+      tableLineColor: 200,
+      tableLineWidth: 0.1,
+      didDrawPage: () => { drawHeader(z.label || z.id); drawFooter(); },
+    });
+
+    // DSM (same as your working layout)...
+    // build pairs -> fnOrder/reqOrder/hit, then render DSM autoTable centered
+  }
+
+  // go back to where user was
+  navigate(returnTo, { replace: true });
+
+  const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
+  const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
+  doc.save(`${safe(projectName || "Project")}_ALL_ZONES_${ts}.pdf`);
+};
   // 导入回调（这里一定会触发）
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -979,7 +1113,7 @@ export default function Header() {
                     </button>
                     <button type="button"
                       className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
-                      onClick={() => handleExportAllZonesOnTheFly({ navigate })}>
+                      onClick={handleExportAllZonesOnTheFly}>
                       Export PDF (All Zones, on the fly)
                     </button>
                     <div className="my-1 h-px bg-border" />

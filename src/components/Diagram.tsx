@@ -48,7 +48,15 @@ declare global {
     };
   }
 }
-
+const raf = () => new Promise<void>(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+const waitFor = async (check: () => boolean, timeout = 8000, every = 50) => {
+  const start = Date.now();
+  while (!check()) {
+    if (Date.now() - start > timeout) return false;
+    await new Promise(r => setTimeout(r, every));
+  }
+  return true;
+};
 const selector = (state: AppState) => ({
   nodes: state.nodes,
   edges: state.edges,
@@ -71,7 +79,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
   const { nodes, edges, onNodesChange, onEdgesChange, setNodes, setEdges, updateNodeText, onLayout: storeOnLayout } = useStore(storeHook,
     useShallow(selector),
   );
-  const { fitView, getEdges, getNodes } = useReactFlow();
+  const { fitView, getEdges } = useReactFlow();
   const rf = useReactFlow();
   const selectedId = zoneId;
   useEffect(() => {
@@ -89,6 +97,13 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
           bg = "#ffffff",
         } = opts || {};
 
+        // ensure nodes are measured before computing viewport
+        await raf();
+        await waitFor(() => {
+          const ns = rf.getNodes();
+          return ns.length > 0 && ns.every(n => !!n.width && !!n.height);
+        }, 3000, 60);
+
         // IMPORTANT: use hooks API values so subflows/handles are correct
         const nodes = rf.getNodes();
         const bounds = getNodesBounds(nodes);
@@ -97,20 +112,20 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
         const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
         if (!viewportEl) throw new Error("Flow viewport not found");
 
-        // optional small badge
+        // // optional small badge
         const prevPos = viewportEl.style.position;
         if (!prevPos) viewportEl.style.position = "relative";
-        const badge = document.createElement("div");
-        badge.style.position = "fixed";
-        badge.style.top = "0";
-        badge.style.left = "0";
-        badge.style.padding = "3px 10px";
-        badge.style.borderRadius = "4px";
-        badge.style.background = "rgba(243,244,246,0.95)";
-        badge.style.fontSize = "12px";
-        badge.style.pointerEvents = "none";
-        badge.textContent = `Zone: ${selectedId ?? ""}`;
-        viewportEl.appendChild(badge);
+        // const badge = document.createElement("div");
+        // badge.style.position = "fixed";
+        // badge.style.top = "0";
+        // badge.style.left = "0";
+        // badge.style.padding = "3px 10px";
+        // badge.style.borderRadius = "4px";
+        // badge.style.background = "rgba(243,244,246,0.95)";
+        // badge.style.fontSize = "12px";
+        // badge.style.pointerEvents = "none";
+        // badge.textContent = `Zone: ${selectedId ?? ""}`;
+        // viewportEl.appendChild(badge);
 
         try {
           const dataUrl = await toPng(viewportEl, {
@@ -136,8 +151,17 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
     };
 
     (async () => {
-      // give RF time to mount & layout (2 RAFs is a good heuristic)
-      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      // let React Flow mount twice
+      await raf();
+      await raf();
+
+      // wait until nodes are mounted & measured (width/height present)
+      await waitFor(() => {
+        const ns = rf.getNodes();
+        // edges presence isn't strictly required for capture, focus on node measurement
+        return ns.length > 0 && ns.every(n => !!n.width && !!n.height);
+      }, 3000, 80);
+
       if (!alive) return;
 
       if (window.FlowCapture) {
@@ -169,7 +193,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
   //   onLayout({ direction: 'DOWN', useInitialNodes: true });
   // }, []);
   const onConnect = useCallback((params) => {
-    const ns = getNodes();
+    const ns = rf.getNodes();
     const es = getEdges(); // <— 拿到当前边数组（是真数组）
 
     const sourceNode = ns.find((n) => n.id === params.source);
@@ -190,7 +214,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
     const nextEdges = addEdge(params, es);
     console.log('nextEdges', nextEdges);
     setEdges(nextEdges); // <— 关键：不要传函数
-  }, [getNodes, getEdges, setEdges]);
+  }, [rf, getEdges, setEdges]);
 
   useEffect(() => {
     const handler = () => requestAnimationFrame(() => fitView());
