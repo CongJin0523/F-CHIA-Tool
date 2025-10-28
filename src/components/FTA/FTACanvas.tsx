@@ -1,6 +1,6 @@
 // pages/FtaDiagram.tsx
 import { useRef, useCallback, useEffect, useMemo } from 'react';
-import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background, Panel, type Edge } from '@xyflow/react';
+import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background, Panel, type Edge, getNodesBounds, getViewportForBounds } from '@xyflow/react';
 import Tooltip from '@mui/material/Tooltip';
 import Fab from '@mui/material/Fab';
 import { Workflow } from 'lucide-react';
@@ -25,11 +25,33 @@ const selector = (s: FtaState) => ({
   onEdgesChange: s.onEdgesChange,
   onLayout: s.onLayout,
 });
-
+import { toPng } from "html-to-image";
 import ShortUniqueId from 'short-uuid';
+declare global {
+  interface Window {
+    FlowCapture?: {
+      zoneId?: string;
+      ready: boolean;
+      capture: (opts?: {
+        width?: number;
+        height?: number;
+        pixelRatio?: number;
+        bg?: string;
+      }) => Promise<string>;
+    };
+  }
+}
 const translator = ShortUniqueId();
 const getId = () => translator.new();
-
+const raf = () => new Promise<void>((r) => requestAnimationFrame(() => r()));
+const waitFor = async (check: () => boolean, timeout = 8000, every = 50) => {
+  const start = Date.now();
+  while (!check()) {
+    if (Date.now() - start > timeout) return false;
+    await new Promise(r => setTimeout(r, every));
+  }
+  return true;
+};
 function ensureTopIfEmpty(hook: any, taskId: string, fitView?: () => void) {
   const st = hook.getState();
   if (!st.nodes || st.nodes.length === 0) {
@@ -58,7 +80,93 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
 
   const { screenToFlowPosition, fitView } = useReactFlow();
   const [type, setType] = useDnD();
+  useEffect(() => {
+    let alive = true;
+    const ftaKey = `${zoneId}::${taskId}`;
 
+    // Provide a capture API for Header
+    window.FlowCapture = {
+      zoneId: ftaKey,         // use composite key for uniqueness
+      ready: false,
+      capture: async (opts?: {
+        width?: number;
+        height?: number;
+        pixelRatio?: number;
+        bg?: string;
+      }) => {
+        const width = opts?.width ?? 1920;
+        const height = opts?.height ?? 1080;
+        const pixelRatio = opts?.pixelRatio ?? Math.min(3, window.devicePixelRatio || 1);
+        const bg = opts?.bg ?? "#ffffff";
+
+        // ensure nodes measured
+        await raf();
+        await waitFor(() => {
+          const ns = rf.getNodes();
+          return ns.length > 0 && ns.every((n) => !!n.width && !!n.height);
+        }, 3000, 60);
+
+        const nodes = rf.getNodes();
+        const bounds = getNodesBounds(nodes);
+        const vp = getViewportForBounds(bounds, width, height, 0.5, 2);
+
+        const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+        if (!viewportEl) throw new Error("Flow viewport not found");
+
+        const prevPos = viewportEl.style.position;
+        if (!prevPos) viewportEl.style.position = "relative";
+
+        try {
+          const dataUrl = await toPng(viewportEl, {
+            backgroundColor: bg,
+            width,
+            height,
+            pixelRatio,
+            cacheBust: true,
+            style: {
+              width: `${width}px`,
+              height: `${height}px`,
+              transformOrigin: "0 0",
+              transform: `translate(${vp.x}px, ${vp.y}px) scale(${vp.zoom})`,
+            } as any,
+          });
+          return dataUrl;
+        } finally {
+          if (!prevPos) viewportEl.style.position = "";
+        }
+      },
+    };
+
+    (async () => {
+      // let React Flow mount & measure
+      await raf();
+      await raf();
+      await waitFor(() => {
+        const ns = rf.getNodes();
+        return ns.length > 0 && ns.every((n) => !!n.width && !!n.height);
+      }, 3000, 80);
+      if (!alive) return;
+
+      if (window.FlowCapture) {
+        window.FlowCapture.zoneId = ftaKey;
+        window.FlowCapture.ready = true;
+      }
+
+      // tell Header this FTA canvas is ready to capture
+      window.dispatchEvent(
+        new CustomEvent("fta:ready", {
+          detail: { zoneId, taskId: taskId, key: ftaKey },
+        })
+      );
+    })();
+
+    return () => {
+      alive = false;
+      if (window.FlowCapture?.zoneId === ftaKey) {
+        window.FlowCapture.ready = false;
+      }
+    };
+  }, [rf, zoneId, taskId]);
   // 初次/切换时，若为空自动建 topEvent
   useEffect(() => {
     ensureTopIfEmpty(ftaHook, taskId, fitView);

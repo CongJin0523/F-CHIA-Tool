@@ -34,7 +34,7 @@ import { clearAppLocalStorage } from "@/common/utils/claarLocalStorage";
 import { getFtaStoreHook } from "@/store/fta-registry";
 import type { ChecksMap } from "@/store/fta-store";
 import type { FtaNodeTypes } from "@/common/fta-node-type";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 declare global {
   interface Window {
     FlowCapture?: {
@@ -76,38 +76,7 @@ type FtaDumpItem = {
   edges: Edge[];
   causeChecks?: ChecksMap;
 };
-function readAllFtasFromLocalStorage(): { items: FtaDumpItem[]; } {
-  const items: FtaDumpItem[] = [];
-  let selectedFta: { zoneId: string; taskId: string } | undefined;
 
-
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i) || "";
-    if (!key.startsWith("fta-")) continue;
-
-    // key format we expect: fta-${zoneId}::${taskId}
-    const id = key.slice(4);
-    const [zoneId, taskId] = id.split("::");
-    if (!zoneId || !taskId) continue;
-
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-
-      // Zustand persist can be { state: {...} } or plain {nodes, edges}
-      const state = parsed?.state ?? parsed;
-      const nodes = state?.nodes ?? [];
-      const edges = state?.edges ?? [];
-      const causeChecks = state?.causeChecks ?? {};
-      items.push({ zoneId, taskId, nodes, edges, causeChecks });
-    } catch {
-      // ignore malformed entries
-    }
-  }
-
-  return { items };
-}
 function ListItem({
   title, children, href, ...props
 }: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
@@ -126,7 +95,43 @@ function ListItem({
 }
 
 
+const flush = () => new Promise<void>((r) => setTimeout(r, 0));
+const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
+function once(type: string, predicate: (e: any) => boolean, timeoutMs = 10000) {
+  return new Promise<any>((resolve, reject) => {
+    const on = (e: any) => {
+      if (predicate(e)) {
+        cleanup();
+        resolve(e.detail);
+      }
+    };
+    const to = setTimeout(() => {
+      cleanup();
+      reject(new Error(`Timeout waiting for ${type}`));
+    }, timeoutMs);
+    const cleanup = () => {
+      clearTimeout(to);
+      window.removeEventListener(type, on as any);
+    };
+    window.addEventListener(type, on as any, { once: true });
+  });
+}
+
+// Read *all* FTA entries saved by your app (same shape you’ve been using)
+
+function readAllFtasFromLocalStorage(): FtaDumpItem[] {
+  const out: FtaDumpItem[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i) || "";
+    if (!key.startsWith("fta-")) continue;
+    // key format: fta-${zoneId}::${taskId}
+    const id = key.slice(4);
+    const [zoneId, taskId] = id.split("::");
+    if (zoneId && taskId) out.push({ zoneId, taskId });
+  }
+  return out;
+}
 
 export default function Header() {
   const [exporting, setExporting] = useState(false);
@@ -144,6 +149,11 @@ export default function Header() {
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(projectName);
   const [newProjectName, setNewProjectName] = useState("");
+
+  const [exportingFta, setExportingFta] = useState(false);
+  const [exportPctFta, setExportPctFta] = useState(0);
+  const [exportStepFta, setExportStepFta] = useState("");
+  const location = useLocation();
   useEffect(() => setNameDraft(projectName), [projectName]);
   const navigate = useNavigate();
   useEffect(() => {
@@ -789,7 +799,7 @@ export default function Header() {
         setExportPct(Math.round(((i + 0.5) / total) * 100));
         setExportStep(`Building tables for "${zoneLabel}"…`);
         await flush();
-        
+
         // --- Page 2: Tables (identical to ExportStructuredPDFButton) ---
         doc.addPage("a4", "landscape");
         drawHeader(z.label || z.id);
@@ -1197,7 +1207,137 @@ export default function Header() {
       }
     });
   };
+  const handleExportAllFTAsOnTheFly = async () => {
+    const { zones, projectName } = useZoneStore.getState();
+    const zoneLabelOf = (zid: string) => zones.find((z) => z.id === zid)?.label || zid;
 
+    const items = readAllFtasFromLocalStorage();
+    if (!items.length) {
+      toast.error("No FTA graphs found.");
+      return;
+    }
+    console.log("Exporting all FTAs:", items);
+    setExportingFta(true);
+    setExportPctFta(0);
+    setExportStepFta("Preparing…");
+    await flush();
+
+    const returnTo = location.pathname;
+    try {
+      const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const marginX = 10;
+
+      const drawHeader = (zoneLabel: string, taskId: string) => {
+        const t = `Project: ${projectName || "Untitled Project"}    •    Zone: ${zoneLabel}    •    Task: ${taskId}`;
+        const dateStr = new Date().toLocaleString();
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text(t, marginX, 12);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+        doc.text(dateStr, pageW - marginX, 12, { align: "right" });
+        doc.setTextColor(0);
+        doc.setDrawColor(220);
+        doc.line(marginX, 20, pageW - marginX, 20);
+      };
+      const drawFooter = () => {
+        const current = doc.internal.getCurrentPageInfo().pageNumber;
+        const total = doc.getNumberOfPages();
+        doc.setDrawColor(220);
+        doc.line(10, pageH - 12, pageW - 10, pageH - 12);
+        doc.setDrawColor(0);
+        doc.setFontSize(10);
+        doc.text(`Page ${current} / ${total}`, pageW - 10, pageH - 6, { align: "right" });
+      };
+
+      let first = true;
+      const total = items.length;
+
+      for (let i = 0; i < total; i++) {
+        const { zoneId, taskId } = items[i];
+        const zoneLabel = zoneLabelOf(zoneId);
+        setExportStepFta(`Loading FTA "${zoneLabel}" / task "${taskId}"…`);
+        setExportPctFta(Math.round((i / total) * 100));
+        await flush();
+
+        // Make FTA active + navigate to /fta. If your app uses a dedicated
+        // “selectedFta” in ZoneStore, set it here:
+        useZoneStore.setState({ selectedId: zoneId, selectedFta: { zoneId, taskId } });
+        navigate("/fta", {
+          replace: true,
+          state: { captureForExport: true, forZoneId: zoneId, forTaskId: taskId, returnTo },
+        });
+
+        // Wait for FTACanvas to be ready for this FTA
+        const key = `${zoneId}::${taskId}`;
+        try {
+          await once("fta:ready", (e) => e?.detail?.key === key, 20000);
+        } catch {
+          // fallback settle
+          await new Promise((r) => setTimeout(r, 1200));
+        }
+
+        setExportStepFta(`Capturing FTA "${zoneLabel}" / task "${taskId}"…`);
+        await flush();
+
+        // Defensive check before capture
+        if (!window.FlowCapture || typeof window.FlowCapture.capture !== "function") {
+          throw new Error("FTA capture is not ready on this page");
+        }
+        // Capture via in-page FlowCapture
+        const dataUrl = await window.FlowCapture!.capture({
+          width: 1920,
+          height: 1080,
+          pixelRatio: Math.min(3, window.devicePixelRatio || 1),
+          bg: "#ffffff",
+        });
+
+        if (!first) doc.addPage("a4", "landscape");
+        first = false;
+
+        drawHeader(zoneLabel, taskId);
+        // fit image under header
+        const topY = 24;
+        const footerGap = 10;
+        const maxW = pageW - marginX * 2;
+        const maxH = pageH - topY - footerGap;
+        const aspect = 1920 / 1080;
+        let drawW = maxH * aspect;
+        let drawH = maxH;
+        if (drawW > maxW) {
+          drawW = maxW;
+          drawH = drawW / aspect;
+        }
+        const imgX = marginX + (maxW - drawW) / 2;
+        doc.addImage(dataUrl, "PNG", imgX, topY, drawW, drawH);
+        drawFooter();
+
+        setExportPctFta(Math.round(((i + 1) / total) * 100));
+        setExportStepFta(`Added "${zoneLabel}" / task "${taskId}"`);
+        await flush();
+      }
+
+      // Return user
+      navigate(returnTo, { replace: true });
+
+      setExportStepFta("Finalizing PDF…");
+      await flush();
+      const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
+      const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
+      doc.save(`${safe(projectName || "Project")}_ALL_FTAs_${ts}.pdf`);
+
+      setExportStepFta("Complete");
+      setExportPctFta(100);
+    } catch (err: any) {
+      console.error("Export all FTAs failed:", err);
+      toast.error(err?.message || "Exporting all FTAs failed");
+    } finally {
+      setTimeout(() => setExportingFta(false), 600);
+    }
+  }
   return (
     <header className="bg-background sticky top-0 z-50 w-full border-b">
       <div className="flex h-12 items-center px-6">
@@ -1246,6 +1386,13 @@ export default function Header() {
                 <NavigationMenuTrigger>File</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="min-w-[220px] p-2 mt-2">
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
+                      onClick={handleExportAllFTAsOnTheFly}
+                    >
+                      Export PDF (All FTAs)
+                    </button>
                     {/* New Project */}
                     <button
                       type="button"
