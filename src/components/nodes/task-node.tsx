@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState, } from 'react';
 import { BaseHandle } from '@/components/base-handle';
+import { toast } from 'sonner';
 import {
   BaseNode,
   BaseNodeContent,
@@ -36,9 +37,21 @@ export function TaskNode({ id, data }: NodeProps<TaskNode>) {
   const [showToolbar, setShowToolbar] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleDelete = useCallback(() => {
+    const es = getEdges?.() ?? [];
+    const hasOutgoing = es.some((e) => e.source === id);
+
+    if (hasOutgoing) {
+      // Block deletion when there are connections from this node's source handle
+      try {
+        toast.error('Cannot delete node with outgoing connections. Remove outgoing edges first.');
+      } catch {
+        console.warn('Cannot delete node with outgoing connections. Remove outgoing edges first.');
+      }
+      return;
+    }
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [id, setNodes, setEdges]);
+  }, [id, setNodes, setEdges, getEdges]);
   const handleMouseEnter = () => {
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);

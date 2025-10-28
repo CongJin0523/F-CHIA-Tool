@@ -1,6 +1,6 @@
 // pages/FtaDiagram.tsx
 import { useRef, useCallback, useEffect, useMemo } from 'react';
-import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background, Panel } from '@xyflow/react';
+import { ReactFlow, ReactFlowProvider, addEdge, Controls, useReactFlow, Background, Panel, type Edge } from '@xyflow/react';
 import Tooltip from '@mui/material/Tooltip';
 import Fab from '@mui/material/Fab';
 import { Workflow } from 'lucide-react';
@@ -49,7 +49,7 @@ function ensureTopIfEmpty(hook: any, taskId: string, fitView?: () => void) {
 
 function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
   const reactFlowWrapper = useRef<HTMLDivElement | null>(null);
-
+  const rf = useReactFlow();
   // store hook is always created because zoneId/taskId are guaranteed by wrapper
   const ftaHook = useMemo(() => getFtaStoreHook(zoneId, taskId), [zoneId, taskId]);
 
@@ -95,7 +95,32 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
     },
     [storeOnLayout, fitView],
   );
+  const onBeforeDelete = useCallback((params: { nodes?: FtaNodeTypes[]; edges?: Edge[] }) => {
+    console.log("onBeforeDelete", params);
+    const nodesToDelete = params?.nodes ?? [];
+    // allow edge-only deletions
+    if (!nodesToDelete.length) return true;
 
+    const es = rf.getEdges();
+    // If any node has an outgoing edge, block deletion
+    const blocked = nodesToDelete.filter((n: any) => es.some((e) => e.source === n.id));
+    if (blocked.length > 0) {
+      // Optional: show which nodes caused the block
+      try {
+        const names = blocked
+          .map((n: any) => n?.data?.label || n?.data?.text || n?.id)
+          .filter(Boolean)
+          .join(", ");
+        toast.error(
+          names ? `Cannot delete: ${names}. Remove outgoing connections first.` : "Cannot delete node with outgoing connections. Remove outgoing edges first."
+        );
+      } catch {
+        toast.error("Cannot delete node with outgoing connections. Remove outgoing edges first.");
+      }
+      return false;
+    }
+    return true;
+  }, [rf]);
   return (
     <div className="h-[calc(100vh-52px)] w-full flex">
       {/* <aside className="w-80 border-l bg-white overflow-auto">
@@ -117,6 +142,7 @@ d
           onDragOver={onDragOver}
           nodeTypes={nodeTypes}
           fitView
+          onBeforeDelete={onBeforeDelete}
         >
 
           <Controls />
@@ -173,6 +199,7 @@ function FtaFlow() {
 }
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/FTA/component/app-sidebar"
+import { toast } from 'sonner';
 
 export default function FtaDiagram() {
   return (

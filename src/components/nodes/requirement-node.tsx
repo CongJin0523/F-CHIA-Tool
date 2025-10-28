@@ -34,6 +34,7 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
   const updateNodeText = storeHook((state) => state.updateNodeText);
 
   const handleDelete = useCallback(() => {
+    
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
   }, [id, setNodes, setEdges]);

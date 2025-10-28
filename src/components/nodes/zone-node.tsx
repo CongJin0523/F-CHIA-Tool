@@ -35,10 +35,7 @@ export function ZoneNode({ id, data }: NodeProps<ZoneNode>) {
   const updateNodeText = storeHook((state) => state.updateNodeText);
   const [showToolbar, setShowToolbar] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const handleDelete = useCallback(() => {
-    setNodes((nodes) => nodes.filter((node) => node.id !== id));
-    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [id, setNodes, setEdges]);
+
   const handleMouseEnter = () => {
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current);

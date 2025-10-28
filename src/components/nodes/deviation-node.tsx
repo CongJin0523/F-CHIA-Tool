@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState, } from 'react';
 import { BaseHandle } from '@/components/base-handle';
+import { toast } from 'sonner';
 import {
   BaseNode,
   BaseNodeContent,
@@ -36,9 +37,21 @@ export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
   const updateNodeText = storeHook((state) => state.updateNodeText);
 
   const handleDelete = useCallback(() => {
+    const es = getEdges?.() ?? [];
+    const hasOutgoing = es.some((e) => e.source === id);
+
+    if (hasOutgoing) {
+      // Block deletion when there are connections from this node's source handle
+      try {
+        toast.error('Cannot delete node with outgoing connections. Remove outgoing edges first.');
+      } catch {
+        console.warn('Cannot delete node with outgoing connections. Remove outgoing edges first.');
+      }
+      return;
+    }
     setNodes((nodes) => nodes.filter((node) => node.id !== id));
     setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [id, setNodes, setEdges]);
+  }, [id, setNodes, setEdges, getEdges]);
   const [showToolbar, setShowToolbar] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handleMouseEnter = () => {
@@ -124,23 +137,23 @@ export function DeviationNode({ id, data }: NodeProps<DeviationNode>) {
             e.g. “Steering does not respond to input.”
           </NodeTooltipContent>
           <BaseNode className="w-40 border-orange-200 bg-orange-50 nodrag">
-          <NodeTooltipTrigger>
-            <NodeHeader
-              icon={ArrowBigDownDash}
-              title="Deviation"
-              bgColor="bg-orange-200"
-              textColor="text-orange-900"
-              onDelete={handleDelete}
-            />
-            <BaseNodeContent key={data.content}>
-              <EditableText
-                content={data.content}
-                onChange={(value) => updateNodeText(id, value)}
+            <NodeTooltipTrigger>
+              <NodeHeader
+                icon={ArrowBigDownDash}
+                title="Deviation"
+                bgColor="bg-orange-200"
+                textColor="text-orange-900"
+                onDelete={handleDelete}
               />
-            </BaseNodeContent>
+              <BaseNodeContent key={data.content}>
+                <EditableText
+                  content={data.content}
+                  onChange={(value) => updateNodeText(id, value)}
+                />
+              </BaseNodeContent>
             </NodeTooltipTrigger>
           </BaseNode>
-          </NodeTooltip>
+        </NodeTooltip>
       </motion.div>
       <BaseHandle id={`${id}-target`} type="target" position={Position.Top} className="nodrag" />
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />

@@ -115,17 +115,6 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
         // // optional small badge
         const prevPos = viewportEl.style.position;
         if (!prevPos) viewportEl.style.position = "relative";
-        // const badge = document.createElement("div");
-        // badge.style.position = "fixed";
-        // badge.style.top = "0";
-        // badge.style.left = "0";
-        // badge.style.padding = "3px 10px";
-        // badge.style.borderRadius = "4px";
-        // badge.style.background = "rgba(243,244,246,0.95)";
-        // badge.style.fontSize = "12px";
-        // badge.style.pointerEvents = "none";
-        // badge.textContent = `Zone: ${selectedId ?? ""}`;
-        // viewportEl.appendChild(badge);
 
         try {
           const dataUrl = await toPng(viewportEl, {
@@ -189,9 +178,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
     [storeOnLayout, fitView],
   );
 
-  // useLayoutEffect(() => {
-  //   onLayout({ direction: 'DOWN', useInitialNodes: true });
-  // }, []);
+
   const onConnect = useCallback((params) => {
     const ns = rf.getNodes();
     const es = getEdges(); // <— 拿到当前边数组（是真数组）
@@ -216,6 +203,8 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
     setEdges(nextEdges); // <— 关键：不要传函数
   }, [rf, getEdges, setEdges]);
 
+
+
   useEffect(() => {
     const handler = () => requestAnimationFrame(() => fitView());
     window.addEventListener('graph-imported', handler);
@@ -238,6 +227,8 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
           console.log("React Flow ready", instance.getNodes(), instance.getEdges());
           onLayout({ direction: 'DOWN' });
         }}
+        deleteKeyCode='null'
+        
       >
         <Panel>
           <Tooltip title="Auto Layout">

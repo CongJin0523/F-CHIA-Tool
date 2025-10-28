@@ -25,7 +25,7 @@ export default function NodeSelector() {
       <div className="flex flex-col items-center space-y-1">
         <div
           className="dndnode cursor-move border-2 w-20 h-10 border-green-200 bg-green-50 text-green-800 text-xs rounded px-2 py-1 shadow hover:bg-yellow-200"
-          onDragStart={(event) => onDragStart(event, 'interEvent')}
+          onDragStart={(event) => onDragStart(event, 'topEvent')}
           draggable
         />
         <span className="text-xs text-green-800">Top Event</span>
