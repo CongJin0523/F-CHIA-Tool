@@ -95,28 +95,9 @@ function ListItem({
 }
 
 
-const flush = () => new Promise<void>((r) => setTimeout(r, 0));
-const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-function once(type: string, predicate: (e: any) => boolean, timeoutMs = 10000) {
-  return new Promise<any>((resolve, reject) => {
-    const on = (e: any) => {
-      if (predicate(e)) {
-        cleanup();
-        resolve(e.detail);
-      }
-    };
-    const to = setTimeout(() => {
-      cleanup();
-      reject(new Error(`Timeout waiting for ${type}`));
-    }, timeoutMs);
-    const cleanup = () => {
-      clearTimeout(to);
-      window.removeEventListener(type, on as any);
-    };
-    window.addEventListener(type, on as any, { once: true });
-  });
-}
+
+
 
 // Read *all* FTA entries saved by your app (same shape you’ve been using)
 
@@ -150,9 +131,7 @@ export default function Header() {
   const [nameDraft, setNameDraft] = useState(projectName);
   const [newProjectName, setNewProjectName] = useState("");
 
-  const [exportingFta, setExportingFta] = useState(false);
-  const [exportPctFta, setExportPctFta] = useState(0);
-  const [exportStepFta, setExportStepFta] = useState("");
+
   const location = useLocation();
   useEffect(() => setNameDraft(projectName), [projectName]);
   const navigate = useNavigate();
@@ -200,6 +179,10 @@ export default function Header() {
 
   // Export PDF (Flow + Tables)
   const handleExportCombinedPDF = () => {
+    if (location.pathname !== "/diagram") {
+      toast.error("The export only works on the F-CHIA page.");
+      return;
+    }
     const { projectName, selectedId, zones } = useZoneStore.getState();
     const zoneId = selectedId;
     if (!zoneId) {
@@ -252,34 +235,6 @@ export default function Header() {
     // Create overlay badge (project + zone) in the flow for capture
     const prevPos = viewportEl.style.position;
     if (!prevPos) viewportEl.style.position = "relative";
-
-    // const overlay = document.createElement("div");
-    // overlay.style.position = "fixed";
-    // overlay.style.top = "0";
-    // overlay.style.left = "0";
-    // overlay.style.padding = "3px 12px";
-    // overlay.style.borderRadius = "3px";
-    // overlay.style.background = "rgba(243, 244, 246, 0.95)"; // gray-100
-    // overlay.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-    // overlay.style.backdropFilter = "blur(2px)";
-    // overlay.style.fontFamily = "system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif";
-    // overlay.style.pointerEvents = "none";
-    // overlay.style.lineHeight = "1.2";
-    // overlay.style.maxWidth = "70%";
-    // overlay.style.wordBreak = "break-word";
-    // overlay.style.zIndex = "9999";
-
-    // const t1 = document.createElement("div");
-    // t1.textContent = projectName || "Untitled Project";
-    // t1.style.fontWeight = "700";
-    // t1.style.fontSize = "14px";
-    // const t2 = document.createElement("div");
-    // t2.textContent = `Zone: ${zoneLabel}`;
-    // t2.style.fontSize = "12px";
-    // t2.style.color = "#444";
-    // overlay.appendChild(t1);
-    // overlay.appendChild(t2);
-    // viewportEl.appendChild(overlay);
 
 
     const overlay = document.createElement('div');
@@ -1216,10 +1171,28 @@ export default function Header() {
       toast.error("No FTA graphs found.");
       return;
     }
-    console.log("Exporting all FTAs:", items);
-    setExportingFta(true);
-    setExportPctFta(0);
-    setExportStepFta("Preparing…");
+    function once(type: string, predicate: (e: any) => boolean, timeoutMs = 10000) {
+      return new Promise<any>((resolve, reject) => {
+        const on = (e: any) => {
+          if (predicate(e)) {
+            cleanup();
+            resolve(e.detail);
+          }
+        };
+        const to = setTimeout(() => {
+          cleanup();
+          reject(new Error(`Timeout waiting for ${type}`));
+        }, timeoutMs);
+        const cleanup = () => {
+          clearTimeout(to);
+          window.removeEventListener(type, on as any);
+        };
+        window.addEventListener(type, on as any, { once: true });
+      });
+    }
+    setExporting(true);
+    setExportPct(0);
+    setExportStep("Preparing…");
     await flush();
 
     const returnTo = location.pathname;
@@ -1259,8 +1232,8 @@ export default function Header() {
       for (let i = 0; i < total; i++) {
         const { zoneId, taskId } = items[i];
         const zoneLabel = zoneLabelOf(zoneId);
-        setExportStepFta(`Loading FTA "${zoneLabel}" / task "${taskId}"…`);
-        setExportPctFta(Math.round((i / total) * 100));
+        setExportStep(`Loading FTA "${zoneLabel}" / task "${taskId}"…`);
+        setExportPct(Math.round((i / total) * 100));
         await flush();
 
         // Make FTA active + navigate to /fta. If your app uses a dedicated
@@ -1280,7 +1253,7 @@ export default function Header() {
           await new Promise((r) => setTimeout(r, 1200));
         }
 
-        setExportStepFta(`Capturing FTA "${zoneLabel}" / task "${taskId}"…`);
+        setExportStep(`Capturing FTA "${zoneLabel}" / task "${taskId}"…`);
         await flush();
 
         // Defensive check before capture
@@ -1315,27 +1288,27 @@ export default function Header() {
         doc.addImage(dataUrl, "PNG", imgX, topY, drawW, drawH);
         drawFooter();
 
-        setExportPctFta(Math.round(((i + 1) / total) * 100));
-        setExportStepFta(`Added "${zoneLabel}" / task "${taskId}"`);
+        setExportPct(Math.round(((i + 1) / total) * 100));
+        setExportStep(`Added "${zoneLabel}" / task "${taskId}"`);
         await flush();
       }
 
       // Return user
       navigate(returnTo, { replace: true });
 
-      setExportStepFta("Finalizing PDF…");
+      setExportStep("Finalizing PDF…");
       await flush();
       const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
       const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
       doc.save(`${safe(projectName || "Project")}_ALL_FTAs_${ts}.pdf`);
 
-      setExportStepFta("Complete");
-      setExportPctFta(100);
+      setExportStep("Complete");
+      setExportPct(100);
     } catch (err: any) {
       console.error("Export all FTAs failed:", err);
       toast.error(err?.message || "Exporting all FTAs failed");
     } finally {
-      setTimeout(() => setExportingFta(false), 600);
+      setTimeout(() => setExporting(false), 600);
     }
   }
   return (
@@ -1386,13 +1359,7 @@ export default function Header() {
                 <NavigationMenuTrigger>File</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="min-w-[220px] p-2 mt-2">
-                    <button
-                      type="button"
-                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
-                      onClick={handleExportAllFTAsOnTheFly}
-                    >
-                      Export PDF (All FTAs)
-                    </button>
+
                     {/* New Project */}
                     <button
                       type="button"
@@ -1401,20 +1368,8 @@ export default function Header() {
                     >
                       New Project…
                     </button>
-                    <button type="button"
-                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
-                      onClick={handleExportAllZonesOnTheFly}>
-                      Export PDF (All Zones, on the fly)
-                    </button>
+
                     <div className="my-1 h-px bg-border" />
-                    {/* Existing items */}
-                    <button
-                      type="button"
-                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
-                      onClick={handleExportCombinedPDF}
-                    >
-                      Export PDF (Flow + Tables)
-                    </button>
                     <button
                       type="button"
                       className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
@@ -1429,6 +1384,27 @@ export default function Header() {
                     >
                       Import JSON…
                     </button>
+                    <div className="my-1 h-px bg-border" />
+                    <button type="button"
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
+                      onClick={handleExportAllZonesOnTheFly}>
+                      Export Report (All Zones)
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
+                      onClick={handleExportCombinedPDF}
+                    >
+                      Export PDF (Single Zone)
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent hover:text-accent-foreground"
+                      onClick={handleExportAllFTAsOnTheFly}
+                    >
+                      Export PDF (All FTAs)
+                    </button>
+
 
                   </div>
                 </NavigationMenuContent>
