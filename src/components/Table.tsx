@@ -295,7 +295,7 @@ export default function EditableNestedTable() {
       <div className="w-full overflow-x-auto">
         <div className="mx-auto max-w-[2600px]">
           <div className="rounded-md border bg-background [&_th]:border [&_td]:border [&_th]:border-gray-200 [&_td]:border-gray-200">
-            <Table className="table-fixed border-collapse w-full min-w-[1600px]">
+            <Table className="table-auto border-collapse w-full min-w-[2000px]">
               <TableHeader>
                 <TableRow>
                   <TableHead colSpan={10} className="text-center text-lg font-semibold bg-gray-200">
@@ -312,16 +312,16 @@ export default function EditableNestedTable() {
                   </TableHead>
                 </TableRow>
                 <TableRow>
-                  <TableHead className="w-1/16 bg-gray-50">Task</TableHead>
-                  <TableHead className="w-1/12 bg-gray-50">Function</TableHead>
-                  <TableHead className="w-1/12 bg-gray-50">Realization</TableHead>
-                  <TableHead className="w-1/12 bg-gray-50">Property</TableHead>
-                  <TableHead className="w-1/16 bg-gray-50">Guide Word</TableHead>
-                  <TableHead className="bg-gray-50">Deviations</TableHead>
-                  <TableHead className="bg-gray-50">Causes</TableHead>
-                  <TableHead className="bg-gray-50">Consequences</TableHead>
-                  <TableHead className="w-1/3 bg-gray-50">Requirements</TableHead>
-                  <TableHead className="bg-gray-50 min-width-[300px]">ISO Standard</TableHead>
+                  <TableHead className=" bg-gray-50">Task</TableHead>
+                  <TableHead className=" bg-gray-50">Function</TableHead>
+                  <TableHead className=" bg-gray-50">Realization</TableHead>
+                  <TableHead className=" bg-gray-50">Property</TableHead>
+                  <TableHead className=" bg-gray-50">Guide Word</TableHead>
+                  <TableHead className=" bg-gray-50">Deviations</TableHead>
+                  <TableHead className=" bg-gray-50">Causes</TableHead>
+                  <TableHead className=" bg-gray-50">Consequences</TableHead>
+                  <TableHead className=" bg-gray-50 min-w-[600px]">Requirements</TableHead>
+                  <TableHead className="bg-gray-50 w-[120px] min-w-[120px]">ISO Standard</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody >
@@ -678,7 +678,7 @@ export default function EditableNestedTable() {
                               </TableCell>
 
                               {/* Requirements */}
-                              <TableCell>
+                              <TableCell className="align-top w-[600px] min-w-[600px] whitespace-pre-wrap">
                                 <Controller
                                   control={control}
                                   name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
@@ -688,6 +688,7 @@ export default function EditableNestedTable() {
                                         <li key={idx} className="flex items-start gap-2">
                                           <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
                                           <Textarea
+                                            className="w-[600px]"
                                             value={prop.text}
                                             onChange={(e) => {
                                               const newProperties = [...field.value];
@@ -705,7 +706,7 @@ export default function EditableNestedTable() {
 
 
                               {/* ISO Standard */}
-                              <TableCell>
+                              <TableCell className="align-top w-[120px] min-w-[120px]">
                                 <Controller
                                   control={control}
                                   name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.isoMatches`}

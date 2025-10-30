@@ -19,7 +19,7 @@ import { toast } from "sonner"
 import { useStore } from 'zustand';
 import ShortUniqueId from 'short-uuid';
 
-import type { AppState } from '@/common/types';
+import type { AppNode, AppState } from '@/common/types';
 
 import { useZoneStore } from '@/store/zone-store';
 import { getGraphStoreHook } from '@/store/graph-registry';
@@ -203,7 +203,19 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
     setEdges(nextEdges); // <— 关键：不要传函数
   }, [rf, getEdges, setEdges]);
 
-
+  const onBeforeDelete = useCallback(
+    ({ nodes, edges }: { nodes: AppNode[]; edges: Edge[] }) => {
+      console.log('onBeforeDelete called with nodes:', nodes, 'edges:', edges);
+      if (nodes?.length) {
+        // Inform the user that nodes cannot be deleted
+        toast.warning("Deleting nodes is disabled. You can only delete edges.");
+        return { nodes: [], edges: [] };
+      }
+      // Block node deletions but allow edge deletions
+      return { nodes: [], edges };
+    },
+    []
+  );
 
   useEffect(() => {
     const handler = () => requestAnimationFrame(() => fitView());
@@ -220,6 +232,7 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onBeforeDelete={onBeforeDelete}
         nodeTypes={nodeTypes}
         fitView
         nodeOrigin={nodeOrigin}
@@ -227,8 +240,6 @@ function LayoutFlow({ zoneId }: { zoneId: string }) {
           console.log("React Flow ready", instance.getNodes(), instance.getEdges());
           onLayout({ direction: 'DOWN' });
         }}
-        deleteKeyCode='null'
-        
       >
         <Panel>
           <Tooltip title="Auto Layout">
