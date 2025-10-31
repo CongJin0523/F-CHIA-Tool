@@ -46,8 +46,12 @@ export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; ed
         try {
           const withRight = edges.filter((e: any) => typeof e.sourceHandle === 'string' && e.sourceHandle.endsWith('-source-right'));
           console.log('[FTA] edges with -source-right:', withRight.length, withRight);
-        } catch {}
-        const result = await getLayoutedElements(nodes, edges, opts, { snapRightHandleTargets: true });
+        } catch { }
+        const result = await getLayoutedElements(nodes, edges, opts, {
+          mode: 'fta',
+          useInteractivePass: true,       // 默认 true
+          snapRightHandleTargets: true,
+        });
         if (result) {
           // Type cast the result to maintain AppNode types
           setNodes(result.nodes as FtaNodeTypes[]);
@@ -62,7 +66,7 @@ export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; ed
     setCauseChecked: (causeKey, checked) =>
       set((s) => ({ causeChecks: { ...s.causeChecks, [causeKey]: checked } })),
     clearCauseChecks: () => set({ causeChecks: {} }),
-    setAllCauseChecks: (map: Record<string, boolean>) => set({ causeChecks: map || {} }), 
+    setAllCauseChecks: (map: Record<string, boolean>) => set({ causeChecks: map || {} }),
   }),
 
     { name: `fta-${id}` }))
