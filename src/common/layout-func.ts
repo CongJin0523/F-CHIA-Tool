@@ -21,7 +21,7 @@ export const elkOptions = {
   'org.eclipse.elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX',
   'org.eclipse.elk.layered.considerModelOrder.strategy': 'PREFER_EDGES',
   // fewer crossings usually helps readability (can be overridden)
-  'org.eclipse.elk.crossingMinimization.strategy': 'LAYER_SWEEP',
+  'org.eclipse.elk.layered.crossingMinimization.strategy': 'LAYER_SWEEP',
   // merge edge connection points on nodes
   'org.eclipse.elk.layered.mergeEdges': 'true',
   'org.eclipse.elk.partitioning.activate': 'true',
@@ -30,20 +30,27 @@ export const elkOptions = {
 
 };
 
-export const getLayoutedElements = async (nodes: AppNode[], edges: Edge[], options = {}) => {
+export const getLayoutedElements = async (
+  nodes: AppNode[],
+  edges: Edge[],
+  options = {},
+  behavior?: { snapRightHandleTargets?: boolean }
+) => {
   console.log('Starting ELK layout with nodes:', nodes, 'edges:', edges, 'options:', options);
+  const snapRight = behavior?.snapRightHandleTargets ?? false;
   const baseOptions = { ...elkOptions, ...(options as any) };
 
   // infer direction
-  const isHorizontal = baseOptions?.['elk.direction'] === 'RIGHT';
+  const dir = String(baseOptions?.['org.eclipse.elk.direction'] || 'DOWN');
+  const isHorizontal = dir === 'RIGHT' || dir === 'LEFT';
 
   // compute a conservative between-layers spacing based on tallest node we've measured
   const tallest = Math.max(0, ...nodes.map((n: any) => (typeof n.height === 'number' ? n.height : 0)));
   const desiredBetweenLayers = Math.max(
-    parseInt(String(baseOptions['elk.layered.spacing.nodeNodeBetweenLayers'] || 0), 10) || 0,
+    parseInt(String(baseOptions['org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers'] || 0), 10) || 0,
     Math.round((tallest || 60) * 0.9)
   );
-  baseOptions['elk.layered.spacing.nodeNodeBetweenLayers'] = String(desiredBetweenLayers);
+  baseOptions['org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers'] = String(desiredBetweenLayers);
 
   // --- group nodes that should share the same layer (rank) ---
   // Build an undirected graph from edges that originate from the right-side handle.
@@ -98,9 +105,9 @@ export const getLayoutedElements = async (nodes: AppNode[], edges: Edge[], optio
     }
   } catch (_) { }
 
-  const buildGraph = (layerChoiceByNode?: Map<string, number>) => ({
+  const buildGraph = (layerChoiceByNode?: Map<string, number>, rootOverrides?: Record<string, any>) => ({
     id: 'root',
-    layoutOptions: baseOptions,
+    layoutOptions: { ...baseOptions, ...(rootOverrides || {}) },
     children: nodes.map((node) => ({
       ...node,
       // Adjust the target and source handle positions based on the layout
@@ -137,22 +144,38 @@ export const getLayoutedElements = async (nodes: AppNode[], edges: Edge[], optio
   });
 
 
-try {
-  console.log('[ELK] Root layoutOptions:', JSON.stringify(baseOptions, null, 2));
-} catch (_) { }
+  try {
+    console.log('[ELK] Root layoutOptions:', JSON.stringify(baseOptions, null, 2));
+  } catch (_) { }
   // ---- PASS 1: get provisional layers to compute exact layer indices
   const firstGraph = buildGraph();
   const firstResult = await elk.layout(firstGraph);
-  const layerIdKey = 'org.eclipse.elk.layered.layering.layerId';
-  const firstLayers = new Map<string, number>();
+
+  // Derive layer indices from coordinates (robust across elkjs builds)
+  const axis = isHorizontal ? 'x' : 'y';
+  const coords: Array<{ id: string, v: number }> = [];
   (firstResult.children || []).forEach((n: any) => {
-    const lid =
-      (n.properties && typeof n.properties[layerIdKey] === 'number' ? n.properties[layerIdKey] : undefined);
-    if (typeof lid === 'number') firstLayers.set(n.id, lid);
+    const v = typeof n[axis] === 'number' ? n[axis] : 0;
+    coords.push({ id: n.id, v });
+  });
+  coords.sort((a, b) => a.v - b.v);
+  const EPS = 1; // pixel tolerance to cluster same-layer positions
+  const bands: number[] = [];
+  const firstLayers = new Map<string, number>();
+  coords.forEach(({ id, v }) => {
+    let idx = bands.findIndex((b) => Math.abs(b - v) <= EPS);
+    if (idx === -1) {
+      bands.push(v);
+      idx = bands.length - 1;
+    } else {
+      // move band center slightly toward new value for stability
+      bands[idx] = (bands[idx] + v) / 2;
+    }
+    firstLayers.set(id, idx);
   });
   try {
-    console.table(Array.from(firstLayers.entries()).map(([id, layer]) => ({ id, layer })));
-  } catch (_) {}
+    console.table(coords.map(({ id }) => ({ id, layer: firstLayers.get(id) })));
+  } catch (_) { }
 
   const layerChoiceByNode = new Map<string, number>();
   inLayerSuccOfByNode.forEach((srcId, trgId) => {
@@ -163,8 +186,35 @@ try {
   });
 
   // ---- PASS 2: run layout with exact layer constraints
-  const secondGraph = buildGraph(layerChoiceByNode);
+  // Enable interactive visitors so layerChoiceConstraint / in-layer constraints are honored
+  const interactiveRoot = {
+    'org.eclipse.elk.interactive': 'true',
+    'org.eclipse.elk.layered.layering.strategy': 'INTERACTIVE',
+    'org.eclipse.elk.layered.crossingMinimization.strategy': 'INTERACTIVE',
+    // (Cycle breaking may stay default; enable if you later need it)
+    'org.eclipse.elk.layered.cycleBreaking.strategy': 'INTERACTIVE',
+  };
+  const secondGraph = buildGraph(layerChoiceByNode, interactiveRoot);
+  try {
+    console.log('[ELK] PASS2 root layoutOptions:', JSON.stringify(secondGraph.layoutOptions, null, 2));
+  } catch { }
   const layoutedGraph = await elk.layout(secondGraph);
+
+  // --- POST: snap right-handle targets to same visual layer as their sources
+  if (snapRight) {
+    try {
+      const axis = isHorizontal ? 'x' : 'y';
+      const byId: Map<string, any> = new Map();
+      (layoutedGraph.children || []).forEach((n: any) => byId.set(n.id, n));
+      inLayerSuccOfByNode.forEach((srcId, trgId) => {
+        const s = byId.get(srcId);
+        const t = byId.get(trgId);
+        if (s && t && typeof s[axis] === 'number' && typeof t[axis] === 'number') {
+          t[axis] = s[axis]; // force into same band
+        }
+      });
+    } catch (_) { }
+  }
 
   // --- DEBUG: verify resulting layers for constrained pairs (pass 2)
   try {
@@ -174,13 +224,13 @@ try {
       const layerRows: any[] = [];
       (layoutedGraph.children || []).forEach((n: any) => {
         if (constrainedIds.has(n.id)) {
-          const lid = n.properties ? n.properties[layerIdKey] : undefined;
-          layerRows.push({ id: n.id, x: n.x, y: n.y, layerId: lid });
+          const computed = firstLayers.get(n.id);
+          layerRows.push({ id: n.id, x: n.x, y: n.y, finalBand: isHorizontal ? n.x : n.y, computedLayerFromPass1: computed });
         }
       });
-            if (layerRows.length) console.table(layerRows);
+      if (layerRows.length) console.table(layerRows);
     }
-  } catch (_) {}
+  } catch (_) { }
   console.log('ELK layout result (pass 2):', layoutedGraph);
   return {
     nodes: (layoutedGraph.children || []).map((node: any) => ({

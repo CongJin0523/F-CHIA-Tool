@@ -18,6 +18,7 @@ export type FtaState = {
   setEdges: (edges: Edge[]) => void;
   onNodesChange: OnNodesChange<FtaNodeTypes>;
   onEdgesChange: OnEdgesChange;
+  onConnect: OnConnect; // ensure edges keep handle ids from UI
   onLayout: (dir: 'DOWN' | 'RIGHT') => Promise<void>;
 
   causeChecks: ChecksMap;
@@ -34,12 +35,19 @@ export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; ed
     setEdges: (edges) => set({ edges }),
     onNodesChange: (changes) => set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) })),
     onEdgesChange: (changes) => set((state) => ({ edges: applyEdgeChanges(changes, state.edges) })),
+    onConnect: (connection) => set((state) => ({
+      edges: addEdge(connection, state.edges),
+    })),
     onLayout: async (direction: 'DOWN' | 'RIGHT' = 'DOWN') => {
       const { nodes, edges, setNodes, setEdges } = get();
-      const opts = { 'elk.direction': direction, ...elkOptions };
+      const opts = { ...elkOptions, 'org.eclipse.elk.direction': direction } as const;
 
       try {
-        const result = await getLayoutedElements(nodes, edges, opts);
+        try {
+          const withRight = edges.filter((e: any) => typeof e.sourceHandle === 'string' && e.sourceHandle.endsWith('-source-right'));
+          console.log('[FTA] edges with -source-right:', withRight.length, withRight);
+        } catch {}
+        const result = await getLayoutedElements(nodes, edges, opts, { snapRightHandleTargets: true });
         if (result) {
           // Type cast the result to maintain AppNode types
           setNodes(result.nodes as FtaNodeTypes[]);
@@ -60,4 +68,3 @@ export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; ed
     { name: `fta-${id}` }))
     ;
 }
-

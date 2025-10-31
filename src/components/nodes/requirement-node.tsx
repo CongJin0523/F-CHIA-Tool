@@ -118,7 +118,7 @@ export function RequirementNode({ id, data }: NodeProps<RequirementNode>) {
             e.g. “System must monitor steering feedback and stop on fault.”
           </NodeTooltipContent>
           <BaseNode className="w-60 border-rose-200 bg-rose-50 nodrag">
-           <NodeTooltipTrigger>
+          <NodeTooltipTrigger>
             <NodeHeader
               icon={BadgeCheck}
               title="Requirement"
