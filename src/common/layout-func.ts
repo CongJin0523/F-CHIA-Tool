@@ -38,6 +38,7 @@ export const getLayoutedElements = async (
     mode?: 'diagram' | 'fta';
     snapRightHandleTargets?: boolean;    // for FTA: post-snap same-layer
     useInteractivePass?: boolean;        // for FTA: enable INTERACTIVE visitors in pass2
+    preserveLayerOrder?: boolean;        // try to keep current in-layer order
   }
 ) => {
   console.log('Starting ELK layout with nodes:', nodes, 'edges:', edges, 'options:', options);
@@ -45,6 +46,7 @@ export const getLayoutedElements = async (
   const mode = behavior?.mode ?? 'diagram';
   const isFTA = mode === 'fta' || (behavior?.snapRightHandleTargets ?? false);
   const useInteractivePass = behavior?.useInteractivePass ?? true; // default true for FTA
+  const preserveOrder = behavior?.preserveLayerOrder ?? true;
   const baseOptions = { ...elkOptions, ...(options as any) };
 
   // infer direction
@@ -159,7 +161,7 @@ export const getLayoutedElements = async (
 
   if (!isFTA) {
     // --- Diagram mode: simple single-pass layout (stable for diagram.tsx)
-    const graph = buildGraph();
+    const graph = buildGraph(undefined, preserveOrder ? { 'org.eclipse.elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES' } : undefined);
     const layoutedGraph = await elk.layout(graph);
     return {
       nodes: (layoutedGraph.children || []).map((node: any) => ({
@@ -224,7 +226,6 @@ export const getLayoutedElements = async (
       'org.eclipse.elk.layered.layering.strategy': 'INTERACTIVE',
       'org.eclipse.elk.layered.crossingMinimization.strategy': 'INTERACTIVE',
       'org.eclipse.elk.layered.cycleBreaking.strategy': 'INTERACTIVE',
-
       // ↓↓↓ 关键：尽量减少边重叠
       'org.eclipse.elk.layered.mergeEdges': 'false',     // 不把多条边合并到同一点
       'org.eclipse.elk.spacing.edgeEdge': '24',          // 边-边安全距离
@@ -232,8 +233,40 @@ export const getLayoutedElements = async (
       'org.eclipse.elk.layered.thoroughness': '30',      // 多试几种排列，降低交叉
       // 可选：若你最终改用 ELK 提供的轨迹，可打开样条（目前我们只取坐标，这项影响不大）
       'org.eclipse.elk.edgeRouting': 'SPLINES',
+      // Strong model order preference for interactive pass
+      'org.eclipse.elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',
     }
     : undefined;
+  // Preserve current in-layer order: build a chain of inLayerSuccOf per band from current positions
+  if (preserveOrder) {
+    const axisOrder = isHorizontal ? 'y' : 'x';
+    const origPos = new Map<string, number>();
+    nodes.forEach((n: any) => {
+      const p = (n.position && typeof (n.position as any)[axisOrder] === 'number') ? (n.position as any)[axisOrder] : 0;
+      origPos.set(n.id, p);
+    });
+
+    // bucket nodes by their first-pass layer id
+    const layerBuckets = new Map<number, string[]>();
+    firstLayers.forEach((layerIdx, id) => {
+      const arr = layerBuckets.get(layerIdx) || [];
+      arr.push(id);
+      layerBuckets.set(layerIdx, arr);
+    });
+
+    layerBuckets.forEach((arr) => {
+      // sort by original coordinate, then chain as A -> B -> C ... via successor constraints
+      arr.sort((a, b) => (origPos.get(a)! - origPos.get(b)!));
+      for (let i = 1; i < arr.length; i++) {
+        const curr = arr[i];
+        const prev = arr[i - 1];
+        // do not overwrite an existing in-layer successor constraint (e.g., from right-handle)
+        if (!inLayerSuccOfByNode.has(curr)) {
+          inLayerSuccOfByNode.set(curr, prev);
+        }
+      }
+    });
+  }
 const secondGraph = buildGraph(layerChoiceByNode, interactiveRoot);
 try {
   console.log('[ELK] PASS2 root layoutOptions:', JSON.stringify(secondGraph.layoutOptions, null, 2));

@@ -22,6 +22,20 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner"
 import ExportPDFButton from "@/Test.tsx"
 import ExportTextPDFButton from "@/components/ExportTablePDFButton.tsx";
+
+// --- Helper: dedupe array of items by `id`, preserving first occurrence order ---
+function dedupeById<T extends { id?: string }>(arr: T[] | undefined): T[] {
+  if (!Array.isArray(arr)) return [] as T[];
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const item of arr) {
+    const key = (item && typeof item.id === 'string') ? item.id : '';
+    if (key && seen.has(key)) continue;
+    if (key) seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
 function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   const updates: Update[] = [];
 
@@ -139,7 +153,34 @@ export default function EditableNestedTable() {
   const defaultValues = useMemo(() => {
     const ir: IR = graphToIR(nodes, edges);
     console.log("Derived IR:", ir);
-    return deriveRowSpans(ir);
+    const dv = deriveRowSpans(ir);
+
+    // Deep clone to avoid mutating memoized/form state by reference
+    const out = JSON.parse(JSON.stringify(dv));
+
+    try {
+      // Walk and dedupe `requirements` & `consequences` by id
+      out?.tasks?.forEach((task: any) => {
+        task?.functions?.forEach((fn: any) => {
+          fn?.realizations?.forEach((real: any) => {
+            real?.properties?.forEach((prop: any) => {
+              prop?.interpretations?.forEach((inter: any) => {
+                if (Array.isArray(inter?.requirements)) {
+                  inter.requirements = dedupeById(inter.requirements);
+                }
+                if (Array.isArray(inter?.consequences)) {
+                  inter.consequences = dedupeById(inter.consequences);
+                }
+              });
+            });
+          });
+        });
+      });
+    } catch (e) {
+      console.warn('[Table] dedupe requirements/consequences by id failed:', e);
+    }
+
+    return out;
   }, [nodes, edges]);
   const { control, handleSubmit, reset, getValues } = useForm<FormValues>({
     defaultValues,
