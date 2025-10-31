@@ -197,7 +197,7 @@ function FtaCanvas({ zoneId, taskId }: { zoneId: string; taskId: string }) {
   };
 
   const onLayout = useCallback(
-    ({ direction }: { direction: 'DOWN' | 'RIGHT' }) => {
+    ({ direction }: { direction: 'DOWN' }) => {
       storeOnLayout(direction);
       setTimeout(() => fitView(), 100);
     },
@@ -251,6 +251,8 @@ d
           nodeTypes={nodeTypes}
           fitView
           onBeforeDelete={onBeforeDelete}
+          onInit={(instance) => {
+            console.log("React Flow ready", instance.getNodes(), instance.getEdges());}}
         >
 
           <Controls />
