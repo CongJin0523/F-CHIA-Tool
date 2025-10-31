@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 interface EditableTextProps {
   content: string;
@@ -21,7 +21,7 @@ export function EditableText({ content, onChange }: EditableTextProps) {
   }, [onChange, value]);
 
   return editing ? (
-    <Input
+    <Textarea
       className="text-sm text-gray-700 text-center bg-transparent border border-gray-300 rounded w-full"
       value={value}
       autoFocus
