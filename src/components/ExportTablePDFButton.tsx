@@ -36,19 +36,11 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
       const taskRowSpan = Math.max(1, task.rowSpan ?? 1);
       const functions = task.functions ?? [];
 
+      // ① Task 没有 functions
       if (!functions.length) {
-        // No functions: fully-specified row (no spans)
         rows.push([
           { content: taskName, rowSpan: 1 } as CellInput,
-          "(No function)",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
+          { content: "No function found, please complete in the graph editor.", colSpan: 9 } as CellInput,
         ]);
         continue;
       }
@@ -60,19 +52,12 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
         const fnRowSpan = Math.max(1, fn.rowSpan ?? 1);
         const realizations = fn.realizations ?? [];
 
+        // ② Function 没有 realizations
         if (!realizations.length) {
-          // One warning row: only include cells that are NOT covered by a span
           const row: RowInput = [];
           if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
           row.push({ content: fnName, rowSpan: 1 } as CellInput);
-          row.push("(No realization)");
-          row.push(""); // Property
-          row.push(""); // Guide Word
-          row.push(""); // Deviations
-          row.push(""); // Causes
-          row.push(""); // Consequences
-          row.push(""); // Requirements
-          row.push(""); // ISO
+          row.push({ content: "No realization found, please complete in the graph editor.", colSpan: 8 } as CellInput);
           rows.push(row);
           taskPrinted = true;
           continue;
@@ -85,18 +70,13 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
           const realRowSpan = Math.max(1, real.rowSpan ?? 1);
           const properties = real.properties ?? [];
 
+          // ③ Realization 没有 properties
           if (!properties.length) {
             const row: RowInput = [];
             if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
             if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
             row.push({ content: realName, rowSpan: 1 } as CellInput);
-            row.push("(No property)");
-            row.push(""); // Guide Word
-            row.push(""); // Deviations
-            row.push(""); // Causes
-            row.push(""); // Consequences
-            row.push(""); // Requirements
-            row.push(""); // ISO
+            row.push({ content: "No property found, please complete in the graph editor.", colSpan: 7 } as CellInput);
             rows.push(row);
             taskPrinted = true;
             fnPrinted = true;
@@ -106,22 +86,22 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
           let realPrinted = false;
 
           for (const prop of properties) {
-            const propText = (prop.properties ?? []).filter(Boolean).join("\n");
             const propRowSpan = Math.max(1, prop.rowSpan ?? 1);
+            const propList = (prop.properties ?? []).filter(Boolean);
+            const propText = propList.length
+              ? propList.map((p, i) => `${i + 1}. ${p}`).join("\n")
+              : "(No property text)";
+
             const interpretations = prop.interpretations ?? [];
 
+            // ④ Property 没有 interpretations
             if (!interpretations.length) {
               const row: RowInput = [];
               if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
               if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
               if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
-              row.push({ content: propText || "(No property text)", rowSpan: 1 } as CellInput);
-              row.push("(No interpretation)");
-              row.push(""); // Deviations
-              row.push(""); // Causes
-              row.push(""); // Consequences
-              row.push(""); // Requirements
-              row.push(""); // ISO
+              row.push({ content: propText, rowSpan: 1 } as CellInput);
+              row.push({ content: "No interpretation found, please complete in the graph editor.", colSpan: 6 } as CellInput);
               rows.push(row);
               taskPrinted = true;
               fnPrinted = true;
@@ -159,7 +139,6 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
                 .filter(Boolean)
                 .join(", ");
 
-              // Build row: only include non-spanned columns
               const row: RowInput = [];
               if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
               if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
@@ -174,7 +153,6 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
 
               rows.push(row);
 
-              // after first line in each group, mark those columns as already printed (spanned)
               taskPrinted = true;
               fnPrinted = true;
               realPrinted = true;
@@ -274,7 +252,7 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
   }
 
   const handleExport = () => {
-    const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
+    const doc = new jsPDF({ unit: "mm", format: "a3", orientation: "landscape" });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -306,74 +284,19 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
 
     const rows = buildRowsWithRowSpan();
 
-    // Build PDF table head with zone label + description rows
+    // Only the header titles row in the headRows
     const headRows: (string | CellInput)[][] = [
       [
-        {
-          content: `Hazard Zone: ${zoneLabel || "Unnamed Zone"}`,
-          colSpan: 10,
-          styles: {
-            halign: "center",
-            fontStyle: "bold",
-            fillColor: [229, 231, 235], // gray-200
-          },
-        } as CellInput,
-      ],
-      [
-        {
-          content:
-            zoneDescription && zoneDescription.trim().length > 0
-              ? `Zone Description: ${zoneDescription}`
-              : "Zone Description: —",
-          colSpan: 10,
-          styles: {
-            halign: "left",
-            fontStyle: "normal",
-            fillColor: [243, 244, 246], // gray-100
-          },
-        } as CellInput,
-      ],
-      [
-        {
-          content: "Task",
-          styles: { fillColor: [249, 250, 251] }, // gray-50
-        },
-        {
-          content: "Function",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "Realization",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "Property",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "Guide Word",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "Deviations",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "Causes",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "Consequences",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "Requirements",
-          styles: { fillColor: [249, 250, 251] },
-        },
-        {
-          content: "ISO",
-          styles: { fillColor: [249, 250, 251] },
-        },
+        { content: "Task", styles: { fillColor: [249, 250, 251] } },
+        { content: "Function", styles: { fillColor: [249, 250, 251] } },
+        { content: "Realization", styles: { fillColor: [249, 250, 251] } },
+        { content: "Property", styles: { fillColor: [249, 250, 251] } },
+        { content: "Guide Word", styles: { fillColor: [249, 250, 251] } },
+        { content: "Deviations", styles: { fillColor: [249, 250, 251] } },
+        { content: "Causes", styles: { fillColor: [249, 250, 251] } },
+        { content: "Consequences", styles: { fillColor: [249, 250, 251] } },
+        { content: "Requirements", styles: { fillColor: [249, 250, 251] } },
+        { content: "ISO Standard", styles: { fillColor: [249, 250, 251] } },
       ],
     ];
 
@@ -388,19 +311,76 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
     const contentMargin = { left: 10, right: 10 };
     const contentWidth = pageWidth - contentMargin.left - contentMargin.right;
 
-    // Intended column widths (mm)
-    const fchiCols = [22, 22, 22, 26, 18, 32, 32, 32, 40, 30];
-    const fchiSum = fchiCols.reduce((a, b) => a + b, 0);
+    // Intro block (outside the main table) to avoid unbreakable header rows
+    const introRows: (string | CellInput)[][] = [
+      [
+        {
+          content: `Hazard Zone: ${zoneLabel || 'Unnamed Zone'}`,
+          styles: { fontStyle: 'bold' },
+        } as CellInput,
+      ],
+      [
+        {
+          content: zoneDescription && zoneDescription.trim().length > 0 ? zoneDescription : '—',
+        } as CellInput,
+      ],
+    ];
 
-    // Scale down if needed to fit content width
-    const fchiScale = Math.min(1, contentWidth / fchiSum);
+    autoTable(doc, {
+      theme: 'plain',
+      startY: firstTableStartY,
+      body: introRows,
+      margin: contentMargin,
+      styles: {
+        font: 'helvetica',
+        fontSize: 10,
+        cellPadding: 2,
+        overflow: 'linebreak',
+        valign: 'top',
+      },
+      columnStyles: {
+        0: { cellWidth: contentWidth },
+      },
+      // draw header/footer for this block as well
+      didDrawPage: () => {
+        header();
+        const pageNumber = doc.internal.getNumberOfPages();
+        footer(pageNumber, doc.getNumberOfPages());
+      },
+      // help break very long unspaced strings
+      didParseCell: (data) => {
+        const cell = data.cell;
+        if (typeof cell.raw === 'string') {
+          const fixed = cell.raw.replace(/(\S{40})/g, '$1\u200B');
+          cell.text = fixed.split('\n');
+        }
+      },
+      // allow body rows to flow onto next pages if needed
+      rowPageBreak: 'auto',
+      pageBreak: 'auto',
+    });
+
+    const afterIntroY = (doc as any).lastAutoTable ? ((doc as any).lastAutoTable.finalY as number) + 4 : firstTableStartY;
+
+    // Dynamic widths: give Requirements ~1/3 of content width; others share the remaining 2/3 proportionally
+    const baseline = [22, 22, 22, 26, 18, 32, 32, 32, 40, 30]; // original intention weights (mm)
+    const reqIndex = 8; // column index of "Requirements"
+
+    const desiredReqWidth = Math.floor(contentWidth / 3);
+    const otherBaselineSum = baseline.reduce((sum, w, i) => (i === reqIndex ? sum : sum + w), 0);
+    const remainingWidth = Math.max(0, contentWidth - desiredReqWidth);
+    const scaleOther = otherBaselineSum > 0 ? (remainingWidth / otherBaselineSum) : 1;
+
     const fchiColumnStyles = Object.fromEntries(
-      fchiCols.map((w, i) => [i, { cellWidth: Math.floor(w * fchiScale) }])
+      baseline.map((w, i) => {
+        const width = i === reqIndex ? desiredReqWidth : Math.floor(w * scaleOther);
+        return [i, { cellWidth: width }];
+      })
     );
 
     autoTable(doc, {
       theme: "grid",
-      startY: firstTableStartY,
+      startY: Math.max(firstTableStartY, afterIntroY),
       head: headRows,
       body: rows,
       styles: {
@@ -426,27 +406,34 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
         const pageNumber = doc.internal.getNumberOfPages();
         footer(pageNumber, doc.getNumberOfPages());
       },
+      rowPageBreak: 'auto',
+      pageBreak: 'auto',
+      didParseCell: (data) => {
+        const cell = data.cell;
+        if (typeof cell.raw === 'string') {
+          const fixed = cell.raw.replace(/(\S{40})/g, '$1\u200B');
+          cell.text = fixed.split('\n');
+        }
+      },
     });
     // ---------- DSM PAGE ----------
     const { fnOrder, reqOrder, hit } = buildDSMMatrixFromForm(data);
 
-    // Only create DSM table if there is something to show
     if (fnOrder.length > 0) {
-      // Try to continue on the same page if there is vertical space
-      const prevTable = (doc as any).lastAutoTable;
-      const firstPageNoBeforeDSM = doc.internal.getNumberOfPages();
+      // Always start DSM on a new page
+      doc.addPage();
 
-      // --- Section title for DSM (outside the table) ---
+      // Draw header + DSM title on the first DSM page now; didDrawPage will handle continued pages
+      header();
       doc.setFont("helvetica", "bold");
       doc.setFontSize(12);
       const dsmTitle = "Function–Requirement DSM";
-      const dsmTitleY = Math.max(24, ((prevTable?.finalY as number) ?? 24) + 10);
-      doc.text(dsmTitle, pageWidth / 2, dsmTitleY, { align: "center" });
-      const startYDSM = dsmTitleY + 6;
+      doc.text(dsmTitle, pageWidth / 2, 24, { align: "center" });
+      const startYDSM = 30; // below the title
 
-      // Build head rows: header row only (no DSM title row)
+      // Build head rows (short keys to keep header small)
       const dsmHead: (string | CellInput)[][] = [
-        ["Function \\\\ Requirement", ...reqOrder.map(r => (r.text || `[${r.id}]`))]
+        ["Function \\ Requirement", ...reqOrder.map((_, i) => `R${i + 1}`)]
       ];
 
       // Build body rows
@@ -484,7 +471,7 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
 
       autoTable(doc, {
         theme: "grid",
-        startY: startYDSM, // try rendering just below the previous table
+        startY: startYDSM,
         head: dsmHead,
         body: dsmBody,
         styles: {
@@ -502,16 +489,14 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
         columnStyles: dsmColumnStyles,
         margin: dsmMargin,
         didDrawPage: () => {
-          const current = doc.internal.getCurrentPageInfo().pageNumber;
-
-          // When DSM continues on a NEW page, draw the DSM title at the top of that page.
-          if (current > firstPageNoBeforeDSM) {
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(12);
-            doc.text("Function–Requirement DSM", pageWidth / 2, 24, { align: "center" });
-          }
+          // Header and title on every DSM page
+          header();
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          doc.text("Function–Requirement DSM", pageWidth / 2, 24, { align: "center" });
 
           // Footer on every page
+          const current = doc.internal.getCurrentPageInfo().pageNumber;
           const total = doc.getNumberOfPages();
           doc.setDrawColor(220);
           doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
@@ -520,6 +505,65 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
           doc.text(`Page ${current} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
         },
       });
+
+      // --- Requirement Legend (maps R# -> full requirement text) ---
+      const afterDSM = (doc as any).lastAutoTable ? ((doc as any).lastAutoTable.finalY as number) + 6 : startYDSM;
+      if (reqOrder.length > 0) {
+        const legendHead: (string | CellInput)[][] = [["Key", "Requirement Text"]];
+        const legendBody: RowInput[] = reqOrder.map((r, i) => [
+          `R${i + 1}`,
+          (r.text && r.text.trim().length > 0) ? r.text : `[${r.id}]`
+        ] as RowInput);
+
+        autoTable(doc, {
+          theme: 'grid',
+          startY: afterDSM,
+          head: legendHead,
+          body: legendBody,
+          styles: {
+            font: 'helvetica',
+            fontSize: 9,
+            cellPadding: 2,
+            overflow: 'linebreak',
+            valign: 'top',
+          },
+          headStyles: {
+            fillColor: [243, 244, 246],
+            textColor: 20,
+            fontStyle: 'bold',
+          },
+          // two-column layout: small key column + wide text column
+          margin: { left: 10, right: 10 },
+          columnStyles: {
+            0: { cellWidth: 18, halign: 'center' },
+            1: { cellWidth: contentWidth - 18 },
+          },
+          didDrawPage: () => {
+            // draw header/footer for legend pages too
+            header();
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.text("Function–Requirement DSM", pageWidth / 2, 24, { align: "center" });
+            const current = doc.internal.getCurrentPageInfo().pageNumber;
+            const total = doc.getNumberOfPages();
+            doc.setDrawColor(220);
+            doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
+            doc.setDrawColor(0);
+            doc.setFontSize(10);
+            doc.text(`Page ${current} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
+          },
+          // allow very long requirement text to break across pages
+          rowPageBreak: 'auto',
+          pageBreak: 'auto',
+          didParseCell: (data) => {
+            const cell = data.cell;
+            if (typeof cell.raw === 'string') {
+              const fixed = cell.raw.replace(/(\S{40})/g, '$1\u200B');
+              cell.text = fixed.split('\n');
+            }
+          },
+        });
+      }
     }
 
     const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
