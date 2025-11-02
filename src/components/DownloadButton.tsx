@@ -22,9 +22,9 @@ function downloadImage(dataUrl, zoneName: string) {
   a.click();
 }
 
-const imageWidth = 1920;
-const imageHeight = 1080;
-const DPR = Math.min(3, window.devicePixelRatio || 1);
+const imageWidth = 4096;
+const imageHeight = 2160;
+const DPR = Math.min(4, (window.devicePixelRatio || 1) * 2);
 
 function DownloadButton() {
 
@@ -64,7 +64,7 @@ function DownloadButton() {
     overlay.style.transform = `translate(${-viewport.x}px, ${-viewport.y}px) scale(${1 / viewport.zoom})`;
 
     const badge = document.createElement('div');
-    badge.style.position = 'fixed';
+    badge.style.position = 'absolute';
     badge.style.top = '0';
     badge.style.left = '0';
     badge.style.padding = '3px 12px';
@@ -87,7 +87,8 @@ function DownloadButton() {
     subtitle.textContent = `Zone: ${selected?.label ?? selectedId ?? 'Unknown'}`;
     subtitle.style.fontSize = '12px';
     subtitle.style.color = '#555';
-
+    const tx = Math.round(viewport.x);
+    const ty = Math.round(viewport.y);
     console.log('projectName', projectName, 'zoneName', selected?.label);
     badge.appendChild(title);
     badge.appendChild(subtitle);
@@ -103,11 +104,10 @@ function DownloadButton() {
         width: `${imageWidth}px`,
         height: `${imageHeight}px`,
         transformOrigin: '0 0',
-        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+        transform: `translate(${tx}px, ${ty}px) scale(${viewport.zoom})`,
         // text render hints (helps clarity a bit)
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
-        imageRendering: 'crisp-edges',
       } as any,
     })
       .then((dataUrl) => {
@@ -120,7 +120,7 @@ function DownloadButton() {
         // cleanup overlay
         try { viewportEl.removeChild(badge); } catch { }
         setTimeout(() => {
-          try { viewportEl.removeChild(overlay); } catch {}
+          try { viewportEl.removeChild(overlay); } catch { }
           if (!prevPos) viewportEl.style.position = '';
         }, 300);
       });

@@ -605,16 +605,16 @@ export default function Header() {
     const zoneDescription = zoneNode?.data?.content || "";
 
     // ---- 1) Capture Flow Image (dataURL) using viewport transform ----
-    const imageWidth = 1920;
-    const imageHeight = 1080;
-    const DPR = Math.min(3, window.devicePixelRatio || 1);
+    const imageWidth = 4096;
+    const imageHeight = 2160;
+    const DPR = Math.min(4, (window.devicePixelRatio || 1) * 2);
 
     // compute viewport from nodes bounds
     const rfNodes: any[] = (nodes || []).map((n: any) => ({
       id: n.id,
       position: n.position || { x: 0, y: 0 },
-      width: (n.width as number) || 180,
-      height: (n.height as number) || 80,
+      width: (n.measured?.width ?? n.width ?? 250),   // ✅ 优先 measured
+      height: (n.measured?.height ?? n.height ?? 80),
       data: n.data,
       type: n.type,
       selectable: false,
@@ -624,8 +624,15 @@ export default function Header() {
       selected: false,
     }));
 
-    const bounds = getNodesBounds(rfNodes as any);
-    const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.5, 2, 0);
+    const rawBounds = getNodesBounds(rfNodes as any);
+    const extraPad = 64; // 额外留白（像素）
+    const bounds = {
+      x: rawBounds.x - extraPad,
+      y: rawBounds.y - extraPad,
+      width: rawBounds.width + extraPad * 2,
+      height: rawBounds.height + extraPad * 2,
+    };
+    const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.2);
 
     const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
     if (!viewportEl) {
@@ -677,7 +684,8 @@ export default function Header() {
     badge.appendChild(subtitle);
     overlay.appendChild(badge);
     viewportEl.appendChild(overlay);
-
+    const tx = Math.round(viewport.x);
+    const ty = Math.round(viewport.y);
     toPng(viewportEl, {
       backgroundColor: '#ffffff',
       width: imageWidth,
@@ -688,10 +696,9 @@ export default function Header() {
         width: `${imageWidth}px`,
         height: `${imageHeight}px`,
         transformOrigin: '0 0',
-        transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`,
+        transform: `translate(${tx}px, ${ty}px) scale(${viewport.zoom})`,
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
-        imageRendering: 'crisp-edges',
       } as any,
     })
       .then((dataUrl) => {
