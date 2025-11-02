@@ -931,28 +931,33 @@ export default function EditableNestedTable() {
                         // Merged property cell should span exactly the number of unique interpretation rows
                         const propertyRowSpan = Math.max(1, uniqRows.length);
 
+                        // Build a flattened list so numbering is continuous across merged properties
+                        const flatPropItems: { pIdx: number; idx: number }[] = [];
+                        propsArr.forEach((p, pIdx) => {
+                          const items = Array.isArray(p?.properties) ? p.properties : [];
+                          items.forEach((_text: string, idx: number) => {
+                            flatPropItems.push({ pIdx, idx });
+                          });
+                        });
+
                         const mergedPropertyCell = (
                           <TableCell rowSpan={propertyRowSpan}>
-                            {/* render all property items from all props, each editable */}
                             <ul>
-                              {propsArr.flatMap((p, pIdx) => {
-                                const items = Array.isArray(p?.properties) ? p.properties : [];
-                                return items.map((text: string, idx: number) => (
-                                  <li key={`m-${pIdx}-${idx}`} className="flex items-start gap-2">
-                                    <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
-                                    <Controller
-                                      control={control}
-                                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${pIdx}.properties.${idx}`}
-                                      render={({ field }) => (
-                                        <Textarea
-                                          value={field.value}
-                                          onChange={(e) => field.onChange(e.target.value)}
-                                        />
-                                      )}
-                                    />
-                                  </li>
-                                ));
-                              })}
+                              {flatPropItems.map(({ pIdx, idx }, seq) => (
+                                <li key={`m-${pIdx}-${idx}`} className="flex items-start gap-2">
+                                  <span className="text-sm text-gray-500 mt-1">{seq + 1}.</span>
+                                  <Controller
+                                    control={control}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${pIdx}.properties.${idx}`}
+                                    render={({ field }) => (
+                                      <Textarea
+                                        value={field.value}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                      />
+                                    )}
+                                  />
+                                </li>
+                              ))}
                             </ul>
                           </TableCell>
                         );

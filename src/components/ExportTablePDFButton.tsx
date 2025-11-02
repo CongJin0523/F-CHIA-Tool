@@ -31,10 +31,78 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
   const buildRowsWithRowSpan = (): RowInput[] => {
     const rows: RowInput[] = [];
 
+    // ---------- Helpers copied from Table.tsx logic (scoped to this function) ----------
+    function calcPropRowSpan(prop: any): number {
+      if (typeof prop?.rowSpan === 'number' && prop.rowSpan > 0) return prop.rowSpan;
+      const n = Array.isArray(prop?.interpretations) ? prop.interpretations.length : 0;
+      return Math.max(1, n);
+    }
+
+    function canMergeAllPropsByGuideWord(properties: any[] | undefined): { ok: boolean; guide?: string } {
+      if (!Array.isArray(properties) || properties.length < 2) return { ok: false };
+      const set = new Set<string>();
+      for (const p of properties) {
+        const inters = Array.isArray(p?.interpretations) ? p.interpretations : [];
+        if (inters.length === 0) return { ok: false };
+        for (const it of inters) {
+          const g = (it?.guideWord ?? '').trim();
+          if (!g) return { ok: false };
+          set.add(g);
+          if (set.size > 1) return { ok: false };
+        }
+      }
+      const [only] = Array.from(set.values());
+      return { ok: true, guide: only };
+    }
+
+    function countUniqueInterpretationsByGuideWordIdAcrossProps(properties: any[] | undefined): number {
+      if (!Array.isArray(properties) || properties.length === 0) return 1;
+      const seen = new Set<string>();
+      let any = false;
+      for (const p of properties) {
+        const inters = Array.isArray(p?.interpretations) ? p.interpretations : [];
+        for (const it of inters) {
+          any = true;
+          const k = (typeof it?.guideWordId === 'string' && it.guideWordId)
+            ? it.guideWordId
+            : `__noid__${(it?.guideWord ?? '').trim()}::${Math.random()}`;
+          seen.add(k);
+        }
+      }
+      return Math.max(1, (any ? seen.size : 0) || 1);
+    }
+
+    function calcRealizationRowSpan(realization: any): number {
+      const propsArr = Array.isArray(realization?.properties) ? realization.properties : [];
+      if (propsArr.length === 0) return 1;
+
+      const mergeCheck = canMergeAllPropsByGuideWord(propsArr);
+      if (mergeCheck.ok) {
+        return countUniqueInterpretationsByGuideWordIdAcrossProps(propsArr);
+      }
+      return Math.max(
+        1,
+        propsArr.reduce((sum: number, p: any) => sum + calcPropRowSpan(p), 0)
+      );
+    }
+
+    function calcFunctionRowSpan(fn: any): number {
+      const reals = Array.isArray(fn?.realizations) ? fn.realizations : [];
+      if (reals.length === 0) return 1;
+      return Math.max(1, reals.reduce((sum: number, r: any) => sum + calcRealizationRowSpan(r), 0));
+    }
+
+    function calcTaskRowSpan(task: any): number {
+      const fns = Array.isArray(task?.functions) ? task.functions : [];
+      if (fns.length === 0) return 1;
+      return Math.max(1, fns.reduce((sum: number, f: any) => sum + calcFunctionRowSpan(f), 0));
+    }
+    // ---------- End helpers ----------
+
     for (const task of data.tasks ?? []) {
       const taskName = task.taskName ?? "";
-      const taskRowSpan = Math.max(1, task.rowSpan ?? 1);
       const functions = task.functions ?? [];
+      const taskRowSpanDyn = calcTaskRowSpan(task);
 
       // ① Task 没有 functions
       if (!functions.length) {
@@ -49,13 +117,13 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
 
       for (const fn of functions) {
         const fnName = fn.functionName ?? "";
-        const fnRowSpan = Math.max(1, fn.rowSpan ?? 1);
         const realizations = fn.realizations ?? [];
+        const fnRowSpanDyn = calcFunctionRowSpan(fn);
 
         // ② Function 没有 realizations
         if (!realizations.length) {
           const row: RowInput = [];
-          if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
+          if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as CellInput);
           row.push({ content: fnName, rowSpan: 1 } as CellInput);
           row.push({ content: "No realization found, please complete in the graph editor.", colSpan: 8 } as CellInput);
           rows.push(row);
@@ -67,14 +135,18 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
 
         for (const real of realizations) {
           const realName = real.realizationName ?? "";
-          const realRowSpan = Math.max(1, real.rowSpan ?? 1);
-          const properties = real.properties ?? [];
+          const propsArr = real.properties ?? [];
+          const mergeCheck = canMergeAllPropsByGuideWord(propsArr);
+          const realRowSpanDyn =
+            mergeCheck.ok
+              ? countUniqueInterpretationsByGuideWordIdAcrossProps(propsArr)
+              : Math.max(1, propsArr.reduce((sum: number, p: any) => sum + calcPropRowSpan(p), 0));
 
           // ③ Realization 没有 properties
-          if (!properties.length) {
+          if (!propsArr.length) {
             const row: RowInput = [];
-            if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
-            if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
+            if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as CellInput);
+            if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpanDyn } as CellInput);
             row.push({ content: realName, rowSpan: 1 } as CellInput);
             row.push({ content: "No property found, please complete in the graph editor.", colSpan: 7 } as CellInput);
             rows.push(row);
@@ -83,80 +155,185 @@ const ExportStructuredPDFButton: React.FC<Props> = ({
             continue;
           }
 
-          let realPrinted = false;
+          // ---------- Case A: NOT merged (per-property rendering) ----------
+          if (!mergeCheck.ok) {
+            let realPrinted = false;
 
-          for (const prop of properties) {
-            const propRowSpan = Math.max(1, prop.rowSpan ?? 1);
-            const propList = (prop.properties ?? []).filter(Boolean);
-            const propText = propList.length
-              ? propList.map((p, i) => `${i + 1}. ${p}`).join("\n")
-              : "(No property text)";
+            for (const prop of propsArr) {
+              const propRowSpan = Math.max(1, prop.rowSpan ?? calcPropRowSpan(prop));
+              const propList = (prop.properties ?? []).filter(Boolean);
+              const propText = propList.length
+                ? propList.map((p: string, i: number) => `${i + 1}. ${p}`).join("\n")
+                : "(No property text)";
 
-            const interpretations = prop.interpretations ?? [];
+              const interpretations = prop.interpretations ?? [];
 
-            // ④ Property 没有 interpretations
-            if (!interpretations.length) {
+              // ④ Property 没有 interpretations
+              if (!interpretations.length) {
+                const row: RowInput = [];
+                if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as CellInput);
+                if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpanDyn } as CellInput);
+                if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpanDyn } as CellInput);
+                row.push({ content: propText, rowSpan: 1 } as CellInput);
+                row.push({ content: "No interpretation found, please complete in the graph editor.", colSpan: 6 } as CellInput);
+                rows.push(row);
+                taskPrinted = true;
+                fnPrinted = true;
+                realPrinted = true;
+                continue;
+              }
+
+              let propPrinted = false;
+
+              for (const inter of interpretations) {
+                const guide = inter.guideWord ?? "";
+
+                const deviations = (inter.deviations ?? [])
+                  .map((d: any, i: number) => (d?.text ? `${i + 1}. ${d.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const causes = (inter.causes ?? [])
+                  .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const consequences = (inter.consequences ?? [])
+                  .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const requirements = (inter.requirements ?? [])
+                  .map((r: any, i: number) => (r?.text ? `${i + 1}. ${r.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const iso = (inter.isoMatches ?? [])
+                  .map((i: any) => i.iso_number || i.title || "")
+                  .filter(Boolean)
+                  .join(", ");
+
+                const row: RowInput = [];
+                if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as CellInput);
+                if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpanDyn } as CellInput);
+                if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpanDyn } as CellInput);
+                if (!propPrinted) row.push({ content: propText, rowSpan: propRowSpan } as CellInput);
+                row.push(guide);
+                row.push(deviations || "");
+                row.push(causes || "");
+                row.push(consequences || "");
+                row.push(requirements || "");
+                row.push(iso || "");
+                rows.push(row);
+
+                taskPrinted = true;
+                fnPrinted = true;
+                realPrinted = true;
+                propPrinted = true;
+              }
+            }
+            continue; // finished NOT-merged case
+          }
+
+          // ---------- Case B: MERGED property cell (all guide words the same) ----------
+          {
+            // Build unique interpretation rows by guideWordId (stable order)
+            type KeyRec = { key: string; pIdx: number; iIdx: number };
+            const uniqRows: KeyRec[] = [];
+            const seenKeys = new Set<string>();
+            propsArr.forEach((p: any, pIdx: number) => {
+              const inters = Array.isArray(p?.interpretations) ? p.interpretations : [];
+              inters.forEach((it: any, iIdx: number) => {
+                const k = typeof it?.guideWordId === 'string' && it.guideWordId
+                  ? it.guideWordId
+                  : `__noid__${(it?.guideWord ?? '').trim()}::${pIdx}::${iIdx}`;
+                if (seenKeys.has(k)) return;
+                seenKeys.add(k);
+                uniqRows.push({ key: k, pIdx, iIdx });
+              });
+            });
+
+            const propertyRowSpan = Math.max(1, uniqRows.length);
+
+            // Flatten all property texts across props for continuous numbering
+            const flatPropTexts: string[] = [];
+            propsArr.forEach((p: any) => {
+              const items = Array.isArray(p?.properties) ? p.properties : [];
+              items.forEach((t: string) => flatPropTexts.push(t));
+            });
+            const mergedPropText =
+              flatPropTexts.length
+                ? flatPropTexts.map((t, i) => `${i + 1}. ${t}`).join("\n")
+                : "(No property text)";
+
+            let realPrinted = false;
+            let mergedPropPrinted = false;
+
+            if (uniqRows.length === 0) {
+              // Fallback: no interpretations
               const row: RowInput = [];
-              if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
-              if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
-              if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
-              row.push({ content: propText, rowSpan: 1 } as CellInput);
+              if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as CellInput);
+              if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpanDyn } as CellInput);
+              if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpanDyn } as CellInput);
+              if (!mergedPropPrinted) row.push({ content: mergedPropText, rowSpan: propertyRowSpan } as CellInput);
               row.push({ content: "No interpretation found, please complete in the graph editor.", colSpan: 6 } as CellInput);
               rows.push(row);
-              taskPrinted = true;
-              fnPrinted = true;
-              realPrinted = true;
-              continue;
-            }
-
-            let propPrinted = false;
-
-            for (const inter of interpretations) {
-              const guide = inter.guideWord ?? "";
-
-              const deviations = (inter.deviations ?? [])
-                .map((d, i) => (d?.text ? `${i + 1}. ${d.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const causes = (inter.causes ?? [])
-                .map((c, i) => (c?.text ? `${i + 1}. ${c.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const consequences = (inter.consequences ?? [])
-                .map((c, i) => (c?.text ? `${i + 1}. ${c.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const requirements = (inter.requirements ?? [])
-                .map((r, i) => (r?.text ? `${i + 1}. ${r.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const iso = (inter.isoMatches ?? [])
-                .map((i) => i.iso_number || i.title || "")
-                .filter(Boolean)
-                .join(", ");
-
-              const row: RowInput = [];
-              if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
-              if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
-              if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
-              if (!propPrinted) row.push({ content: propText, rowSpan: propRowSpan } as CellInput);
-              row.push(guide);
-              row.push(deviations || "");
-              row.push(causes || "");
-              row.push(consequences || "");
-              row.push(requirements || "");
-              row.push(iso || "");
-
-              rows.push(row);
 
               taskPrinted = true;
               fnPrinted = true;
               realPrinted = true;
-              propPrinted = true;
+              mergedPropPrinted = true;
+            } else {
+              for (const { pIdx, iIdx } of uniqRows) {
+                const repInterp: any = Array.isArray(propsArr[pIdx]?.interpretations)
+                  ? propsArr[pIdx].interpretations[iIdx]
+                  : undefined;
+
+                const guide = repInterp?.guideWord ?? "";
+
+                const deviations = (repInterp?.deviations ?? [])
+                  .map((d: any, i: number) => (d?.text ? `${i + 1}. ${d.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const causes = (repInterp?.causes ?? [])
+                  .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const consequences = (repInterp?.consequences ?? [])
+                  .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const requirements = (repInterp?.requirements ?? [])
+                  .map((r: any, i: number) => (r?.text ? `${i + 1}. ${r.text}` : ""))
+                  .filter(Boolean)
+                  .join("\n");
+
+                const iso = (repInterp?.isoMatches ?? [])
+                  .map((i: any) => i.iso_number || i.title || "")
+                  .filter(Boolean)
+                  .join(", ");
+
+                const row: RowInput = [];
+                if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as CellInput);
+                if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpanDyn } as CellInput);
+                if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpanDyn } as CellInput);
+                if (!mergedPropPrinted) row.push({ content: mergedPropText, rowSpan: propertyRowSpan } as CellInput);
+                row.push(guide);
+                row.push(deviations || "");
+                row.push(causes || "");
+                row.push(consequences || "");
+                row.push(requirements || "");
+                row.push(iso || "");
+                rows.push(row);
+
+                taskPrinted = true;
+                fnPrinted = true;
+                realPrinted = true;
+                mergedPropPrinted = true;
+              }
             }
           }
         }
