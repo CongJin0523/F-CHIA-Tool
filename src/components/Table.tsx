@@ -222,6 +222,75 @@ export default function EditableNestedTable() {
     return false; // 全部完整，没有告警
   }
 
+  // --- Merge helpers: if all guide words in a realization's properties are the same, merge property cell ---
+  function calcPropRowSpan(prop: any): number {
+    if (typeof prop?.rowSpan === 'number' && prop.rowSpan > 0) return prop.rowSpan;
+    const n = Array.isArray(prop?.interpretations) ? prop.interpretations.length : 0;
+    return Math.max(1, n);
+  }
+
+  function canMergeAllPropsByGuideWord(properties: any[] | undefined): { ok: boolean; guide?: string } {
+    if (!Array.isArray(properties) || properties.length < 2) return { ok: false };
+    const set = new Set<string>();
+    for (const p of properties) {
+      const inters = Array.isArray(p?.interpretations) ? p.interpretations : [];
+      if (inters.length === 0) return { ok: false };
+      for (const it of inters) {
+        const g = (it?.guideWord ?? '').trim();
+        if (!g) return { ok: false };
+        set.add(g);
+        if (set.size > 1) return { ok: false };
+      }
+    }
+    const [only] = Array.from(set.values());
+    return { ok: true, guide: only };
+  }
+
+  // --- Dynamic rowSpan helpers (respect merged-properties logic) ---
+  function countUniqueInterpretationsByGuideWordIdAcrossProps(properties: any[] | undefined): number {
+    if (!Array.isArray(properties) || properties.length === 0) return 1;
+    const seen = new Set<string>();
+    let any = false;
+    for (const p of properties) {
+      const inters = Array.isArray(p?.interpretations) ? p.interpretations : [];
+      for (const it of inters) {
+        any = true;
+        const k = (typeof it?.guideWordId === 'string' && it.guideWordId)
+          ? it.guideWordId
+          : `__noid__${(it?.guideWord ?? '').trim()}::${Math.random()}`; // fallback to avoid collapse
+        seen.add(k);
+      }
+    }
+    return Math.max(1, (any ? seen.size : 0) || 1);
+  }
+
+  function calcRealizationRowSpan(realization: any): number {
+    const propsArr = Array.isArray(realization?.properties) ? realization.properties : [];
+    if (propsArr.length === 0) return 1;
+
+    const mergeCheck = canMergeAllPropsByGuideWord(propsArr);
+    if (mergeCheck.ok) {
+      return countUniqueInterpretationsByGuideWordIdAcrossProps(propsArr);
+    }
+    // sum of each property's rowSpan (interpretations count fallback)
+    return Math.max(
+      1,
+      propsArr.reduce((sum: number, p: any) => sum + calcPropRowSpan(p), 0)
+    );
+  }
+
+  function calcFunctionRowSpan(fn: any): number {
+    const reals = Array.isArray(fn?.realizations) ? fn.realizations : [];
+    if (reals.length === 0) return 1;
+    return Math.max(1, reals.reduce((sum: number, r: any) => sum + calcRealizationRowSpan(r), 0));
+  }
+
+  function calcTaskRowSpan(task: any): number {
+    const fns = Array.isArray(task?.functions) ? task.functions : [];
+    if (fns.length === 0) return 1;
+    return Math.max(1, fns.reduce((sum: number, f: any) => sum + calcFunctionRowSpan(f), 0));
+  }
+
   // --- TaskCell component to unify Task cell rendering and FTA button ---
   function TaskCell({
     control,
@@ -370,7 +439,7 @@ export default function EditableNestedTable() {
                   const functionFields = task.functions;
                   const hasWarnings = taskHasWarnings(task);
                   let taskRendered = false;
-
+                  const taskRowSpanDyn = calcTaskRowSpan(task);
 
                   if (!functionFields?.length) {
                     return (
@@ -378,7 +447,7 @@ export default function EditableNestedTable() {
                         <TaskCell
                           control={control}
                           taskIndex={taskIndex}
-                          rowSpan={1}
+                          rowSpan={taskRowSpanDyn}
                           hasWarnings={true}
                           taskId={task.id}
                           getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
@@ -392,6 +461,7 @@ export default function EditableNestedTable() {
 
                   return functionFields.map((fn, functionIndex) => {
                     let functionRendered = false;
+                    const functionRowSpanDyn = calcFunctionRowSpan(fn);
 
                     // ① Function 没有 realizations：渲染一行告警
                     if (!fn.realizations || fn.realizations.length === 0) {
@@ -402,7 +472,7 @@ export default function EditableNestedTable() {
                             <TaskCell
                               control={control}
                               taskIndex={taskIndex}
-                              rowSpan={task.rowSpan}
+                              rowSpan={taskRowSpanDyn}
                               hasWarnings={true}
                               taskId={task.id}
                               getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
@@ -410,7 +480,7 @@ export default function EditableNestedTable() {
                           )}
                           {/* Function */}
                           {!functionRendered && (
-                            <TableCell rowSpan={fn.rowSpan || 1}>
+                            <TableCell rowSpan={functionRowSpanDyn}>
                               <Controller
                                 control={control}
                                 name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
@@ -431,6 +501,12 @@ export default function EditableNestedTable() {
 
                     return fn.realizations.map((realization, realizationIndex) => {
                       let realizationRendered = false;
+                      const propsArr = realization.properties ?? [];
+                      const mergeCheck = canMergeAllPropsByGuideWord(propsArr);
+                      const realizationRowSpanDyn =
+                        mergeCheck.ok
+                          ? countUniqueInterpretationsByGuideWordIdAcrossProps(propsArr)
+                          : Math.max(1, propsArr.reduce((sum: number, p: any) => sum + calcPropRowSpan(p), 0));
 
                       // ② Realization 没有 properties：渲染一行告警
                       if (!realization.properties || realization.properties.length === 0) {
@@ -441,7 +517,7 @@ export default function EditableNestedTable() {
                               <TaskCell
                                 control={control}
                                 taskIndex={taskIndex}
-                                rowSpan={task.rowSpan}
+                                rowSpan={taskRowSpanDyn}
                                 hasWarnings={true}
                                 taskId={task.id}
                                 getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
@@ -449,7 +525,7 @@ export default function EditableNestedTable() {
                             )}
                             {/* Function */}
                             {!functionRendered && (
-                              <TableCell rowSpan={fn.rowSpan || 1}>
+                              <TableCell rowSpan={functionRowSpanDyn}>
                                 <Controller
                                   control={control}
                                   name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
@@ -459,7 +535,7 @@ export default function EditableNestedTable() {
                             )}
                             {/* Realization */}
                             {!realizationRendered && (
-                              <TableCell rowSpan={realization.rowSpan || 1}>
+                              <TableCell rowSpan={realizationRowSpanDyn}>
                                 <Controller
                                   control={control}
                                   name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
@@ -479,139 +555,187 @@ export default function EditableNestedTable() {
                         );
                       }
 
-                      return realization.properties.map((property, propertyIndex) => {
-                        let propertyRendered = false;
+                      if (!mergeCheck.ok) {
+                        // --- original per-property rendering (no merge) ---
+                        return propsArr.map((property, propertyIndex) => {
+                          let propertyRendered = false;
 
-                        // ③ Property 没有 interpretations：渲染一行告警
-                        if (!property.interpretations || property.interpretations.length === 0) {
-                          return (
-                            <TableRow key={`${task.fieldId}-${functionIndex}-${realizationIndex}-${propertyIndex}-no-inter`}>
-                              {/* Task */}
-                              {!taskRendered && (
-                                <TaskCell
-                                  control={control}
-                                  taskIndex={taskIndex}
-                                  rowSpan={task.rowSpan}
-                                  hasWarnings={true}
-                                  taskId={task.id}
-                                  getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
-                                />
-                              )}
-                              {/* Function */}
-                              {!functionRendered && (
-                                <TableCell rowSpan={fn.rowSpan || 1}>
-                                  <Controller
+                          // ③ Property 没有 interpretations：渲染一行告警
+                          if (!property.interpretations || property.interpretations.length === 0) {
+                            return (
+                              <TableRow key={`${task.fieldId}-${functionIndex}-${realizationIndex}-${propertyIndex}-no-inter`}>
+                                {/* Task */}
+                                {!taskRendered && (
+                                  <TaskCell
                                     control={control}
-                                    name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
-                                    render={({ field }) => <Textarea {...field} />}
+                                    taskIndex={taskIndex}
+                                    rowSpan={taskRowSpanDyn}
+                                    hasWarnings={true}
+                                    taskId={task.id}
+                                    getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                                   />
+                                )}
+                                {/* Function */}
+                                {!functionRendered && (
+                                  <TableCell rowSpan={functionRowSpanDyn}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                                      render={({ field }) => <Textarea {...field} />}
+                                    />
+                                  </TableCell>
+                                )}
+                                {/* Realization */}
+                                {!realizationRendered && (
+                                  <TableCell rowSpan={realizationRowSpanDyn}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                                      render={({ field }) => <Textarea {...field} />}
+                                    />
+                                  </TableCell>
+                                )}
+                                {/* Property */}
+                                {!propertyRendered && (
+                                  <TableCell rowSpan={property.rowSpan || 1}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                                      render={({ field }) => (
+                                        <ul>
+                                          {field.value.map((prop, idx) => (
+                                            <li key={idx}>
+                                              <Textarea
+                                                value={prop}
+                                                onChange={(e) => {
+                                                  const newProperties = [...field.value];
+                                                  newProperties[idx] = e.target.value;
+                                                  field.onChange(newProperties);
+                                                }}
+                                              />
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                    />
+                                  </TableCell>
+                                )}
+                                {/* 告警占 6 列（GuideWord + 4 列数组 + ISO） */}
+                                <TableCell colSpan={6} className="text-amber-600">
+                                  No interpretation found, please complete in the graph editor.
                                 </TableCell>
-                              )}
-                              {/* Realization */}
-                              {!realizationRendered && (
-                                <TableCell rowSpan={realization.rowSpan || 1}>
-                                  <Controller
+
+                                {taskRendered = true}
+                                {functionRendered = true}
+                                {realizationRendered = true}
+                                {propertyRendered = true}
+                              </TableRow>
+                            );
+                          }
+
+                          // ④ 正常渲染 interpretations（移除所有 Add 按钮）
+                          return property.interpretations.map((interpretation, interpretationIndex) => {
+                            const hasRequirements = Array.isArray(interpretation.requirements) && interpretation.requirements.length > 0;
+                            return (
+                              <TableRow
+                                key={`${task.fieldId}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}
+                              >
+                                {/* Task */}
+                                {!taskRendered && (
+                                  <TaskCell
                                     control={control}
-                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
-                                    render={({ field }) => <Textarea {...field} />}
+                                    taskIndex={taskIndex}
+                                    rowSpan={taskRowSpanDyn}
+                                    hasWarnings={hasWarnings}
+                                    taskId={task.id}
+                                    getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                                   />
-                                </TableCell>
-                              )}
-                              {/* Property */}
-                              {!propertyRendered && (
-                                <TableCell rowSpan={property.rowSpan || 1}>
+                                )}
+
+                                {/* Function */}
+                                {!functionRendered && (
+                                  <TableCell rowSpan={functionRowSpanDyn}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                                      render={({ field }) => <Textarea {...field} />}
+                                    />
+                                  </TableCell>
+                                )}
+
+                                {/* Realization */}
+                                {!realizationRendered && (
+                                  <TableCell rowSpan={realizationRowSpanDyn}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                                      render={({ field }) => <Textarea {...field} />}
+                                    />
+                                  </TableCell>
+                                )}
+
+                                {/* Property */}
+                                {!propertyRendered && (
+                                  <TableCell rowSpan={property.rowSpan || 1}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                                      render={({ field }) => (
+                                        <ul>
+                                          {field.value.map((prop, idx) => (
+                                            <li key={idx} className="flex items-start gap-2">
+                                              <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                              <Textarea
+                                                value={prop}
+                                                onChange={(e) => {
+                                                  const newProperties = [...field.value];
+                                                  newProperties[idx] = e.target.value;
+                                                  field.onChange(newProperties);
+                                                }}
+                                              />
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
+                                    />
+                                  </TableCell>
+                                )}
+
+                                {/* Guide Word */}
+                                <TableCell>
                                   <Controller
                                     control={control}
-                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.guideWord`}
                                     render={({ field }) => (
-                                      <ul>
-                                        {field.value.map((prop, idx) => (
-                                          <li key={idx}>
-                                            <Textarea
-                                              value={prop}
-                                              onChange={(e) => {
-                                                const newProperties = [...field.value];
-                                                newProperties[idx] = e.target.value;
-                                                field.onChange(newProperties);
-                                              }}
-                                            />
-                                          </li>
-                                        ))}
-                                      </ul>
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                          <SelectValue>{field.value}</SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="Part of">Part of</SelectItem>
+                                          <SelectItem value="Other than">Other than</SelectItem>
+                                          <SelectItem value="No">No</SelectItem>
+                                        </SelectContent>
+                                      </Select>
                                     )}
                                   />
                                 </TableCell>
-                              )}
-                              {/* 告警占 6 列（GuideWord + 4 列数组 + ISO） */}
-                              <TableCell colSpan={6} className="text-amber-600">
-                                No interpretation found, please complete in the graph editor.
-                              </TableCell>
 
-                              {taskRendered = true}
-                              {functionRendered = true}
-                              {realizationRendered = true}
-                              {propertyRendered = true}
-                            </TableRow>
-                          );
-                        }
-
-                        // ④ 正常渲染 interpretations（移除所有 Add 按钮）
-                        return property.interpretations.map((interpretation, interpretationIndex) => {
-                          const hasRequirements = Array.isArray(interpretation.requirements) && interpretation.requirements.length > 0;
-                          return (
-                            <TableRow
-                              key={`${task.fieldId}-${functionIndex}-${realizationIndex}-${propertyIndex}-${interpretationIndex}`}
-                            >
-                              {/* Task */}
-                              {!taskRendered && (
-                                <TaskCell
-                                  control={control}
-                                  taskIndex={taskIndex}
-                                  rowSpan={task.rowSpan}
-                                  hasWarnings={hasWarnings}
-                                  taskId={task.id}
-                                  getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
-                                />
-                              )}
-
-                              {/* Function */}
-                              {!functionRendered && (
-                                <TableCell rowSpan={fn.rowSpan || 1}>
+                                {/* Deviations */}
+                                <TableCell>
                                   <Controller
                                     control={control}
-                                    name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
-                                    render={({ field }) => <Textarea {...field} />}
-                                  />
-                                </TableCell>
-                              )}
-
-                              {/* Realization */}
-                              {!realizationRendered && (
-                                <TableCell rowSpan={realization.rowSpan || 1}>
-                                  <Controller
-                                    control={control}
-                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
-                                    render={({ field }) => <Textarea {...field} />}
-                                  />
-                                </TableCell>
-                              )}
-
-                              {/* Property */}
-                              {!propertyRendered && (
-                                <TableCell rowSpan={property.rowSpan || 1}>
-                                  <Controller
-                                    control={control}
-                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.properties`}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.deviations`}
                                     render={({ field }) => (
                                       <ul>
                                         {field.value.map((prop, idx) => (
                                           <li key={idx} className="flex items-start gap-2">
                                             <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
                                             <Textarea
-                                              value={prop}
+                                              value={prop.text}
                                               onChange={(e) => {
                                                 const newProperties = [...field.value];
-                                                newProperties[idx] = e.target.value;
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
                                                 field.onChange(newProperties);
                                               }}
                                             />
@@ -621,218 +745,512 @@ export default function EditableNestedTable() {
                                     )}
                                   />
                                 </TableCell>
-                              )}
 
-                              {/* Guide Word */}
-                              <TableCell>
-                                <Controller
-                                  control={control}
-                                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.guideWord`}
-                                  render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value}>
-                                      <SelectTrigger>
-                                        <SelectValue>{field.value}</SelectValue>
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="Part of">Part of</SelectItem>
-                                        <SelectItem value="Other than">Other than</SelectItem>
-                                        <SelectItem value="No">No</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  )}
-                                />
-                              </TableCell>
+                                {/* Causes */}
+                                <TableCell>
+                                  <Controller
+                                    control={control}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.causes`}
+                                    render={({ field }) => (
+                                      <ul>
+                                        {field.value.map((prop, idx) => (
+                                          <li key={idx} className="flex items-start gap-2">
+                                            <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                            <Textarea
+                                              value={prop.text}
+                                              onChange={(e) => {
+                                                const newProperties = [...field.value];
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
+                                                field.onChange(newProperties);
+                                              }}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  />
+                                </TableCell>
 
-                              {/* Deviations */}
-                              <TableCell>
-                                <Controller
-                                  control={control}
-                                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.deviations`}
-                                  render={({ field }) => (
-                                    <ul>
-                                      {field.value.map((prop, idx) => (
-                                        <li key={idx} className="flex items-start gap-2">
-                                          <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
-                                          <Textarea
-                                            value={prop.text}
-                                            onChange={(e) => {
-                                              const newProperties = [...field.value];
-                                              newProperties[idx] = { id: prop.id, text: e.target.value };
-                                              field.onChange(newProperties);
-                                            }}
-                                          />
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                />
-                              </TableCell>
+                                {/* Consequences */}
+                                <TableCell>
+                                  <Controller
+                                    control={control}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.consequences`}
+                                    render={({ field }) => (
+                                      <ul>
+                                        {field.value.map((prop, idx) => (
+                                          <li key={idx} className="flex items-start gap-2">
+                                            <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                            <Textarea
+                                              value={prop.text}
+                                              onChange={(e) => {
+                                                const newProperties = [...field.value];
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
+                                                field.onChange(newProperties);
+                                              }}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  />
+                                </TableCell>
 
-                              {/* Causes */}
-                              <TableCell>
-                                <Controller
-                                  control={control}
-                                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.causes`}
-                                  render={({ field }) => (
-                                    <ul>
-                                      {field.value.map((prop, idx) => (
-                                        <li key={idx} className="flex items-start gap-2">
-                                          <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
-                                          <Textarea
-                                            value={prop.text}
-                                            onChange={(e) => {
-                                              const newProperties = [...field.value];
-                                              newProperties[idx] = { id: prop.id, text: e.target.value };
-                                              field.onChange(newProperties);
-                                            }}
-                                          />
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                />
-                              </TableCell>
+                                {/* Requirements */}
+                                <TableCell className="align-top w-[600px] min-w-[600px] whitespace-pre-wrap">
+                                  <Controller
+                                    control={control}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
+                                    render={({ field }) => (
+                                      <ul>
+                                        {field.value.map((prop, idx) => (
+                                          <li key={idx} className="flex items-start gap-2">
+                                            <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                            <Textarea
+                                              className="w-[600px]"
+                                              value={prop.text}
+                                              onChange={(e) => {
+                                                const newProperties = [...field.value];
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
+                                                field.onChange(newProperties);
+                                              }}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  />
+                                </TableCell>
 
-                              {/* Consequences */}
-                              <TableCell>
-                                <Controller
-                                  control={control}
-                                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.consequences`}
-                                  render={({ field }) => (
-                                    <ul>
-                                      {field.value.map((prop, idx) => (
-                                        <li key={idx} className="flex items-start gap-2">
-                                          <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
-                                          <Textarea
-                                            value={prop.text}
-                                            onChange={(e) => {
-                                              const newProperties = [...field.value];
-                                              newProperties[idx] = { id: prop.id, text: e.target.value };
-                                              field.onChange(newProperties);
-                                            }}
-                                          />
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                />
-                              </TableCell>
+                                {/* ISO Standard */}
+                                <TableCell className="align-top w-[120px] min-w-[120px]">
+                                  <Controller
+                                    control={control}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.isoMatches`}
+                                    render={({ field }) => {
+                                      const selectedIso = field.value ?? [];
+                                      const removeAt = (idx: number) => {
+                                        const next = selectedIso.slice();
+                                        next.splice(idx, 1);
+                                        field.onChange(next);
+                                      };
 
-                              {/* Requirements */}
-                              <TableCell className="align-top w-[600px] min-w-[600px] whitespace-pre-wrap">
-                                <Controller
-                                  control={control}
-                                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.requirements`}
-                                  render={({ field }) => (
-                                    <ul>
-                                      {field.value.map((prop, idx) => (
-                                        <li key={idx} className="flex items-start gap-2">
-                                          <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
-                                          <Textarea
-                                            className="w-[600px]"
-                                            value={prop.text}
-                                            onChange={(e) => {
-                                              const newProperties = [...field.value];
-                                              newProperties[idx] = { id: prop.id, text: e.target.value };
-                                              field.onChange(newProperties);
-                                            }}
-                                          />
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                />
-                              </TableCell>
+                                      const addManual = (item: IsoMatch) => {
+                                        field.onChange(uniqIso([...(field.value ?? []), item]));
+                                      };
 
+                                      const addFromAI = (items: IsoMatch[]) => {
+                                        field.onChange(uniqIso([...(field.value ?? []), ...items]));
+                                      };
 
-
-                              {/* ISO Standard */}
-                              <TableCell className="align-top w-[120px] min-w-[120px]">
-                                <Controller
-                                  control={control}
-                                  name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${propertyIndex}.interpretations.${interpretationIndex}.isoMatches`}
-                                  render={({ field }) => {
-                                    const selectedIso = field.value ?? [];
-                                    const removeAt = (idx: number) => {
-                                      const next = selectedIso.slice();
-                                      next.splice(idx, 1);
-                                      field.onChange(next);
-                                    };
-
-                                    const addManual = (item: IsoMatch) => {
-                                      field.onChange(uniqIso([...(field.value ?? []), item]));
-                                    };
-
-                                    const addFromAI = (items: IsoMatch[]) => {
-                                      field.onChange(uniqIso([...(field.value ?? []), ...items]));
-                                    };
-
-                                    return (
-                                      <div className="space-y-2 flex flex-col">
-                                        {/* 已选标签 */}
-                                        {selectedIso.length > 0 ? (
-                                          <div className="flex flex-wrap gap-2">
-                                            {selectedIso.map((it: any, idx: number) => (
-                                              <span
-                                                key={`${it.iso_number}-${idx}`}
-                                                className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200"
-                                                title={it.title}
-                                              >
-                                                {it.iso_number}
-                                                <button
-                                                  type="button"
-                                                  aria-label="Remove"
-                                                  className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
-                                                  onClick={() => removeAt(idx)}
-                                                  title="remove this ISO"
+                                      return (
+                                        <div className="space-y-2 flex flex-col">
+                                          {selectedIso.length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                              {selectedIso.map((it: any, idx: number) => (
+                                                <span
+                                                  key={`${it.iso_number}-${idx}`}
+                                                  className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200"
+                                                  title={it.title}
                                                 >
-                                                  ×
-                                                </button>
-                                              </span>
-                                            ))}
-                                          </div>
-                                        ) : (
-                                          <div className="text-xs text-muted-foreground">No ISO selected.</div>
-                                        )}
+                                                  {it.iso_number}
+                                                  <button
+                                                    type="button"
+                                                    aria-label="Remove"
+                                                    className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
+                                                    onClick={() => removeAt(idx)}
+                                                    title="remove this ISO"
+                                                  >
+                                                    ×
+                                                  </button>
+                                                </span>
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <div className="text-xs text-muted-foreground">No ISO selected.</div>
+                                          )}
 
-                                        <IsoMatchingDialog
-                                          trigger={
-                                            <Button type="button" disabled={!hasRequirements} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
-                                              Matching(AI)
-                                            </Button>
-                                          }
-                                          // 可把当前行的 requirement 文本拼起来作为默认输入
-                                          defaultRequirement={
-                                            (interpretation.requirements ?? [])
-                                              .map((r, i) => `${i + 1}. ${r.text}`)
-                                              .join("\n")
-                                          }
-                                          onConfirm={addFromAI}
-                                          mockResponse={jsonTest} // fake data
-                                        />
+                                          <IsoMatchingDialog
+                                            trigger={
+                                              <Button type="button" disabled={!hasRequirements} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                                Matching(AI)
+                                              </Button>
+                                            }
+                                            defaultRequirement={(interpretation.requirements ?? []).map((r, i) => `${i + 1}. ${r.text}`).join("\n")}
+                                            onConfirm={addFromAI}
+                                            mockResponse={jsonTest}
+                                          />
 
-                                        <AddIsoDialog
-                                          trigger={
-                                            <Button type="button" disabled={!hasRequirements} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
-                                              Add Manually
-                                            </Button>
-                                          }
-                                          onAdd={addManual}
+                                          <AddIsoDialog
+                                            trigger={
+                                              <Button type="button" disabled={!hasRequirements} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                                Add Manually
+                                              </Button>
+                                            }
+                                            onAdd={addManual}
+                                          />
+                                        </div>
+                                      );
+                                    }}
+                                  />
+                                </TableCell>
+
+                                {taskRendered = true}
+                                {functionRendered = true}
+                                {realizationRendered = true}
+                                {propertyRendered = true}
+                              </TableRow>
+                            );
+                          });
+                        });
+                      }
+
+                      // --- MERGED PROPERTY CELL (all guide words are the same across properties) ---
+                      {
+                        let propertyCellRendered = false; // render merged Property cell once
+                        let localTaskRendered = taskRendered;
+                        let localFunctionRendered = functionRendered;
+                        let localRealizationRendered = realizationRendered;
+
+                        // Build unique interpretation rows by guideWordId (stable order)
+                        type KeyRec = { key: string; pIdx: number; iIdx: number };
+                        const uniqRows: KeyRec[] = [];
+                        const seenKeys = new Set<string>();
+                        propsArr.forEach((p, pIdx) => {
+                          const inters = Array.isArray(p?.interpretations) ? p.interpretations : [];
+                          inters.forEach((it, iIdx) => {
+                            const k = typeof it?.guideWordId === 'string' && it.guideWordId
+                              ? it.guideWordId
+                              : `__noid__${(it?.guideWord ?? '').trim()}::${pIdx}::${iIdx}`;
+                            if (seenKeys.has(k)) return;
+                            seenKeys.add(k);
+                            uniqRows.push({ key: k, pIdx, iIdx });
+                          });
+                        });
+
+                        // Merged property cell should span exactly the number of unique interpretation rows
+                        const propertyRowSpan = Math.max(1, uniqRows.length);
+
+                        const mergedPropertyCell = (
+                          <TableCell rowSpan={propertyRowSpan}>
+                            {/* render all property items from all props, each editable */}
+                            <ul>
+                              {propsArr.flatMap((p, pIdx) => {
+                                const items = Array.isArray(p?.properties) ? p.properties : [];
+                                return items.map((text: string, idx: number) => (
+                                  <li key={`m-${pIdx}-${idx}`} className="flex items-start gap-2">
+                                    <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${pIdx}.properties.${idx}`}
+                                      render={({ field }) => (
+                                        <Textarea
+                                          value={field.value}
+                                          onChange={(e) => field.onChange(e.target.value)}
                                         />
-                                      </div>
-                                    );
-                                  }}
+                                      )}
+                                    />
+                                  </li>
+                                ));
+                              })}
+                            </ul>
+                          </TableCell>
+                        );
+
+                        const rows: JSX.Element[] = [];
+
+                        if (uniqRows.length === 0) {
+                          // safety fallback: no interpretations after merge
+                          const rowKey = `${task.fieldId}-${functionIndex}-${realizationIndex}-merged-empty-fallback`;
+                          rows.push(
+                            <TableRow key={rowKey}>
+                              {!localTaskRendered && (
+                                <TaskCell
+                                  control={control}
+                                  taskIndex={taskIndex}
+                                  rowSpan={taskRowSpanDyn}
+                                  hasWarnings={true}
+                                  taskId={task.id}
+                                  getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                                 />
-                              </TableCell>
-
-                              {taskRendered = true}
-                              {functionRendered = true}
-                              {realizationRendered = true}
-                              {propertyRendered = true}
+                              )}
+                              {!localFunctionRendered && (
+                                <TableCell rowSpan={functionRowSpanDyn}>
+                                  <Controller
+                                    control={control}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                                    render={({ field }) => <Textarea {...field} />}
+                                  />
+                                </TableCell>
+                              )}
+                              {!localRealizationRendered && (
+                                <TableCell rowSpan={realizationRowSpanDyn}>
+                                  <Controller
+                                    control={control}
+                                    name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                                    render={({ field }) => <Textarea {...field} />}
+                                  />
+                                </TableCell>
+                              )}
+                              {!propertyCellRendered && mergedPropertyCell}
+                              <TableCell colSpan={6} className="text-amber-600">No interpretation found, please complete in the graph editor.</TableCell>
+                              {localTaskRendered = true}
+                              {localFunctionRendered = true}
+                              {localRealizationRendered = true}
+                              {propertyCellRendered = true}
                             </TableRow>
                           );
-                        });
-                      });
+                        } else {
+                          uniqRows.forEach(({ pIdx, iIdx }) => {
+                            const pathBase = `tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${pIdx}.interpretations.${iIdx}`;
+                            // compute hasRequirements for this representative interpretation
+                            const repInterp: any = Array.isArray(propsArr[pIdx]?.interpretations)
+                              ? (propsArr[pIdx] as any).interpretations?.[iIdx]
+                              : undefined;
+                            const hasReq = Array.isArray(repInterp?.requirements) && repInterp.requirements.length > 0;
+
+                            const rowKey = `${task.fieldId}-${functionIndex}-${realizationIndex}-muniq-${pIdx}-${iIdx}`;
+
+                            rows.push(
+                              <TableRow key={rowKey}>
+                                {!localTaskRendered && (
+                                  <TaskCell
+                                    control={control}
+                                    taskIndex={taskIndex}
+                                    rowSpan={taskRowSpanDyn}
+                                    hasWarnings={hasReq}
+                                    taskId={task.id}
+                                    getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
+                                  />
+                                )}
+                                {!localFunctionRendered && (
+                                  <TableCell rowSpan={functionRowSpanDyn}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.functionName`}
+                                      render={({ field }) => <Textarea {...field} />}
+                                    />
+                                  </TableCell>
+                                )}
+                                {!localRealizationRendered && (
+                                  <TableCell rowSpan={realizationRowSpanDyn}>
+                                    <Controller
+                                      control={control}
+                                      name={`tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.realizationName`}
+                                      render={({ field }) => <Textarea {...field} />}
+                                    />
+                                  </TableCell>
+                                )}
+
+                                {!propertyCellRendered && mergedPropertyCell}
+
+                                {/* Guide Word */}
+                                <TableCell>
+                                  <Controller
+                                    control={control}
+                                    name={`${pathBase}.guideWord`}
+                                    render={({ field }) => (
+                                      <Select onValueChange={field.onChange} value={field.value}>
+                                        <SelectTrigger>
+                                          <SelectValue>{field.value}</SelectValue>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="Part of">Part of</SelectItem>
+                                          <SelectItem value="Other than">Other than</SelectItem>
+                                          <SelectItem value="No">No</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    )}
+                                  />
+                                </TableCell>
+
+                                {/* Deviations */}
+                                <TableCell>
+                                  <Controller
+                                    control={control}
+                                    name={`${pathBase}.deviations`}
+                                    render={({ field }) => (
+                                      <ul>
+                                        {field.value.map((prop: any, idx: number) => (
+                                          <li key={idx} className="flex items-start gap-2">
+                                            <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                            <Textarea
+                                              value={prop.text}
+                                              onChange={(e) => {
+                                                const newProperties = [...field.value];
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
+                                                field.onChange(newProperties);
+                                              }}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  />
+                                </TableCell>
+
+                                {/* Causes */}
+                                <TableCell>
+                                  <Controller
+                                    control={control}
+                                    name={`${pathBase}.causes`}
+                                    render={({ field }) => (
+                                      <ul>
+                                        {field.value.map((prop: any, idx: number) => (
+                                          <li key={idx} className="flex items-start gap-2">
+                                            <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                            <Textarea
+                                              value={prop.text}
+                                              onChange={(e) => {
+                                                const newProperties = [...field.value];
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
+                                                field.onChange(newProperties);
+                                              }}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  />
+                                </TableCell>
+
+                                {/* Consequences */}
+                                <TableCell>
+                                  <Controller
+                                    control={control}
+                                    name={`${pathBase}.consequences`}
+                                    render={({ field }) => (
+                                      <ul>
+                                        {field.value.map((prop: any, idx: number) => (
+                                          <li key={idx} className="flex items-start gap-2">
+                                            <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                            <Textarea
+                                              value={prop.text}
+                                              onChange={(e) => {
+                                                const newProperties = [...field.value];
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
+                                                field.onChange(newProperties);
+                                              }}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  />
+                                </TableCell>
+
+                                {/* Requirements */}
+                                <TableCell className="align-top w-[600px] min-w-[600px] whitespace-pre-wrap">
+                                  <Controller
+                                    control={control}
+                                    name={`${pathBase}.requirements`}
+                                    render={({ field }) => (
+                                      <ul>
+                                        {field.value.map((prop: any, idx: number) => (
+                                          <li key={idx} className="flex items-start gap-2">
+                                            <span className="text-sm text-gray-500 mt-1">{idx + 1}.</span>
+                                            <Textarea
+                                              className="w-[600px]"
+                                              value={prop.text}
+                                              onChange={(e) => {
+                                                const newProperties = [...field.value];
+                                                newProperties[idx] = { id: prop.id, text: e.target.value };
+                                                field.onChange(newProperties);
+                                              }}
+                                            />
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    )}
+                                  />
+                                </TableCell>
+
+                                {/* ISO Standard */}
+                                <TableCell className="align-top w-[120px] min-w-[120px]">
+                                  <Controller
+                                    control={control}
+                                    name={`${pathBase}.isoMatches`}
+                                    render={({ field }) => {
+                                      const selectedIso = field.value ?? [];
+                                      const removeAt = (idx: number) => {
+                                        const next = selectedIso.slice();
+                                        next.splice(idx, 1);
+                                        field.onChange(next);
+                                      };
+                                      const addManual = (item: IsoMatch) => {
+                                        field.onChange(uniqIso([...(field.value ?? []), item]));
+                                      };
+                                      const addFromAI = (items: IsoMatch[]) => {
+                                        field.onChange(uniqIso([...(field.value ?? []), ...items]));
+                                      };
+                                      return (
+                                        <div className="space-y-2 flex flex-col">
+                                          {selectedIso.length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                              {selectedIso.map((it: any, idx: number) => (
+                                                <span
+                                                  key={`${it.iso_number}-${idx}`}
+                                                  className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200"
+                                                  title={it.title}
+                                                >
+                                                  {it.iso_number}
+                                                  <button
+                                                    type="button"
+                                                    aria-label="Remove"
+                                                    className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
+                                                    onClick={() => removeAt(idx)}
+                                                    title="remove this ISO"
+                                                  >
+                                                    ×
+                                                  </button>
+                                                </span>
+                                              ))}
+                                            </div>
+                                          ) : (
+                                            <div className="text-xs text-muted-foreground">No ISO selected.</div>
+                                          )}
+
+                                          <IsoMatchingDialog
+                                            trigger={
+                                              <Button type="button" disabled={!hasReq} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                                Matching(AI)
+                                              </Button>
+                                            }
+                                            defaultRequirement={(repInterp?.requirements ?? []).map((r: any, i: number) => `${i + 1}. ${r.text}`).join("\n")}
+                                            onConfirm={addFromAI}
+                                            mockResponse={jsonTest}
+                                          />
+
+                                          <AddIsoDialog
+                                            trigger={
+                                              <Button type="button" disabled={!hasReq} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                                Add Manually
+                                              </Button>
+                                            }
+                                            onAdd={addManual}
+                                          />
+                                        </div>
+                                      );
+                                    }}
+                                  />
+                                </TableCell>
+
+                                {localTaskRendered = true}
+                                {localFunctionRendered = true}
+                                {localRealizationRendered = true}
+                                {propertyCellRendered = true}
+                              </TableRow>
+                            );
+                          });
+                        }
+
+                        // sync outer flags so后续 function/realization 不重复渲染
+                        taskRendered = localTaskRendered;
+                        functionRendered = localFunctionRendered;
+                        realizationRendered = localRealizationRendered;
+
+                        return rows;
+                      }
                     });
                   });
                 })}
