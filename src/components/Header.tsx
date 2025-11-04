@@ -1009,7 +1009,7 @@ export default function Header() {
     }
     const returnTo = location.pathname;
 
-    // one-time event helper
+    // one-time event helper (same as before)
     const once = (type: string, predicate: (e: any) => boolean, timeoutMs = 15000) =>
       new Promise<any>((resolve, reject) => {
         const on = (e: any) => { if (predicate(e)) { cleanup(); resolve(e.detail); } };
@@ -1018,57 +1018,63 @@ export default function Header() {
         window.addEventListener(type, on as any, { once: true });
       });
 
-
     setExporting(true);
     setExportPct(0);
     setExportStep("Preparing…");
+    const flush = () => new Promise<void>((r) => setTimeout(r, 0));
     await flush();
 
-
     try {
+      // ✅ Use the same paper size/orientation as handleExportCombinedPDF
+      const doc = new jsPDF({ unit: "mm", format: "a3", orientation: "landscape" });
 
-      const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "landscape" });
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
+      // Shared layout constants (mirror handleExportCombinedPDF)
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const safeTopMargin = 30;     // top margin used by AutoTable on paginated pages
+      const safeBottomMargin = 14;  // bottom margin for footer area
       const marginX = 10;
-      const total = zones.length;
+      const headerBottomY = 20;
+      const contentTop = 24;
+      const footerGap = 10;
+
+      // Same header renderer as handleExportCombinedPDF
       const drawHeader = (zoneLabel: string) => {
-        const t = `Project: ${projectName || "Untitled Project"}    •    Zone: ${zoneLabel}`;
+        const title = "Project Report";
+        const sub = `Project: ${projectName || "Untitled Project"}  •  Zone: ${zoneLabel}`;
         const dateStr = new Date().toLocaleString();
+
         doc.setFont("helvetica", "bold");
         doc.setFontSize(12);
-        doc.text(t, marginX, 12);
+        doc.text(title, marginX, 12, { align: "left" });
+
         doc.setFont("helvetica", "normal");
         doc.setFontSize(10);
+        doc.text(sub, marginX, 18, { align: "left" });
+
         doc.setTextColor(120);
-        doc.text(dateStr, pageW - marginX, 12, { align: "right" });
+        doc.text(dateStr, pageWidth - marginX, 12, { align: "right" });
         doc.setTextColor(0);
+
         doc.setDrawColor(220);
-        doc.line(marginX, 20, pageW - marginX, 20);
-      };
-      const drawFooter = () => {
-        const current = doc.internal.getCurrentPageInfo().pageNumber;
-        const total = doc.getNumberOfPages();
-        doc.setDrawColor(220);
-        doc.line(10, pageH - 12, pageW - 10, pageH - 12);
-        doc.setDrawColor(0);
-        doc.setFontSize(10);
-        doc.text(`Page ${current} / ${total}`, pageW - 10, pageH - 6, { align: "right" });
+        doc.line(marginX, headerBottomY, pageWidth - marginX, headerBottomY);
       };
 
       let first = true;
 
-      for (let i = 0; i < total; i++) {
+      for (let i = 0; i < zones.length; i++) {
         const z = zones[i];
         const zoneLabel = z.label || z.id;
+
         setExportStep(`Loading diagram for "${zoneLabel}"…`);
-        setExportPct(Math.round((i / total) * 100));
+        setExportPct(Math.round((i / zones.length) * 100));
         await flush();
-        // switch zone + go to /diagram
+
+        // Switch zone + go to /diagram
         useZoneStore.setState({ selectedId: z.id });
         navigate("/diagram", { replace: true });
 
-        // wait until Diagram says it's truly ready for THIS zone
+        // Wait until Diagram says it's truly ready for THIS zone
         try {
           await once("flow:ready", (e) => e?.detail?.zoneId === z.id, 15000);
         } catch {
@@ -1081,167 +1087,166 @@ export default function Header() {
         setExportStep(`Capturing diagram for "${zoneLabel}"…`);
         await flush();
 
-        // capture at native 1920x1080 using the in-page FlowCapture
-        const dataUrl = await window.FlowCapture!.capture({
-          width: 1920,
-          height: 1080,
-          pixelRatio: Math.min(3, window.devicePixelRatio || 1),
-          bg: "#ffffff",
+        // Capture the whole graph using the same viewport transform method as handleExportCombinedPDF
+        const imageWidth = 4096;
+        const imageHeight = 2160;
+        const DPR = Math.min(4, (window.devicePixelRatio || 1) * 2);
+
+        // Get current zone graph and compute bounds from measured node sizes
+        const gstate = getGraphStoreHook(z.id).getState();
+        const gnodes = gstate.nodes || [];
+        const rfNodes: any[] = gnodes.map((n: any) => ({
+          id: n.id,
+          position: n.position || { x: 0, y: 0 },
+          width: (n.measured?.width ?? n.width ?? 250),
+          height: (n.measured?.height ?? n.height ?? 80),
+          data: n.data,
+          type: n.type,
+          selectable: false,
+          dragHandle: undefined,
+          dragging: false,
+          hidden: false,
+          selected: false,
+        }));
+
+        const rawBounds = getNodesBounds(rfNodes as any);
+        const extraPad = 64; // leave some breathing room
+        const bounds = {
+          x: rawBounds.x - extraPad,
+          y: rawBounds.y - extraPad,
+          width: rawBounds.width + extraPad * 2,
+          height: rawBounds.height + extraPad * 2,
+        };
+        const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.2);
+
+        const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
+        if (!viewportEl) {
+          throw new Error("Flow canvas not found on this page");
+        }
+
+        // Minimal overlay to stabilize capture transform (no badge text here)
+        const prevPos = viewportEl.style.position;
+        if (!prevPos) viewportEl.style.position = "relative";
+        const overlay = document.createElement('div');
+        overlay.style.position = 'absolute';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = `${imageWidth}px`;
+        overlay.style.height = `${imageHeight}px`;
+        overlay.style.pointerEvents = 'none';
+        overlay.style.zIndex = '9999';
+        overlay.style.transformOrigin = '0 0';
+        overlay.style.transform = `translate(${-viewport.x}px, ${-viewport.y}px) scale(${1 / viewport.zoom})`;
+        viewportEl.appendChild(overlay);
+
+        const tx = Math.round(viewport.x);
+        const ty = Math.round(viewport.y);
+        const dataUrl = await toPng(viewportEl, {
+          backgroundColor: '#ffffff',
+          width: imageWidth,
+          height: imageHeight,
+          pixelRatio: DPR,
+          cacheBust: true,
+          style: {
+            width: `${imageWidth}px`,
+            height: `${imageHeight}px`,
+            transformOrigin: '0 0',
+            transform: `translate(${tx}px, ${ty}px) scale(${viewport.zoom})`,
+            WebkitFontSmoothing: 'antialiased',
+            MozOsxFontSmoothing: 'grayscale',
+          } as any,
         });
 
-        if (!first) doc.addPage("a4", "landscape");
+        // cleanup
+        try { viewportEl.removeChild(overlay); } catch {}
+        if (!prevPos) viewportEl.style.position = "";
+
+        // --- Page 1: Diagram (same placement logic as handleExportCombinedPDF) ---
+        if (!first) doc.addPage("a3", "landscape");
         first = false;
 
-        // --- Page 1: Diagram ---
-        drawHeader(z.label || z.id);
-        const topY = 24, footerGap = 10;
-        const maxW = pageW - marginX * 2;
-        const maxH = pageH - topY - footerGap;
-        const aspect = 1920 / 1080;
-        let drawW = maxH * aspect, drawH = maxH;
-        if (drawW > maxW) { drawW = maxW; drawH = drawW / aspect; }
-        const imgX = marginX + (maxW - drawW) / 2;
-        doc.addImage(dataUrl, "PNG", imgX, topY, drawW, drawH);
-        drawFooter();
+        drawHeader(zoneLabel);
 
-        setExportPct(Math.round(((i + 0.5) / total) * 100));
+        const availH = pageHeight - contentTop - footerGap;
+        const maxW = pageWidth - marginX * 2;
+        const imgW = imageWidth;
+        const imgH = imageHeight;
+        const scaleH = availH / imgH;
+        const scaleW = maxW / imgW;
+        const scale = Math.min(scaleH, scaleW);
+        const finalW = imgW * scale;
+        const finalH = imgH * scale;
+        const imgX = marginX + (maxW - finalW) / 2;
+        const imgY = contentTop;
+        doc.addImage(dataUrl, "PNG", imgX, imgY, finalW, finalH);
+
+        setExportPct(Math.round(((i + 0.5) / zones.length) * 100));
         setExportStep(`Building tables for "${zoneLabel}"…`);
         await flush();
 
-        // --- Page 2: Tables (identical to ExportStructuredPDFButton) ---
-        doc.addPage("a4", "landscape");
-        drawHeader(z.label || z.id);
+        // --- Page 2: F-CHI table (identical to handleExportCombinedPDF) ---
+        doc.addPage("a3", "landscape");
+        drawHeader(zoneLabel);
 
         const graph = getGraphStoreHook(z.id).getState();
-        const ir = graphToIR(graph.nodes || [], graph.edges || []);
-        const formLike = deriveRowSpans(ir);
+        const ir: IR = graphToIR(graph.nodes || [], graph.edges || []);
+        const data: FormValues = deriveRowSpans(ir) as any;
 
-        // build rows with rowSpan (identical to ExportStructuredPDFButton)
-        const rows: RowInput[] = [];
-        (formLike.tasks || []).forEach((task: any) => {
-          const taskName = task.taskName || "";
-          const taskRowSpan = Math.max(1, task.rowSpan || 1);
-          const fns = task.functions || [];
+        // Build table rows with the same algorithm used by handleExportCombinedPDF
+        const rows: RowInput[] = buildRowsWithRowSpanFromForm(data);
 
-          if (!fns.length) {
-            rows.push([{ content: taskName, rowSpan: 1 } as CellInput, "(No function)", "", "", "", "", "", "", "", ""]);
-            return;
-          }
+        // Section title
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        const fchiTitle = "Function-Centric Hazard Identification";
+        const fchiTitleY = 24;
+        doc.text(fchiTitle, pageWidth / 2, fchiTitleY, { align: "center" });
+        const firstTableStartY = fchiTitleY + 6;
 
-          let taskPrinted = false;
-
-          fns.forEach((fn: any) => {
-            const fnName = fn.functionName || "";
-            const fnRowSpan = Math.max(1, fn.rowSpan || 1);
-            const reals = fn.realizations || [];
-
-            if (!reals.length) {
-              const row: RowInput = [];
-              if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
-              row.push({ content: fnName, rowSpan: 1 } as CellInput);
-              row.push("(No realization)");
-              row.push(""); // Property
-              row.push(""); // Guide Word
-              row.push(""); // Deviations
-              row.push(""); // Causes
-              row.push(""); // Consequences
-              row.push(""); // Requirements
-              row.push(""); // ISO
-              rows.push(row);
-              taskPrinted = true;
-              return;
-            }
-
-            let fnPrinted = false;
-
-            reals.forEach((real: any) => {
-              const realName = real.realizationName || "";
-              const realRowSpan = Math.max(1, real.rowSpan || 1);
-              const props = real.properties || [];
-
-              if (!props.length) {
-                const row: RowInput = [];
-                if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
-                if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
-                row.push({ content: realName, rowSpan: 1 } as CellInput);
-                row.push("(No property)");
-                row.push(""); // Guide Word
-                row.push(""); // Deviations
-                row.push(""); // Causes
-                row.push(""); // Consequences
-                row.push(""); // Requirements
-                row.push(""); // ISO
-                rows.push(row);
-                taskPrinted = true; fnPrinted = true;
-                return;
-              }
-
-              let realPrinted = false;
-
-              props.forEach((prop: any) => {
-                const propText = (prop.properties || []).filter(Boolean).join("\n");
-                const propRowSpan = Math.max(1, prop.rowSpan || 1);
-                const inters = prop.interpretations || [];
-
-                if (!inters.length) {
-                  const row: RowInput = [];
-                  if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
-                  if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
-                  if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
-                  row.push({ content: propText || "(No property text)", rowSpan: 1 } as CellInput);
-                  row.push("(No interpretation)");
-                  row.push(""); // Deviations
-                  row.push(""); // Causes
-                  row.push(""); // Consequences
-                  row.push(""); // Requirements
-                  row.push(""); // ISO
-                  rows.push(row);
-                  taskPrinted = true; fnPrinted = true; realPrinted = true;
-                  return;
-                }
-
-                let propPrinted = false;
-
-                inters.forEach((inter: any) => {
-                  const guide = inter.guideWord || "";
-                  const list = (arr?: any[]) => (arr || [])
-                    .map((x, i) => (x?.text ? `${i + 1}. ${x.text}` : ""))
-                    .filter(Boolean)
-                    .join("\n");
-                  const deviations = list(inter.deviations);
-                  const causes = list(inter.causes);
-                  const consequences = list(inter.consequences);
-                  const requirements = list(inter.requirements);
-                  const iso = (inter.isoMatches || [])
-                    .map((i: any) => i.iso_number || i.title || "")
-                    .filter(Boolean)
-                    .join(", ");
-
-                  const row: RowInput = [];
-                  if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpan } as CellInput);
-                  if (!fnPrinted) row.push({ content: fnName, rowSpan: fnRowSpan } as CellInput);
-                  if (!realPrinted) row.push({ content: realName, rowSpan: realRowSpan } as CellInput);
-                  if (!propPrinted) row.push({ content: propText, rowSpan: propRowSpan } as CellInput);
-                  row.push(guide, deviations || "", causes || "", consequences || "", requirements || "", iso || "");
-                  rows.push(row);
-
-                  taskPrinted = true; fnPrinted = true; realPrinted = true; propPrinted = true;
-                });
-              });
-            });
-          });
-        });
-
-        if (!rows.length) {
-          rows.push(["(No tasks)", "", "", "", "", "", "", "", "", ""]);
-        }
-
+        // Zone description
         const zoneNode = (graph.nodes || []).find((n: any) => n.type === "zone");
         const zoneDescription = zoneNode?.data?.content || "";
 
+        // Intro block (plain)
+        const contentMargin = { left: 10, right: 10 };
+        const contentWidth = pageWidth - contentMargin.left - contentMargin.right;
+
+        const introRows: (string | CellInput)[][] = [
+          [{ content: `Hazard Zone: ${zoneLabel}`, styles: { fontStyle: 'bold' } } as CellInput],
+          [{ content: zoneDescription && zoneDescription.trim().length > 0 ? zoneDescription : '—' } as CellInput],
+        ];
+
+        autoTable(doc, {
+          theme: 'plain',
+          startY: firstTableStartY,
+          body: introRows,
+          margin: { ...contentMargin, top: safeTopMargin, bottom: safeBottomMargin },
+          styles: { font: 'helvetica', fontSize: 10, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
+          columnStyles: { 0: { cellWidth: contentWidth } },
+          didDrawPage: () => {
+            drawHeader(zoneLabel);
+            const pageNumber = doc.internal.getNumberOfPages();
+            doc.setDrawColor(220);
+            doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
+            doc.setDrawColor(0);
+            doc.setFontSize(10);
+            doc.text(`Page ${pageNumber} / ${doc.getNumberOfPages()}`, pageWidth - 10, pageHeight - 6, { align: "right" });
+          },
+          didParseCell: (data) => {
+            const cell = data.cell;
+            if (typeof cell.raw === 'string') {
+              const fixed = cell.raw.replace(/(\S{40})/g, '$1\u200B');
+              cell.text = fixed.split('\n');
+            }
+          },
+          rowPageBreak: 'auto',
+          pageBreak: 'auto',
+        });
+
+        const afterIntroY = (doc as any).lastAutoTable ? ((doc as any).lastAutoTable.finalY as number) + 4 : firstTableStartY;
+
+        // Grid head row
         const headRows: (string | CellInput)[][] = [
-          [{ content: `Hazard Zone: ${z.label || z.id}`, colSpan: 10, styles: { halign: "center", fontStyle: "bold", fillColor: [229, 231, 235] } } as CellInput],
-          [{ content: zoneDescription?.trim() ? `Zone Description: ${zoneDescription}` : "Zone Description: —", colSpan: 10, styles: { halign: "left", fontStyle: "normal", fillColor: [243, 244, 246] } } as CellInput],
           [
             { content: "Task", styles: { fillColor: [249, 250, 251] } },
             { content: "Function", styles: { fillColor: [249, 250, 251] } },
@@ -1252,133 +1257,174 @@ export default function Header() {
             { content: "Causes", styles: { fillColor: [249, 250, 251] } },
             { content: "Consequences", styles: { fillColor: [249, 250, 251] } },
             { content: "Requirements", styles: { fillColor: [249, 250, 251] } },
-            { content: "ISO", styles: { fillColor: [249, 250, 251] } },
+            { content: "ISO Standard", styles: { fillColor: [249, 250, 251] } },
           ],
         ];
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.text("Function-Centric Hazard Identification", pageW / 2, 24, { align: "center" });
+        // Dynamic widths: Requirements ≈ 1/3 content width
+        const baseline = [22, 22, 22, 26, 18, 32, 32, 32, 40, 30];
+        const reqIndex = 8;
+        const desiredReqWidth = Math.floor(contentWidth / 3);
+        const otherBaselineSum = baseline.reduce((sum, w, i) => (i === reqIndex ? sum : sum + w), 0);
+        const remainingWidth = Math.max(0, contentWidth - desiredReqWidth);
+        const scaleOther = otherBaselineSum > 0 ? (remainingWidth / otherBaselineSum) : 1;
+        const fchiColumnStyles = Object.fromEntries(
+          baseline.map((w, i) => {
+            const width = i === reqIndex ? desiredReqWidth : Math.floor(w * scaleOther);
+            return [i, { cellWidth: width }];
+          })
+        );
 
         autoTable(doc, {
           theme: "grid",
-          startY: 30,
+          startY: Math.max(firstTableStartY, afterIntroY),
           head: headRows,
           body: rows,
           styles: { font: "helvetica", fontSize: 9, cellPadding: 2, valign: "top", overflow: "linebreak" },
           headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" },
-          columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 22 }, 2: { cellWidth: 22 }, 3: { cellWidth: 26 }, 4: { cellWidth: 18 }, 5: { cellWidth: 32 }, 6: { cellWidth: 32 }, 7: { cellWidth: 32 }, 8: { cellWidth: 40 }, 9: { cellWidth: 30 } },
-          margin: { left: 10, right: 10, top: 30, bottom: 14 },
+          columnStyles: fchiColumnStyles as any,
+          margin: { left: contentMargin.left, right: contentMargin.right, top: safeTopMargin, bottom: safeBottomMargin },
           tableLineColor: 200,
           tableLineWidth: 0.1,
-          didDrawPage: () => { drawHeader(z.label || z.id); drawFooter(); },
-        });
-
-        // DSM (same as your working layout)...
-        // build pairs -> fnOrder/reqOrder/hit, then render DSM autoTable centered
-        const buildDSMMatrixFromIR = (irData: IR) => {
-          const pairs: { functionId: string; functionName: string; requirementId: string; requirementText: string }[] = [];
-          (irData.tasks || []).forEach(t => {
-            (t.functions || []).forEach(fn => {
-              const seen = new Set<string>();
-              (fn.realizations || []).forEach(r => {
-                (r.properties || []).forEach(p => {
-                  (p.interpretations || []).forEach(i => {
-                    (i.requirements || []).forEach(req => {
-                      const key = `${fn.id}|${req.id}`;
-                      if (seen.has(key)) return;
-                      seen.add(key);
-                      pairs.push({
-                        functionId: fn.id, functionName: fn.functionName, requirementId: req.id, requirementText: req.text,
-                      });
-                    });
-                  });
-                });
-              });
-            });
-          });
-          const fnOrder: { id: string; name: string }[] = [];
-          const reqOrder: { id: string; text: string }[] = [];
-          const fnSeen = new Set<string>();
-          const reqSeen = new Set<string>();
-          pairs.forEach(p => {
-            if (!fnSeen.has(p.functionId)) { fnSeen.add(p.functionId); fnOrder.push({ id: p.functionId, name: p.functionName }); }
-            if (!reqSeen.has(p.requirementId)) { reqSeen.add(p.requirementId); reqOrder.push({ id: p.requirementId, text: p.requirementText }); }
-          });
-          const hit = new Set<string>();
-          pairs.forEach(p => hit.add(`${p.functionId}|${p.requirementId}`));
-          return { fnOrder, reqOrder, hit };
-        };
-
-        const { fnOrder, reqOrder, hit } = buildDSMMatrixFromIR(ir);
-
-        const prevTable = (doc as any).lastAutoTable;
-        const firstPageNoBeforeDSM = doc.internal.getNumberOfPages();
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        const dsmTitle = "Function–Requirement DSM";
-        const dsmTitleY = Math.max(24, ((prevTable?.finalY as number) ?? 24) + 10);
-        doc.text(dsmTitle, pageW / 2, dsmTitleY, { align: "center" });
-        const startYDSM = dsmTitleY + 6;
-
-        const dsmHead: (string | CellInput)[][] = [
-          ["Function \\\\ Requirement", ...reqOrder.map(r => (r.text || `[${r.id}]`))]
-        ];
-        const dsmBody: RowInput[] = fnOrder.map(fn => {
-          const row: (string | CellInput)[] = [];
-          row.push(fn.name || "(unnamed function)");
-          if (reqOrder.length === 0) {
-            row.push("(No requirements)");
-          } else {
-            for (const req of reqOrder) row.push(hit.has(`${fn.id}|${req.id}`) ? "X" : "");
-          }
-          return row as RowInput;
-        });
-
-        // column widths & centered block identical to your working code
-        const firstColWidth = 60;
-        const minOtherCol = 12;
-        const maxOtherCol = 28;
-        const computedOther = Math.floor((pageW - 20 - firstColWidth) / Math.max(1, reqOrder.length));
-        const otherColWidth = Math.min(maxOtherCol, Math.max(minOtherCol, computedOther));
-        const dsmColumnStyles: Record<number, any> = { 0: { cellWidth: firstColWidth } };
-        for (let i = 1; i <= reqOrder.length; i++) {
-          dsmColumnStyles[i] = { cellWidth: otherColWidth, halign: "center", valign: "middle" };
-        }
-
-        autoTable(doc, {
-          theme: "grid",
-          startY: startYDSM,
-          head: dsmHead,
-          body: dsmBody,
-          styles: { font: "helvetica", fontSize: 9, cellPadding: 2, overflow: "linebreak", valign: "top" },
-          headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" },
-          columnStyles: dsmColumnStyles,
-          margin: {
-            left: (pageW - (firstColWidth + reqOrder.length * otherColWidth)) / 2,
-            right: 10,
-            top: 30,
-            bottom: 14,
-          },
+          horizontalPageBreak: false,
           didDrawPage: () => {
-            const current = doc.internal.getCurrentPageInfo().pageNumber;
-            if (current > firstPageNoBeforeDSM) {
-              doc.setFont("helvetica", "bold");
-              doc.setFontSize(12);
-              doc.text("Function–Requirement DSM", pageW / 2, 24, { align: "center" });
-            }
-            // Footer on every page
-            const total = doc.getNumberOfPages();
+            drawHeader(zoneLabel);
+            const pageNumber = doc.internal.getNumberOfPages();
             doc.setDrawColor(220);
-            doc.line(10, pageH - 12, pageW - 10, pageH - 12);
+            doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
             doc.setDrawColor(0);
             doc.setFontSize(10);
-            doc.text(`Page ${current} / ${total}`, pageW - 10, pageH - 6, { align: "right" });
+            doc.text(`Page ${pageNumber} / ${doc.getNumberOfPages()}`, pageWidth - 10, pageHeight - 6, { align: "right" });
           },
-
+          rowPageBreak: 'auto',
+          pageBreak: 'auto',
+          didParseCell: (data) => {
+            const cell = data.cell;
+            if (typeof cell.raw === 'string') {
+              const fixed = cell.raw.replace(/(\S{40})/g, '$1\u200B');
+              cell.text = fixed.split('\n');
+            }
+          },
         });
-        setExportPct(Math.round(((i + 1) / total) * 100));
+
+        // ---- DSM starts on a NEW PAGE (same as handleExportCombinedPDF) ----
+        const { fnOrder, reqOrder, hit } = buildDSMMatrixFromForm(data);
+        if (fnOrder.length > 0) {
+          doc.addPage("a3", "landscape");
+          drawHeader(zoneLabel);
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+          const dsmTitle = "Function–Requirement DSM";
+          doc.text(dsmTitle, pageWidth / 2, 24, { align: "center" });
+          const startYDSM = 30;
+
+          // Short keys in header
+          const dsmHead: (string | CellInput)[][] = [
+            ["Function \\ Requirement", ...reqOrder.map((_, i) => `R${i + 1}`)]
+          ];
+
+          const dsmBody: RowInput[] = fnOrder.map(fn => {
+            const row: (string | CellInput)[] = [];
+            row.push(fn.name || "(unnamed function)");
+            if (reqOrder.length === 0) {
+              row.push("(No requirements)");
+            } else {
+              for (const req of reqOrder) {
+                row.push(hit.has(`${fn.id}|${req.id}`) ? "X" : "");
+              }
+            }
+            return row as RowInput;
+          });
+
+          const contentWidthDSM = pageWidth - 20;
+          const firstColWidth = 60;
+          const minOtherCol = 12;
+          const maxOtherCol = 28;
+          const remaining = Math.max(0, contentWidthDSM - firstColWidth);
+          const safePerCol = reqOrder.length > 0 ? Math.floor(remaining / reqOrder.length) : remaining;
+          const otherColWidth = Math.min(maxOtherCol, Math.max(minOtherCol, safePerCol));
+
+          const dsmColumnStyles: Record<number, any> = { 0: { cellWidth: firstColWidth } };
+          for (let ci = 1; ci <= reqOrder.length; ci++) {
+            dsmColumnStyles[ci] = { cellWidth: otherColWidth, halign: "center", valign: "middle" };
+          }
+
+          const dsmTableWidth = firstColWidth + otherColWidth * Math.max(1, reqOrder.length);
+          const side = Math.max(0, (pageWidth - dsmTableWidth) / 2);
+          const dsmMargin = { left: side, right: side };
+
+          autoTable(doc, {
+            theme: "grid",
+            startY: startYDSM,
+            head: dsmHead,
+            body: dsmBody,
+            styles: { font: "helvetica", fontSize: 9, cellPadding: 2, overflow: "linebreak", valign: "top" },
+            headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: "bold" },
+            columnStyles: dsmColumnStyles,
+            margin: { ...dsmMargin, top: safeTopMargin, bottom: safeBottomMargin },
+            didDrawPage: () => {
+              drawHeader(zoneLabel);
+              doc.setFont("helvetica", "bold");
+              doc.setFontSize(12);
+              doc.text("Function–Requirement DSM", pageWidth / 2, 24, { align: "center" });
+
+              const current = doc.internal.getCurrentPageInfo().pageNumber;
+              const total = doc.getNumberOfPages();
+              doc.setDrawColor(220);
+              doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
+              doc.setDrawColor(0);
+              doc.setFontSize(10);
+              doc.text(`Page ${current} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
+            },
+          });
+
+          // Legend (R# → full text) after DSM, continues across pages
+          const afterDSM = (doc as any).lastAutoTable ? ((doc as any).lastAutoTable.finalY as number) + 6 : startYDSM;
+          if (reqOrder.length > 0) {
+            const legendHead: (string | CellInput)[][] = [["Key", "Requirement Text"]];
+            const legendBody: RowInput[] = reqOrder.map((r, i) => [
+              `R${i + 1}`,
+              (r.text && r.text.trim().length > 0) ? r.text : `[${r.id}]`
+            ] as RowInput);
+
+            autoTable(doc, {
+              theme: 'grid',
+              startY: afterDSM,
+              head: legendHead,
+              body: legendBody,
+              styles: { font: 'helvetica', fontSize: 9, cellPadding: 2, overflow: 'linebreak', valign: 'top' },
+              headStyles: { fillColor: [243, 244, 246], textColor: 20, fontStyle: 'bold' },
+              margin: { left: 10, right: 10, top: safeTopMargin, bottom: safeBottomMargin },
+              columnStyles: { 0: { cellWidth: 18, halign: 'center' }, 1: { cellWidth: (pageWidth - 20 - 18) } },
+              didDrawPage: () => {
+                drawHeader(zoneLabel);
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.text("Function–Requirement DSM", pageWidth / 2, 24, { align: "center" });
+
+                const current = doc.internal.getCurrentPageInfo().pageNumber;
+                const total = doc.getNumberOfPages();
+                doc.setDrawColor(220);
+                doc.line(10, pageHeight - 12, pageWidth - 10, pageHeight - 12);
+                doc.setDrawColor(0);
+                doc.setFontSize(10);
+                doc.text(`Page ${current} / ${total}`, pageWidth - 10, pageHeight - 6, { align: "right" });
+              },
+              rowPageBreak: 'auto',
+              pageBreak: 'auto',
+              didParseCell: (data) => {
+                const cell = data.cell;
+                if (typeof cell.raw === 'string') {
+                  const fixed = cell.raw.replace(/(\S{40})/g, '$1\u200B');
+                  cell.text = fixed.split('\n');
+                }
+              },
+            });
+          }
+        }
+
+        // progress
+        setExportPct(Math.round(((i + 1) / zones.length) * 100));
         setExportStep(`Done "${zoneLabel}"`);
         await flush();
       }
@@ -1391,9 +1437,7 @@ export default function Header() {
       const safe = (s: string) => (s || "").replace(/[^\w-]+/g, "_");
       const ts = new Date().toLocaleString().replace(/[^\dA-Za-z]+/g, "-");
       doc.save(`${safe(projectName || "Project")}_ALL_ZONES_${ts}.pdf`);
-      // finally save the PDF
 
-      // doc.save(name);
       setExportStep("Complete");
       setExportPct(100);
     } catch (err: any) {
