@@ -505,17 +505,37 @@ function buildDSMMatrixFromForm(data: FormValues) {
 }
 
 // Read *all* FTA entries saved by your app (same shape you’ve been using)
-function readAllFtasFromLocalStorage(): FtaDumpItem[] {
-  const out: FtaDumpItem[] = [];
+function readAllFtasFromLocalStorage(): { items: FtaDumpItem[]; } {
+  const items: FtaDumpItem[] = [];
+  let selectedFta: { zoneId: string; taskId: string } | undefined;
+
+
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i) || "";
     if (!key.startsWith("fta-")) continue;
-    // key format: fta-${zoneId}::${taskId}
+
+    // key format we expect: fta-${zoneId}::${taskId}
     const id = key.slice(4);
     const [zoneId, taskId] = id.split("::");
-    if (zoneId && taskId) out.push({ zoneId, taskId });
+    if (!zoneId || !taskId) continue;
+
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+
+      // Zustand persist can be { state: {...} } or plain {nodes, edges}
+      const state = parsed?.state ?? parsed;
+      const nodes = state?.nodes ?? [];
+      const edges = state?.edges ?? [];
+      const causeChecks = state?.causeChecks ?? {};
+      items.push({ zoneId, taskId, nodes, edges, causeChecks });
+    } catch {
+      // ignore malformed entries
+    }
   }
-  return out;
+
+  return { items };
 }
 
 export default function Header() {
