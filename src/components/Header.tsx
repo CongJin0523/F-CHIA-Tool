@@ -106,6 +106,39 @@ function ListItem({
 function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
   const rows: any[] = [];
 
+  // ---- de-dup helpers for list-like cells (Deviations / Causes / Consequences / Requirements) ----
+  function _normText(s: any): string {
+    return (typeof s === 'string' ? s : '').trim().replace(/\s+/g, ' ').toLowerCase();
+  }
+
+  function _numberedUniqueFromText(arr?: any[]): string {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    (arr || []).forEach((x: any) => {
+      const t = (x?.text ?? '').toString().trim();
+      const k = _normText(t);
+      if (!t || seen.has(k)) return;
+      seen.add(k);
+      out.push(t);
+    });
+    return out.map((t, i) => `${i + 1}. ${t}`).join("\n");
+  }
+
+  // Prefer requirement.id when present; fallback to normalized text
+  function _numberedUniqueRequirements(arr?: any[]): string {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    (arr || []).forEach((r: any) => {
+      const id = (typeof r?.id === 'string' && r.id.trim()) ? r.id.trim() : undefined;
+      const text = (r?.text ?? '').toString().trim();
+      const key = id || _normText(text);
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      if (text) out.push(text);
+    });
+    return out.map((t, i) => `${i + 1}. ${t}`).join("\n");
+  }
+
   // ---------- Helpers (same logic as ExportStructuredPDFButton) ----------
   function calcPropRowSpan(prop: any): number {
     if (typeof prop?.rowSpan === 'number' && prop.rowSpan > 0) return prop.rowSpan;
@@ -263,25 +296,10 @@ function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
             for (const inter of interpretations) {
               const guide = inter.guideWord ?? "";
 
-              const deviations = (inter.deviations ?? [])
-                .map((d: any, i: number) => (d?.text ? `${i + 1}. ${d.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const causes = (inter.causes ?? [])
-                .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const consequences = (inter.consequences ?? [])
-                .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const requirements = (inter.requirements ?? [])
-                .map((r: any, i: number) => (r?.text ? `${i + 1}. ${r.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
+              const deviations = _numberedUniqueFromText(inter.deviations);
+              const causes = _numberedUniqueFromText(inter.causes);
+              const consequences = _numberedUniqueFromText(inter.consequences);
+              const requirements = _numberedUniqueRequirements(inter.requirements);
 
               const iso = (inter.isoMatches ?? [])
                 .map((i: any) => i.iso_number || i.title || "")
@@ -366,25 +384,10 @@ function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
 
               const guide = repInterp?.guideWord ?? "";
 
-              const deviations = (repInterp?.deviations ?? [])
-                .map((d: any, i: number) => (d?.text ? `${i + 1}. ${d.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const causes = (repInterp?.causes ?? [])
-                .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const consequences = (repInterp?.consequences ?? [])
-                .map((c: any, i: number) => (c?.text ? `${i + 1}. ${c.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
-
-              const requirements = (repInterp?.requirements ?? [])
-                .map((r: any, i: number) => (r?.text ? `${i + 1}. ${r.text}` : ""))
-                .filter(Boolean)
-                .join("\n");
+              const deviations = _numberedUniqueFromText(repInterp?.deviations);
+              const causes = _numberedUniqueFromText(repInterp?.causes);
+              const consequences = _numberedUniqueFromText(repInterp?.consequences);
+              const requirements = _numberedUniqueRequirements(repInterp?.requirements);
 
               const iso = (repInterp?.isoMatches ?? [])
                 .map((i: any) => i.iso_number || i.title || "")
