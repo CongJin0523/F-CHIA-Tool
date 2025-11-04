@@ -134,19 +134,19 @@ export default function ZoneSelecter() {
 
         <Tooltip>
           <TooltipTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={startEdit}
-          disabled={!selected}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p>Edit selected zone</p>
-        </TooltipContent>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={startEdit}
+              disabled={!selected}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>Edit selected zone</p>
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
       {/* Add/Edit Dialog */}
@@ -158,10 +158,13 @@ export default function ZoneSelecter() {
 
           <div className="grid gap-2">
             <Label htmlFor="zone-name">Zone name</Label>
+            <p className="text-xs text-gray-500 italic">
+              Tip: Name the physical or functional area where humans and the machine interact.
+            </p>
             <Input
               id="zone-name"
               autoFocus
-              placeholder={mode === "add" ? "e.g., Packaging Area" : "Rename zone"}
+              placeholder={mode === "add" ? "e.g., Front zone" : "Rename zone"}
               value={name}
               onChange={(e) => { setName(e.target.value); if (err) setErr(null); }}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
