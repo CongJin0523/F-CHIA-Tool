@@ -43,15 +43,7 @@ export function createFtaStore(id: string, initial?: { nodes: FtaNodeTypes[]; ed
       const opts = { ...elkOptions, 'org.eclipse.elk.direction': direction } as const;
 
       try {
-        try {
-          const withRight = edges.filter((e: any) => typeof e.sourceHandle === 'string' && e.sourceHandle.endsWith('-source-right'));
-          console.log('[FTA] edges with -source-right:', withRight.length, withRight);
-        } catch { }
-        const result = await getLayoutedElements(nodes, edges, opts, {
-          mode: 'fta',
-          useInteractivePass: true,       // 默认 true
-          snapRightHandleTargets: true,
-        });
+        const result = await getLayoutedElements(nodes, edges, opts);
         if (result) {
           // Type cast the result to maintain AppNode types
           setNodes(result.nodes as FtaNodeTypes[]);
