@@ -1,4 +1,4 @@
-import { useCallback, useEffect, } from 'react';
+import { useCallback,  } from 'react';
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -11,7 +11,7 @@ export type TopEventNode = Node<{
 }>;
 
 export function TopEventNode({ id, data }: NodeProps<TopEventNode>) {
-  const { setNodes, setEdges, updateNodeData } = useReactFlow();
+  const {  updateNodeData } = useReactFlow();
     const handleText = useCallback(
     (content: string) => {
       updateNodeData(id, { content });  // set content directly
@@ -19,10 +19,6 @@ export function TopEventNode({ id, data }: NodeProps<TopEventNode>) {
     [id, updateNodeData]
   );
 
-  const handleDelete = useCallback(() => {
-    setNodes((nodes) => nodes.filter((node) => node.id !== id));
-    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [id, setNodes, setEdges]);
 
 
 
@@ -36,7 +32,6 @@ export function TopEventNode({ id, data }: NodeProps<TopEventNode>) {
             />
           </BaseNodeContent>
         </BaseNode >
-
       <BaseHandle id={`${id}-source`} type="source" position={Position.Bottom} className="nodrag" />
     </div>
   );

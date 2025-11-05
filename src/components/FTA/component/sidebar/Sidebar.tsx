@@ -13,15 +13,6 @@ export default function NodeSelector() {
   return (
     <aside className="space-y-2 text-sm text-gray-700">
       <div className="font-medium mb-2">You can drag these nodes to the pane on the right.</div>
-
-      {/* Top Event */}
-      {/* <div
-    className="dndnode cursor-move border-2 w-20 border-green-200 bg-green-50 text-xs rounded px-2 py-1 shadow hover:bg-green-200"
-    onDragStart={(event) => onDragStart(event, 'topEvent')}
-    draggable
-  >
-    Top Event
-  </div> */}
       <div className="flex flex-col items-center space-y-1">
         <div
           className="dndnode cursor-move border-2 w-20 h-10 border-green-200 bg-green-50 text-green-800 text-xs rounded px-2 py-1 shadow hover:bg-yellow-200"

@@ -65,7 +65,7 @@ export default function CausesListSidebarGroup() {
   return (
     <SidebarGroup>
       <SidebarGroupLabel className="text-xl font-bold flex justify-center">
-        Causes in Task {taskId ? `(${taskId})` : ""}
+        Causes in Task
       </SidebarGroupLabel>
 
       <SidebarGroupContent>

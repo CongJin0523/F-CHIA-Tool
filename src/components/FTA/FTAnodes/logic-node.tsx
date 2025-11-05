@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+
 import { BaseHandle } from '@/components/base-handle';
 import {
   BaseNode,
@@ -20,11 +20,8 @@ const gateTypes: Record<string, string> = {
   transfer: 'M -20 0 20 0 0 -30 z',
 };
 export function LogicNode({ id, data }: NodeProps<LogicNode>) {
-  const { setNodes, setEdges, updateNodeData } = useReactFlow();
-  const handleDelete = useCallback(() => {
-    setNodes((nodes) => nodes.filter((node) => node.id !== id));
-    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [id, setNodes, setEdges]);
+  const {  updateNodeData } = useReactFlow();
+
 
   // derive gateType from node.data (persisted)
   const gateType = (data.gateType ?? 'or') as keyof typeof gateTypes;
@@ -40,7 +37,6 @@ export function LogicNode({ id, data }: NodeProps<LogicNode>) {
 
   return (
     <div>
-
       <NodeTooltip>
         <NodeTooltipContent position={Position.Right} className="text-center">
           {gateType.replace(/_+/g, ' ').replace(/\w\S*/g, (w) =>                // 匹配每个单词
@@ -64,7 +60,6 @@ export function LogicNode({ id, data }: NodeProps<LogicNode>) {
                 >
                   <g transform="translate(0, 5)">
                     <path d={gateTypes[gateType]} stroke="currentColor" fill="none" strokeWidth={2} />
-
                     {/* 上方立柱 */}
                     <path d="M 0 -30 0 -46" stroke="currentColor" strokeWidth={2} />
                     {/* 下方立柱 */}

@@ -6,31 +6,25 @@ import {
 } from "@/components/base-node";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from '@/components/nodes/subComponents/editable-text';
-import { motion } from 'motion/react';
 export type InterEventNode = Node<{
   content: string;
 }>;
 
 export function InterEventNode({ id, data }: NodeProps<InterEventNode>) {
-  const { setNodes, setEdges, updateNodeData } = useReactFlow();
+  const {  updateNodeData } = useReactFlow();
     const handleText = useCallback(
     (content: string) => {
       updateNodeData(id, { content });  // set content directly
     },
     [id, updateNodeData]
   );
-  const handleDelete = useCallback(() => {
-    setNodes((nodes) => nodes.filter((node) => node.id !== id));
-    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [id, setNodes, setEdges]);
+
 
 
 
   return (
     <div>
-
         <BaseNode className="w-40 border-yellow-200 bg-yellow-50">
-
           <BaseNodeContent>
             <EditableText
               content={data.content}

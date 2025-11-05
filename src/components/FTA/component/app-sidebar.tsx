@@ -1,5 +1,3 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
-import { Checkbox } from "@/components/ui/checkbox"
 import TaskSelectorLocal from '@/components/FTA/component/sidebar/TaskSelectorLocal';
 import {
   Sidebar,
@@ -8,9 +6,6 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import NodeSelector from '@/components/FTA/component/sidebar/Sidebar';
 

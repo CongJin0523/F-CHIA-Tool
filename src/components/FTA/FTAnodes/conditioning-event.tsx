@@ -6,18 +6,12 @@ import {
 } from "@/components/base-node";
 import { type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react';
 import { EditableText } from '@/components/nodes/subComponents/editable-text';
-import { motion } from 'motion/react';
 export type ConEventNode = Node<{
   content: string;
 }>;
 
 export function ConEventNode({ id, data }: NodeProps<ConEventNode>) {
-  const { setNodes, setEdges, updateNodeData } = useReactFlow();
-  const handleDelete = useCallback(() => {
-    setNodes((nodes) => nodes.filter((node) => node.id !== id));
-    setEdges((edges) => edges.filter((edge) => edge.source !== id && edge.target !== id));
-  }, [id, setNodes, setEdges]);
-
+  const {  updateNodeData } = useReactFlow();
   const handleText = useCallback(
     (content: string) => {
       updateNodeData(id, { content });  // set content directly
@@ -27,9 +21,7 @@ export function ConEventNode({ id, data }: NodeProps<ConEventNode>) {
 
   return (
     <div>
-
         <BaseNode className="w-32 aspect-[2/1] rounded-full border-blue-200 bg-blue-50 flex items-center justify-center">
-
           <BaseNodeContent>
             <EditableText
               content={data.content}
