@@ -149,7 +149,7 @@ STRICT RULES:
           text: {
             format: {
               type: "json_schema",
-              name: "iso_standard_matching",
+              name: "standard_matching",
               description: "Match safety requirements to ISO/IEC standards",
               schema: {
                 type: "object",
@@ -233,7 +233,7 @@ STRICT RULES:
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>ISO Standard Matching</DialogTitle>
+          <DialogTitle>Standard Matching</DialogTitle>
           <DialogDescription>
             Provide your OpenAI API key and a safety requirement. Click “Match” to fetch suggested ISO/IEC standards. Then select the items to apply.
           </DialogDescription>

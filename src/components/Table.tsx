@@ -430,7 +430,7 @@ export default function EditableNestedTable() {
                   <TableHead className=" bg-gray-50">Causes</TableHead>
                   <TableHead className=" bg-gray-50">Consequences</TableHead>
                   <TableHead className=" bg-gray-50 min-w-[600px]">Requirements</TableHead>
-                  <TableHead className="bg-gray-50 w-[120px] min-w-[120px]">ISO Standard</TableHead>
+                  <TableHead className="bg-gray-50 w-[120px] min-w-[120px]">Standard</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody >

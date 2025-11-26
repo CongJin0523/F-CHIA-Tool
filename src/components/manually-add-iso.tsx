@@ -89,7 +89,7 @@ export default function AddIsoDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add ISO Manually</DialogTitle>
+          <DialogTitle>Add Standard Manually</DialogTitle>
           <DialogDescription>
             Add an ISO/IEC entry manually. Links are optional; if provided, non-whitelisted links will be ignored.
           </DialogDescription>
@@ -97,7 +97,7 @@ export default function AddIsoDialog({
 
         <div className="space-y-3">
           <div>
-            <Label>ISO Number</Label>
+            <Label>Reference Number</Label>
             <Input
               value={iso}
               onChange={e => setIso(e.target.value)}

@@ -94,7 +94,7 @@ export default function DSM({
       {/* Header */}
       <header className="text-center mb-4">
         <h2 className="text-xl font-bold tracking-tight">
-          Function–Requirement DSM
+          Function–Requirement DMM
         </h2>
         <p className="text-xs text-muted-foreground">
           Cross-reference of functions vs. requirements (X = linked)

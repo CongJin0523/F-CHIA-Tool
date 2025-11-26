@@ -89,7 +89,7 @@ export default function CausesListSidebarGroup() {
                   />
                   <label
                     htmlFor={checkboxId}
-                    className="text-sm leading-snug truncate"
+                    className="text-sm leading-snug"
                     title={c.text}
                   >
                     <span className="font-medium mr-1">C{idx + 1}:</span>

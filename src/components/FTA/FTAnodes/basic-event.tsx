@@ -21,7 +21,7 @@ export function BasicEventNode({ id, data }: NodeProps<BasicEventNode>) {
 
   return (
     <div>
-        <BaseNode className="w-20 h-20 rounded-full border-red-200 bg-red-50 flex items-center justify-center">
+        <BaseNode className="w-30 h-30 rounded-full border-red-200 bg-red-50 flex items-center justify-center">
           <BaseNodeContent>
             <EditableText
               content={data.content}
