@@ -121,6 +121,7 @@ export default function IsoMatchingDialog({
 
     try {
       let respData: any;
+      console.log(mockResponse);
       if (mockResponse) {
         // 测试用的 Mock 数据
         respData = mockResponse;

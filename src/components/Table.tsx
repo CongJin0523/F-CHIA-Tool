@@ -877,7 +877,8 @@ export default function EditableNestedTable() {
                                             }
                                             defaultRequirement={(interpretation.requirements ?? []).map((r, i) => `${i + 1}. ${r.text}`).join("\n")}
                                             onConfirm={addFromAI}
-                                            mockResponse={jsonTest}
+                                            // test
+                                            // mockResponse={jsonTest}
                                           />
 
                                           <AddIsoDialog
@@ -1222,7 +1223,8 @@ export default function EditableNestedTable() {
                                             }
                                             defaultRequirement={(repInterp?.requirements ?? []).map((r: any, i: number) => `${i + 1}. ${r.text}`).join("\n")}
                                             onConfirm={addFromAI}
-                                            mockResponse={jsonTest}
+                                            // test
+                                            // mockResponse={jsonTest}
                                           />
 
                                           <AddIsoDialog
