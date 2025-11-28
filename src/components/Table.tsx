@@ -14,7 +14,7 @@ import type { IR } from "@/common/ir";
 import DMM from "@/components/DMM";
 import jsonTest from "@/common/jsonTest";
 type Update = { id: string; content: string };
-import AddIsoDialog from "@/components/manually-add-iso";
+import AddIsoDialog, { EditIsoDialog } from "@/components/manually-add-iso";
 import { type Edge } from '@xyflow/react';
 import { type FtaNodeTypes } from '@/common/fta-node-type';
 import { getFtaStoreHook } from '@/store/fta-registry';
@@ -846,23 +846,41 @@ export default function EditableNestedTable() {
                                         <div className="space-y-2 flex flex-col">
                                           {selectedIso.length > 0 ? (
                                             <div className="flex flex-wrap gap-2">
-                                              {selectedIso.map((it: any, idx: number) => (
-                                                <span
+                                              {selectedIso.map((it: IsoMatch, idx: number) => (
+                                                <EditIsoDialog
                                                   key={`${it.iso_number}-${idx}`}
-                                                  className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200"
-                                                  title={it.title}
-                                                >
-                                                  {it.iso_number}
-                                                  <button
-                                                    type="button"
-                                                    aria-label="Remove"
-                                                    className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
-                                                    onClick={() => removeAt(idx)}
-                                                    title="remove this ISO"
-                                                  >
-                                                    ×
-                                                  </button>
-                                                </span>
+                                                  value={it}
+                                                  onSave={(updated) => {
+                                                    const next = selectedIso.slice();
+                                                    next[idx] = updated;
+                                                    field.onChange(uniqIso(next));
+                                                  }}
+                                                  trigger={
+                                                    <span
+                                                      className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200 cursor-pointer"
+                                                      title={it.title}
+                                                      onDoubleClick={(e) => {
+                                                        // 让 double-click 触发 DialogTrigger
+                                                        e.preventDefault();
+                                                        (e.currentTarget as HTMLElement).click();
+                                                      }}
+                                                    >
+                                                      {it.iso_number}
+                                                      <button
+                                                        type="button"
+                                                        aria-label="Remove"
+                                                        className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
+                                                        onClick={(event) => {
+                                                          event.stopPropagation(); // 防止删的时候也触发 dialog
+                                                          removeAt(idx);
+                                                        }}
+                                                        title="remove this ISO"
+                                                      >
+                                                        ×
+                                                      </button>
+                                                    </span>
+                                                  }
+                                                />
                                               ))}
                                             </div>
                                           ) : (
@@ -877,8 +895,8 @@ export default function EditableNestedTable() {
                                             }
                                             defaultRequirement={(interpretation.requirements ?? []).map((r, i) => `${i + 1}. ${r.text}`).join("\n")}
                                             onConfirm={addFromAI}
-                                            // test
-                                            // mockResponse={jsonTest}
+                                          // test
+                                          // mockResponse={jsonTest}
                                           />
 
                                           <AddIsoDialog
@@ -1223,8 +1241,8 @@ export default function EditableNestedTable() {
                                             }
                                             defaultRequirement={(repInterp?.requirements ?? []).map((r: any, i: number) => `${i + 1}. ${r.text}`).join("\n")}
                                             onConfirm={addFromAI}
-                                            // test
-                                            // mockResponse={jsonTest}
+                                          // test
+                                          // mockResponse={jsonTest}
                                           />
 
                                           <AddIsoDialog

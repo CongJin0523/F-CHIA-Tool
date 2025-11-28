@@ -146,3 +146,129 @@ export default function AddIsoDialog({
     </Dialog>
   );
 }
+export function EditIsoDialog({
+  trigger,
+  value,
+  onSave,
+}: {
+  trigger: React.ReactNode;
+  value: IsoMatch;
+  onSave: (item: IsoMatch) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const [reason, setReason] = React.useState(value.reason || "");
+  const [linksRaw, setLinksRaw] = React.useState((value.links || []).join("\n"));
+  const [warning, setWarning] = React.useState("");
+  const [error, setError] = React.useState("");
+
+  // 打开时，同步当前记录内容
+  React.useEffect(() => {
+    if (!open) return;
+    setReason(value.reason || "");
+    setLinksRaw((value.links || []).join("\n"));
+    setWarning("");
+    setError("");
+  }, [open, value]);
+
+  const handleSave = () => {
+    setWarning("");
+    setError("");
+
+    // links 依然是可选
+    const rawList = linksRaw
+      .split(/[\n,;]/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const whitelisted = rawList.filter(isWL);
+
+    if (rawList.length > 0) {
+      if (whitelisted.length === 0) {
+        setWarning(
+          "No link passed the whitelist (iso.org / webstore.iec.ch / BSI / ANSI / Techstreet / DIN / SIS). The item will be saved without links."
+        );
+      } else if (whitelisted.length < rawList.length) {
+        setWarning(
+          "Some links were removed because they are not in the whitelist."
+        );
+      }
+    }
+
+    onSave({
+      ...value,
+      reason: reason.trim() || value.reason || "(Manual edit)",
+      links: whitelisted,
+    });
+
+    setOpen(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>View / Edit Standard</DialogTitle>
+          <DialogDescription>
+            You can review this ISO/IEC entry and update the rationale or links.
+            The reference number and title are fixed.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <Label>Reference Number</Label>
+            <Input
+              value={value.iso_number}
+              disabled
+              readOnly
+              className="bg-muted cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={value.title}
+              disabled
+              readOnly
+              className="bg-muted cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <Label>Reason</Label>
+            <Textarea
+              rows={3}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Why does this standard match the requirement?"
+            />
+          </div>
+
+          <div>
+            <Label>Links (optional; comma/semicolon/newline separated)</Label>
+            <Textarea
+              rows={3}
+              value={linksRaw}
+              onChange={(e) => setLinksRaw(e.target.value)}
+              placeholder="https://www.iso.org/standard/..., https://webstore.iec.ch/en/publication/..."
+            />
+          </div>
+
+          {error && <div className="text-sm text-red-600">{error}</div>}
+          {warning && !error && (
+            <div className="text-sm text-amber-600">{warning}</div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave}>Save</Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
