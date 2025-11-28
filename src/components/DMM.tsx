@@ -77,7 +77,7 @@ function buildMatrix(data: IR) {
   return { fnOrder, reqOrder, hit, pairs };
 }
 
-export default function DSM({
+export default function DMM({
   data,
   fileBase = "function-requirement-matrix",
   showIds = false,
@@ -110,7 +110,7 @@ export default function DSM({
           <thead>
             <tr className="bg-gray-100">
               {/* First column: functions */}
-              <th className="w-[260px] border px-3 py-2 text-left whitespace-nowrap bg-white">
+              <th className="w-[260px] border px-3 py-2 text-left whitespace-nowrap bg-white sticky left-0 z-20">
                 Function \ Requirement
               </th>
 
@@ -153,7 +153,7 @@ export default function DSM({
               fnOrder.map((fn) => (
                 <tr key={fn.id}>
                   {/* Function name column (fixed width) */}
-                  <td className="w-[260px] border px-3 py-2 whitespace-nowrap bg-gray-50 align-top">
+                  <td className="w-[260px] border px-3 py-2 whitespace-nowrap bg-gray-50 align-top sticky left-0 z-10">
                     <div className="font-medium text-sm truncate" title={fn.name}>
                       {fn.name || "(unnamed function)"}
                     </div>

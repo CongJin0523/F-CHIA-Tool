@@ -141,8 +141,8 @@ STRICT RULES:
       const resp = await axios.post(
         OPENAI_ENDPOINT,
         {
-          model: "gpt-5-mini",
-          tools: [{ type: "web_search_preview", search_context_size: "low" }],
+          model: "gpt-5-nano",
+          tools: [{ type: "web_search", search_context_size: "low" }],
           input: [
             { role: "system", content: system },
             { role: "user", content: user },

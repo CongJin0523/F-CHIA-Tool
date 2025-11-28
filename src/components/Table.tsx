@@ -11,7 +11,7 @@ import { useZoneStore } from "@/store/zone-store";
 import { getGraphStoreHook } from '@/store/graph-registry';
 import IsoMatchingDialog from "@/components/iso-matching-dialog";
 import type { IR } from "@/common/ir";
-import DSM from "@/components/DSM";
+import DMM from "@/components/DMM";
 import jsonTest from "@/common/jsonTest";
 type Update = { id: string; content: string };
 import AddIsoDialog from "@/components/manually-add-iso";
@@ -1269,7 +1269,7 @@ export default function EditableNestedTable() {
         <Button type="submit">Save Changes</Button>
       </div>
       <div className="mt-4">
-        <DSM data={defaultValues} />
+        <DMM data={defaultValues} />
       </div>
       <ExportTextPDFButton
         zoneDescription={zoneDescription}
