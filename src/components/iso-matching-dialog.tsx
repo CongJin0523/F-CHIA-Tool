@@ -28,16 +28,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { LINK_WHITELIST, type ResultItem } from "@/common/iso-match-tool"; 
+import { useZoneStore } from "@/store/zone-store";
 const OPENAI_ENDPOINT = "https://api.openai.com/v1/responses";
 
 
 
-// export type ResultItem = {
-//   iso_number: string;
-//   title: string;
-//   reason: string;
-//   links: string[];
-// };
 
 type ResultPayload = {
   items: ResultItem[];
@@ -90,6 +85,7 @@ export interface IsoMatchingDialogProps {
 export default function IsoMatchingDialog({
   trigger,
   defaultRequirement = "",
+  
   onConfirm,
   mockResponse,
 }: IsoMatchingDialogProps) {
@@ -100,7 +96,7 @@ export default function IsoMatchingDialog({
   const [raw, setRaw] = useState("");
   const [items, setItems] = useState<ResultItem[]>([]);
   const [error, setError] = useState("");
-
+  const projectName = useZoneStore((state) => state.projectName);
   const canMatch = useMemo(
     () => !!apiKey && !!requirement && !loading,
     [apiKey, requirement, loading]
@@ -136,13 +132,18 @@ STRICT RULES:
 - Return data that matches the provided JSON schema exactly.
       `.trim();
 
-      const user = `Safety Requirement:\n"${requirement}"`;
+      const user = `Project name: "${projectName}"\nSafety Requirement:\n"${requirement}"`;
 
       const resp = await axios.post(
         OPENAI_ENDPOINT,
         {
           model: "gpt-5-nano",
-          tools: [{ type: "web_search", search_context_size: "low" }],
+          tools: [{ 
+            type: "web_search", 
+            search_context_size: "low",
+            filters: {
+              allowed_domains: LINK_WHITELIST,
+            } }],
           input: [
             { role: "system", content: system },
             { role: "user", content: user },
@@ -151,7 +152,7 @@ STRICT RULES:
             format: {
               type: "json_schema",
               name: "standard_matching",
-              description: "Match safety requirements to ISO/IEC standards",
+              description: "Match safety requirements to ISO/IEC/EN standards",
               schema: {
                 type: "object",
                 properties: {
@@ -236,7 +237,7 @@ STRICT RULES:
         <DialogHeader>
           <DialogTitle>Standard Matching</DialogTitle>
           <DialogDescription>
-            Provide your OpenAI API key and a safety requirement. Click “Match” to fetch suggested ISO/IEC standards. Then select the items to apply.
+            Provide your OpenAI API key and a safety requirement. Click “Match” to fetch suggested ISO/IEC/EN standards. Then select the items to apply.
           </DialogDescription>
         </DialogHeader>
 

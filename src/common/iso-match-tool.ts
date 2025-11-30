@@ -6,6 +6,11 @@ export const LINK_WHITELIST = [
   "techstreet.com",
   "din.de",
   "sis.se",
+  "standards.iteh.ai",
+  "cen.eu",
+  "cenelec.eu",
+  "etsi.org",
+  "en-standard.eu",
 ];
 
 export type ResultItem = {
