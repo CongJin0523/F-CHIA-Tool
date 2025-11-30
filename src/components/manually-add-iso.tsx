@@ -87,7 +87,7 @@ export default function AddIsoDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Add Standard Manually</DialogTitle>
           <DialogDescription>
@@ -95,22 +95,24 @@ export default function AddIsoDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-3 w-full max-w-[600px] mx-auto">
           <div>
             <Label>Reference Number</Label>
             <Input
               value={iso}
               onChange={e => setIso(e.target.value)}
               placeholder="e.g., ISO 10218-1:2025"
+              className="w-full"
             />
           </div>
 
           <div>
             <Label>Title</Label>
-            <Input
+            <Textarea
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Standard title"
+              className="resize-none w-full"
             />
           </div>
 
@@ -121,16 +123,18 @@ export default function AddIsoDialog({
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="Why does this standard match the requirement?"
+              className="resize-none w-full"
             />
           </div>
 
-          <div>
+          <div >
             <Label>Links (optional; comma/semicolon/newline separated)</Label>
             <Textarea
               rows={3}
               value={linksRaw}
               onChange={e => setLinksRaw(e.target.value)}
               placeholder="https://www.iso.org/standard/..., https://webstore.iec.ch/en/publication/..."
+              className="resize-none w-full"
             />
           </div>
 
@@ -206,7 +210,7 @@ export function EditIsoDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>View / Edit Standard</DialogTitle>
           <DialogDescription>
@@ -215,7 +219,7 @@ export function EditIsoDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <div className="space-y-3 w-full max-w-[600px] mx-auto">
           <div>
             <Label>Reference Number</Label>
             <Input
@@ -228,11 +232,11 @@ export function EditIsoDialog({
 
           <div>
             <Label>Title</Label>
-            <Input
+            <Textarea
               value={value.title}
               disabled
               readOnly
-              className="bg-muted cursor-not-allowed"
+              className="bg-muted cursor-not-allowed resize-none w-full"
             />
           </div>
 
@@ -243,6 +247,7 @@ export function EditIsoDialog({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Why does this standard match the requirement?"
+              className="resize-none w-full"
             />
           </div>
 
@@ -253,6 +258,7 @@ export function EditIsoDialog({
               value={linksRaw}
               onChange={(e) => setLinksRaw(e.target.value)}
               placeholder="https://www.iso.org/standard/..., https://webstore.iec.ch/en/publication/..."
+              className="resize-none w-full"
             />
           </div>
 

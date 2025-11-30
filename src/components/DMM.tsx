@@ -104,7 +104,7 @@ export default function DMM({
       {/* Centered container + max width cap */}
       <div
         ref={tableRef}
-        className="mx-auto w-full max-w-[1100px] overflow-x-auto rounded-md border bg-background"
+        className="mx-auto w-4/5 overflow-x-auto rounded-md border bg-background"
       >
         <table className="table-fixed w-full border-collapse">
           <thead>
