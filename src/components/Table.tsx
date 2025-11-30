@@ -78,6 +78,18 @@ function collectGraphUpdatesFromForm(data: FormValues): Update[] {
   return updates;
 }
 
+// --- Helper: dedupe ISO matches by iso_number and title (first-wins) ---
+function dedupeIsoMatches(list: IsoMatch[] | undefined): IsoMatch[] {
+  if (!Array.isArray(list)) return [];
+  const m = new Map<string, IsoMatch>();
+  for (const it of list) {
+    if (!it) continue;
+    const key = `${it.iso_number}::${it.title}`;
+    if (!m.has(key)) m.set(key, it);
+  }
+  return Array.from(m.values());
+}
+
 function collectIsoMatchesFromForm(data: FormValues) {
   const map = new Map<string, IsoMatch[]>();
 
@@ -87,13 +99,23 @@ function collectIsoMatchesFromForm(data: FormValues) {
         for (const prop of real.properties ?? []) {
           for (const inter of prop.interpretations ?? []) {
             if (!inter?.guideWordId) continue;
-            const list = inter.isoMatches ?? [];
-            map.set(inter.guideWordId, list);
+            const key = inter.guideWordId as string;
+
+            // IMPORTANT: for merged-property cells there can be multiple
+            // interpretations with the same guideWordId. We only want to
+            // take the first occurrence (the one the UI actually edits),
+            // otherwise later duplicates with stale isoMatches will
+            // overwrite the user edits and look like a "rollback".
+            if (map.has(key)) continue;
+
+            const list = dedupeIsoMatches(inter.isoMatches);
+            map.set(key, list);
           }
         }
       }
     }
   }
+
   return map;
 }
 function ensureTopEvent(zoneId: string, taskId: string, taskName: string) {
@@ -1210,23 +1232,40 @@ export default function EditableNestedTable() {
                                         <div className="space-y-2 flex flex-col">
                                           {selectedIso.length > 0 ? (
                                             <div className="flex flex-wrap gap-2">
-                                              {selectedIso.map((it: any, idx: number) => (
-                                                <span
+                                              {selectedIso.map((it: IsoMatch, idx: number) => (
+                                                <EditIsoDialog
                                                   key={`${it.iso_number}-${idx}`}
-                                                  className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200"
-                                                  title={it.title}
-                                                >
-                                                  {it.iso_number}
-                                                  <button
-                                                    type="button"
-                                                    aria-label="Remove"
-                                                    className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
-                                                    onClick={() => removeAt(idx)}
-                                                    title="remove this ISO"
-                                                  >
-                                                    ×
-                                                  </button>
-                                                </span>
+                                                  value={it}
+                                                  onSave={(updated) => {
+                                                    const next = selectedIso.slice();
+                                                    next[idx] = updated;
+                                                    field.onChange(uniqIso(next));
+                                                  }}
+                                                  trigger={
+                                                    <span
+                                                      className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200 cursor-pointer"
+                                                      title={it.title}
+                                                      onDoubleClick={(e) => {
+                                                        e.preventDefault();
+                                                        (e.currentTarget as HTMLElement).click();
+                                                      }}
+                                                    >
+                                                      {it.iso_number}
+                                                      <button
+                                                        type="button"
+                                                        aria-label="Remove"
+                                                        className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
+                                                        onClick={(event) => {
+                                                          event.stopPropagation();
+                                                          removeAt(idx);
+                                                        }}
+                                                        title="remove this ISO"
+                                                      >
+                                                        ×
+                                                      </button>
+                                                    </span>
+                                                  }
+                                                />
                                               ))}
                                             </div>
                                           ) : (
@@ -1235,19 +1274,27 @@ export default function EditableNestedTable() {
 
                                           <IsoMatchingDialog
                                             trigger={
-                                              <Button type="button" disabled={!hasReq} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                              <Button
+                                                type="button"
+                                                disabled={!hasReq}
+                                                size="sm"
+                                                className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5"
+                                              >
                                                 Matching(AI)
                                               </Button>
                                             }
                                             defaultRequirement={(repInterp?.requirements ?? []).map((r: any, i: number) => `${i + 1}. ${r.text}`).join("\n")}
                                             onConfirm={addFromAI}
-                                          // test
-                                          // mockResponse={jsonTest}
                                           />
 
                                           <AddIsoDialog
                                             trigger={
-                                              <Button type="button" disabled={!hasReq} size="sm" className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5">
+                                              <Button
+                                                type="button"
+                                                disabled={!hasReq}
+                                                size="sm"
+                                                className="px-1.5 py-1.5 text-xs font-normal leading-none h-auto w-auto mx-5"
+                                              >
                                                 Add Manually
                                               </Button>
                                             }
