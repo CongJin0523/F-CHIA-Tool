@@ -628,9 +628,9 @@ export default function Header() {
     const zoneDescription = zoneNode?.data?.content || "";
 
     // ---- 1) Capture Flow Image (dataURL) using viewport transform ----
-    const imageWidth = 4096;
-    const imageHeight = 2160;
-    const DPR = Math.min(4, (window.devicePixelRatio || 1) * 2);
+    const imageWidth = 1920;
+    const imageHeight = 1080;
+    const DPR = Math.min(3, (window.devicePixelRatio || 1) * 2);
 
     // compute viewport from nodes bounds
     const rfNodes: any[] = (nodes || []).map((n: any) => ({
@@ -648,14 +648,16 @@ export default function Header() {
     }));
 
     const rawBounds = getNodesBounds(rfNodes as any);
-    const extraPad = 64; // 额外留白（像素）
+    const extraPad = 32; // 额外留白（像素）
     const bounds = {
       x: rawBounds.x - extraPad,
       y: rawBounds.y - extraPad,
       width: rawBounds.width + extraPad * 2,
       height: rawBounds.height + extraPad * 2,
     };
-    const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.2);
+
+    console.log("Computed nodes bounds for export:", rawBounds, "=> with padding:", bounds);
+    const viewport = getViewportForBounds(bounds,imageWidth ,imageHeight , 0.2);
 
     const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
     if (!viewportEl) {
@@ -857,7 +859,7 @@ export default function Header() {
         );
 
         autoTable(doc, {
-          theme: "grid",
+          theme: "plain",
           startY: Math.max(firstTableStartY, afterIntroY),
           head: headRows,
           body: rows,
@@ -1111,9 +1113,9 @@ export default function Header() {
         await flush();
 
         // Capture the whole graph using the same viewport transform method as handleExportCombinedPDF
-        const imageWidth = 4096;
-        const imageHeight = 2160;
-        const DPR = Math.min(4, (window.devicePixelRatio || 1) * 2);
+        const imageWidth = 1920;
+        const imageHeight = 1080;
+        const DPR = Math.min(3, (window.devicePixelRatio || 1) * 2);
 
         // Get current zone graph and compute bounds from measured node sizes
         const gstate = getGraphStoreHook(z.id).getState();
@@ -1133,14 +1135,14 @@ export default function Header() {
         }));
 
         const rawBounds = getNodesBounds(rfNodes as any);
-        const extraPad = 64; // leave some breathing room
+        const extraPad = 32; // leave some breathing room
         const bounds = {
           x: rawBounds.x - extraPad,
           y: rawBounds.y - extraPad,
           width: rawBounds.width + extraPad * 2,
           height: rawBounds.height + extraPad * 2,
         };
-        const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.2);
+        const viewport = getViewportForBounds(bounds, imageWidth , imageHeight , 0.2);
 
         const viewportEl = document.querySelector(".react-flow__viewport") as HTMLElement | null;
         if (!viewportEl) {
@@ -1299,7 +1301,7 @@ export default function Header() {
         );
 
         autoTable(doc, {
-          theme: "grid",
+          theme: "plain",
           startY: Math.max(firstTableStartY, afterIntroY),
           head: headRows,
           body: rows,
