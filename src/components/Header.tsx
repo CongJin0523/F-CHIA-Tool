@@ -628,8 +628,8 @@ export default function Header() {
     const zoneDescription = zoneNode?.data?.content || "";
 
     // ---- 1) Capture Flow Image (dataURL) using viewport transform ----
-    const imageWidth = 1920;
-    const imageHeight = 1080;
+    const imageWidth = 2560;
+    const imageHeight = 1440;
     const DPR = Math.min(3, (window.devicePixelRatio || 1) * 2);
 
     // compute viewport from nodes bounds
@@ -648,7 +648,7 @@ export default function Header() {
     }));
 
     const rawBounds = getNodesBounds(rfNodes as any);
-    const extraPad = 32; // 额外留白（像素）
+    const extraPad = 32; 
     const bounds = {
       x: rawBounds.x - extraPad,
       y: rawBounds.y - extraPad,

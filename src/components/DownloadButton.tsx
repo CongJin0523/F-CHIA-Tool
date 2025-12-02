@@ -22,9 +22,9 @@ function downloadImage(dataUrl, zoneName: string) {
   a.click();
 }
 
-const imageWidth = 4096;
-const imageHeight = 2160;
-const DPR = Math.min(4, (window.devicePixelRatio || 1) * 2);
+const imageWidth = 2560;
+const imageHeight = 1440;
+const DPR = Math.min(3, (window.devicePixelRatio || 1) * 2);
 
 function DownloadButton() {
 
@@ -37,8 +37,15 @@ function DownloadButton() {
     // we calculate a transform for the nodes so that all nodes are visible
     // we then overwrite the transform of the `.react-flow__viewport` element
     // with the style option of the html-to-image library
-    const nodesBounds = getNodesBounds(getNodes());
-    const viewport = getViewportForBounds(nodesBounds, imageWidth, imageHeight, 0.5, 2);
+    const rawBounds = getNodesBounds(getNodes());
+    const extraPad = 16; 
+    const bounds = {
+      x: rawBounds.x - extraPad,
+      y: rawBounds.y - extraPad,
+      width: rawBounds.width + extraPad * 2,
+      height: rawBounds.height + extraPad * 2,
+    };
+    const viewport = getViewportForBounds(bounds, imageWidth, imageHeight, 0.5, 2);
 
 
     const selected = zones.find((z) => z.id === selectedId);
@@ -65,8 +72,8 @@ function DownloadButton() {
 
     const badge = document.createElement('div');
     badge.style.position = 'absolute';
-    badge.style.top = '0';
-    badge.style.left = '0';
+    badge.style.top = '20px';
+    badge.style.left = '100px';
     badge.style.padding = '3px 12px';
     badge.style.borderRadius = '3px';
     badge.style.background = 'rgba(240, 240, 240, 0.95)';
