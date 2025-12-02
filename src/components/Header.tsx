@@ -9,6 +9,7 @@ import type { FormValues } from "@/common/types";
 import { useRef, useState, useEffect } from "react";
 import { graphToIR } from "@/common/graphToIR";
 import { deriveRowSpans } from "@/common/deriveRowSpans";
+import githubIcon from '@/icon/github-mark.svg'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -1862,7 +1863,7 @@ export default function Header() {
             className="ml-2 inline-flex items-center gap-1 text-m hover:text-primary transition-colors"
             title="GitHub Repository"
           >
-            <img src="src/icon/github-mark.svg" alt="GitHub" className="w-5 h-5" />
+            <img src={githubIcon} alt="GitHub" className="w-5 h-5" />
             <span className="hidden md:inline font-bold">GitHub</span>
           </a>
         </div>
