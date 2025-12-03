@@ -14,9 +14,9 @@ import { NavLink, useLocation, useNavigate } from "react-router";
 import { grey } from '@mui/material/colors';
 const color = grey[500];
 const steps = [
-  { label: "Hazard Identification", description: "For each ad campaign that you create, you can control how much you're willing to spend...", path: "/diagram" },
-  { label: "Check and Standard Matching", description: "An ad group contains one or more ads which target a shared set of keywords.", path: "/table" },
-  { label: "FTA", description: "Try out different ad text to see what brings in the most customers...", path: "/fta" },
+  { label: "Hazard Identification", description: "Function-centric hazard identificatio", path: "/diagram" },
+  { label: "Check and Standard Matching", description: "Review results and match requirements with safety standards", path: "/table" },
+  { label: "FTA", description: "Build fault trees and analyze hazard causes", path: "/fta" },
 ];
 
 export default function NonLinearStepper() {
@@ -128,7 +128,7 @@ export default function NonLinearStepper() {
             size="small"
             onClick={() => setOpen(false)}
             sx={{
-              position: "absolute", 
+              position: "absolute",
               right: 200,
               top: "50%",
               transform: "translateY(-50%)",
@@ -165,7 +165,8 @@ export default function NonLinearStepper() {
 
           {allStepsCompleted() ? (
             <Paper square elevation={0} sx={{ p: 2, mt: 2 }}>
-              <Typography>All steps completed — you&apos;re finished</Typography>
+              <Typography>All steps completed — you can now export your project data or report from the
+                <strong> File </strong> menu above.</Typography>
               <Button onClick={handleReset} sx={{ mt: 1, mr: 1 }}>
                 Reset
               </Button>
