@@ -9,7 +9,6 @@ import { Sparkles, Plus } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState, NodeToolbar } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { useDgStore } from '@/store/dg-store';
 export type RealizationNode = Node<{
   content: string;
 }>;

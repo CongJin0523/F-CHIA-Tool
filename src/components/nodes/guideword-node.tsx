@@ -8,7 +8,6 @@ import {
 import { Quote, Plus } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState, NodeToolbar } from '@xyflow/react';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { useDgStore } from '@/store/dg-store';
 import {
   Select,
   SelectContent,

@@ -8,7 +8,6 @@ import { elkOptions, getLayoutedElements } from '@/common/layout-func';
 import type { AppState, AppNode } from '@/common/types';
 import ShortUniqueId from 'short-uuid';
 import React, { useCallback, useEffect } from 'react';
-import type { GraphStore } from '@/store/graph-store';
 
 const selector = (s: AppState) => ({
   nodes: s.nodes,

@@ -12,7 +12,6 @@ import { getGraphStoreHook } from '@/store/graph-registry';
 import IsoMatchingDialog from "@/components/iso-matching-dialog";
 import type { IR } from "@/common/ir";
 import DMM from "@/components/DMM";
-import jsonTest from "@/common/jsonTest";
 type Update = { id: string; content: string };
 import AddIsoDialog, { EditIsoDialog } from "@/components/manually-add-iso";
 import { type Edge } from '@xyflow/react';

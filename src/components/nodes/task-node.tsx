@@ -9,7 +9,6 @@ import { ClipboardCheck, Plus } from "lucide-react";
 import { type Node, type NodeProps, Position, useReactFlow, type ConnectionState, NodeToolbar } from '@xyflow/react';
 import { EditableText } from './subComponents/editable-text';
 import { NodeHeader } from "@/components/nodes/subComponents/node-header";
-import { useDgStore } from '@/store/dg-store';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 import {
   NodeTooltip,

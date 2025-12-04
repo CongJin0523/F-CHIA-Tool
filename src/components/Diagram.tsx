@@ -14,7 +14,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { nodeTypes, type NodeKey, getNextNodeType } from '@/common/node-type';
 import DownloadButton from '@/components/DownloadButton';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import useDgStore from '@/store/dg-store';
 import { toast } from "sonner"
 import { useStore } from 'zustand';
 import ShortUniqueId from 'short-uuid';
