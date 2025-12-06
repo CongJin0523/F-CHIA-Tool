@@ -20,8 +20,8 @@ You can access the tool online here:
   👉 https://congjin0523.github.io/docs  
   👉 Or refer to: [`docs/md/guidance.md`](docs/md/guidance.md)
 
-- **Examples** (Sample F-CHIA diagrams and analysis results):  
-  👉 https://congjin0523.github.io/docs
+- **Examples** (Sample JSON data, analysis results pdf and fta):  
+  👉 [`docs/example`](docs/example)
 
 ---
 
@@ -48,8 +48,7 @@ You can access the tool online here:
 - Auto-constrained node creation (enforces correct F-CHIA steps)  
 - Function–Requirement DMM traceability  
 - Integrated Fault Tree Analysis (FTA) generation  
-- Automatic layout using ELK.js  
-- Export to JSON, PNG, SVG, PDF  
+- Export to JSON, PDF
 - Tooltips, validation, and guided node creation  
 - Powered by Zustand + Immer for state management  
 
@@ -88,7 +87,7 @@ This project is implemented as a pure frontend **Single Page Application (SPA)**
 ---
 
 ## 📸 Screenshots
-
+<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/overall-layout.png" />
 
 ---
 
