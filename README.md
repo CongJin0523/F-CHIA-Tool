@@ -87,7 +87,7 @@ This project is implemented as a pure frontend **Single Page Application (SPA)**
 ---
 
 ## 📸 Screenshots
-<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/overall-layout.png" />
+<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/overall-layout.png" width="400"/>
 
 <img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/table.png" width="400"/>
 
