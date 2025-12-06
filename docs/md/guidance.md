@@ -19,6 +19,7 @@ A new project comes with a default base zone.
 Users may modify the zone, create new zones, or switch zones using the Zone Selector.
 
 Follow the workflow in the diagram below to perform the F-CHIA analysis:
+
 <img src="../image/flow-chart.png" width="400"/>
 Each step in this workflow is represented as a node in the tool.
 A typical node structure looks like this:
@@ -33,6 +34,7 @@ For example, a *Zone Node* will automatically create a Task Node, reducing the n
 Users can also create edges by dragging to connect related nodes:
 
 <img src="../image/add_edge.gif" width="400"/>
+
 If an invalid connection is attempted, the tool will block it and display an error message:
 
 <img src="../image/error-edge.gif" width="200"/>
@@ -40,6 +42,7 @@ If an invalid connection is attempted, the tool will block it and display an err
 ## Table
 After completing the analysis for a zone, users can navigate to the Table Workspace via the **stepper** or **Go To → Table**.
 <img src="../image/table.png" width="400"/>
+
 Here, the results of the analysis are displayed clearly, and the Function–Requirement DMM helps users quickly understand the relationships between functions and requirements, making it easy to verify whether they are reasonable.
 The tool can also utilize the OpenAI API to perform an initial filtering of safety standards relevant to each requirement, helping users quickly identify which standards may apply.
 
