@@ -1,69 +1,98 @@
-# React + TypeScript + Vite
+# F-CHIA Tool
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+![Status](https://img.shields.io/badge/status-active-blue)
+![Build](https://img.shields.io/badge/build-Vite-646CFF)
+![React](https://img.shields.io/badge/React-19-61DAFB)
 
-Currently, two official plugins are available:
+A diagram-driven implementation of the **Function-Centered Hazard Identification Approach (F-CHIA)**, enhanced with a **Design Matrix Model (DMM)** and fully visualized through **React Flow**.  
+The tool transforms the original document-based methodology into a structured, interactive workflow that enforces correct analysis steps and improves traceability between functions and requirements.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+You can access the tool online here:
 
-## Expanding the ESLint configuration
+👉 **https://congjin0523.github.io**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 📚 Documentation
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- **User Guidance** (How to use the tool):  
+  👉 https://congjin0523.github.io/docs  
+  👉 Or refer to: [`docs/md/guidance.md`](docs/md/guidance.md)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- **Examples** (Sample F-CHIA diagrams and analysis results):  
+  👉 https://congjin0523.github.io/docs
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 📖 Table of Contents
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- [F-CHIA Tool](#f-chia-tool)
+  - [📚 Documentation](#-documentation)
+  - [📖 Table of Contents](#-table-of-contents)
+  - [🚀 Features](#-features)
+  - [🛠 Tech Stack](#-tech-stack)
+    - [Frontend](#frontend)
+    - [UI](#ui)
+    - [Data \& State](#data--state)
+    - [Visualization](#visualization)
+    - [Routing \& Utilities](#routing--utilities)
+  - [📸 Screenshots](#-screenshots)
+  - [📄 License](#-license)
+
+---
+
+## 🚀 Features
+
+- Visual F-CHIA workflow using React Flow  
+- Auto-constrained node creation (enforces correct F-CHIA steps)  
+- Function–Requirement DMM traceability  
+- Integrated Fault Tree Analysis (FTA) generation  
+- Automatic layout using ELK.js  
+- Export to JSON, PNG, SVG, PDF  
+- Tooltips, validation, and guided node creation  
+- Powered by Zustand + Immer for state management  
+
+---
+
+## 🛠 Tech Stack
+
+This project is implemented as a pure frontend **Single Page Application (SPA)** using the technologies below.
+### Frontend
+- [React 19](https://react.dev/) - UI framework for building modern web interfaces  
+- [TypeScript](https://www.typescriptlang.org/) - Static typing for safer and more maintainable code  
+- [Vite](https://vitejs.dev/) - Fast development server and build tooling
+
+### UI
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework for rapid UI development  
+- [Radix UI](https://www.radix-ui.com/primitives/docs/overview/introduction) - Accessible UI primitives for React  
+- [shadcn/ui](https://ui.shadcn.com/) - Composable UI components built on Radix primitives
+
+### Data & State
+- [Zustand](https://github.com/pmndrs/zustand) - State management for zones, graphs, tables, and FTAs  
+- [Immer](https://immerjs.github.io/immer/) - Immutable updates with a mutable API
+
+### Visualization
+- [React Flow](https://reactflow.dev/) - Graph visualization and interactive node editing  
+- [ELK.js](https://www.npmjs.com/package/elkjs) - Automatic graph layout engine  
+- [html-to-image](https://github.com/bubkoo/html-to-image) - Convert React components to images  
+- [jsPDF](https://github.com/parallax/jsPDF) - Generate PDF reports from exported visuals
+
+### Routing & Utilities
+- [React Router 7](https://reactrouter.com/) - Client-side routing for SPA navigation  
+- [axios](https://axios-http.com/) - HTTP client for API communication  
+- [react-hook-form](https://react-hook-form.com/) - Lightweight form management with React hooks  
+- [zod](https://zod.dev/) - Runtime schema validation and type inference
+
+
+---
+
+## 📸 Screenshots
+
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.  
+See the full license here: [LICENSE](./LICENSE)
