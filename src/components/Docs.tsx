@@ -14,7 +14,7 @@ export default function Docs() {
       <article id="docs-content" className="prose max-w-none dark:prose-invert">
         {/* Page header */}
         <header className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight">F‑CHIA Tool · Docs</h1>
+          <h1 className="text-2xl font-bold tracking-tight">F-CHIA Tool · Docs</h1>
           <p className="text-muted-foreground mt-2">
             A quick guide to the workflow: Diagram → Table → FTA. Learn how zones,
             tasks, nodes, and exports work together.
@@ -24,109 +24,269 @@ export default function Docs() {
         {/* Quick links */}
         <nav className="mb-10">
           <ul className="flex flex-wrap gap-2 text-sm">
-            <li><a href="#overview" className="underline-offset-4 hover:underline">Overview</a></li>
-            <li><a href="#workflow" className="underline-offset-4 hover:underline">Workflow</a></li>
-            <li><a href="#zones" className="underline-offset-4 hover:underline">Zones</a></li>
-            <li><a href="#diagram" className="underline-offset-4 hover:underline">Diagram</a></li>
-            <li><a href="#table" className="underline-offset-4 hover:underline">Table</a></li>
-            <li><a href="#fta" className="underline-offset-4 hover:underline">FTA</a></li>
-            <li><a href="#export" className="underline-offset-4 hover:underline">Export / Import</a></li>
-            <li><a href="#shortcuts" className="underline-offset-4 hover:underline">Shortcuts</a></li>
-            <li><a href="#faq" className="underline-offset-4 hover:underline">FAQ</a></li>
+            <li>
+              <a href="#overview" className="underline-offset-4 hover:underline">
+                Overview
+              </a>
+            </li>
+            <li>
+              <a href="#workflow" className="underline-offset-4 hover:underline">
+                Workflow
+              </a>
+            </li>
+            <li>
+              <a href="#zones" className="underline-offset-4 hover:underline">
+                Zones
+              </a>
+            </li>
+            <li>
+              <a href="#diagram" className="underline-offset-4 hover:underline">
+                Diagram
+              </a>
+            </li>
+            <li>
+              <a href="#table" className="underline-offset-4 hover:underline">
+                Table
+              </a>
+            </li>
+            <li>
+              <a href="#fta" className="underline-offset-4 hover:underline">
+                FTA
+              </a>
+            </li>
+            <li>
+              <a href="#export" className="underline-offset-4 hover:underline">
+                Export / Import
+              </a>
+            </li>
+            <li>
+              <a href="#faq" className="underline-offset-4 hover:underline">
+                FAQ
+              </a>
+            </li>
           </ul>
         </nav>
 
-        {/* Content sections */}
+        {/* --------------------------- */}
+        {/* Overview */}
+        {/* --------------------------- */}
         <section id="overview">
           <h2>Overview</h2>
           <p>
-            F‑CHIA Tool helps you identify hazards (Diagram), review & align
+            F-CHIA Tool helps you identify hazards (Diagram), review &amp; align
             requirements/standards (Table), and derive fault trees (FTA). Data is
             organized by <strong>zones</strong> and persisted locally.
           </p>
+
+          <figure className="my-6 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/overall-layout.png?raw=1"
+              alt="Overview layout of the F-CHIA Tool"
+              className="rounded-md border shadow-sm"
+            />
+          </figure>
         </section>
 
+        {/* --------------------------- */}
+        {/* Workflow */}
+        {/* --------------------------- */}
         <section id="workflow" className="mt-10">
           <h2>Workflow</h2>
           <ol>
             <li>
-              <strong>Diagram:</strong> Build the functional/hazard graph per zone.
-              Use auto‑layout to tidy up.
+              <strong>Create Project</strong> → Start with a base zone.
             </li>
             <li>
-              <strong>Table:</strong> Edit names, add deviations/causes/consequences,
-              and match ISO standards.
+              <strong>Diagram</strong> → Perform structured F-CHIA hazard identification.
             </li>
             <li>
-              <strong>FTA:</strong> From a task row, create an FTA. The task becomes
-              the Top Event. Switch between FTAs via the task selector.
+              <strong>Table</strong> → Validate results &amp; use DMM traceability.
+            </li>
+            <li>
+              <strong>FTA</strong> → Auto-derive fault trees from tasks.
             </li>
           </ol>
+
+          <p>You can create a project via <strong>File → New Project</strong>.</p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/create-new-project.png?raw=1"
+              alt="Create New Project dialog"
+              className="rounded-md border shadow-sm"
+              width={200}
+            />
+          </figure>
+
+          <p>
+            <strong>Warning:</strong> This clears all existing data. Export your data via{" "}
+            <strong>File → Export JSON</strong> if you want to preserve it.
+          </p>
         </section>
 
+        {/* --------------------------- */}
+        {/* Zones */}
+        {/* --------------------------- */}
         <section id="zones" className="mt-10">
           <h2>Zones</h2>
           <ul>
-            <li>Use the header’s zone selector to create/rename/delete zones.</li>
-            <li>Each zone has its own graph (nodes/edges) and table view.</li>
-            <li>Export/Import includes all zones and the currently selected zone.</li>
+            <li>Create, rename, or delete zones from the header’s zone selector.</li>
+            <li>Each zone has its own graph (nodes/edges) and table workspace.</li>
+            <li>Export/import includes all zones and their structures.</li>
           </ul>
         </section>
 
+        {/* --------------------------- */}
+        {/* Diagram */}
+        {/* --------------------------- */}
         <section id="diagram" className="mt-10">
           <h2>Diagram (Hazard Identification)</h2>
-          <ul>
-            <li>Drag nodes from the left sidebar onto the canvas.</li>
-            <li>Connect nodes; invalid connections are rejected with a toast.</li>
-            <li>Use the floating “Auto Layout” button to clean up the graph.</li>
-            <li>All changes persist to local storage per zone.</li>
-          </ul>
+
+          <p>Follow the workflow below when constructing the diagram:</p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/flow-chart.png?raw=1"
+              alt="F-CHIA analysis flow chart"
+              className="rounded-md border shadow-sm"
+              width={400}
+            />
+          </figure>
+
+          <p>
+            Each step in the method is represented as a node. Hovering over a node shows
+            tips and examples to guide what should be filled in:
+          </p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/hover.gif?raw=1"
+              alt="Hover tooltip on node"
+              className="rounded-md border shadow-sm"
+              width={400}
+            />
+          </figure>
+
+          <p>
+            Clicking <strong>Add Node</strong> automatically creates the correct next
+            node type (e.g., a Task Node after a Zone Node), reducing manual selection:
+          </p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/add_node.gif?raw=1"
+              alt="Add node interaction"
+              className="rounded-md border shadow-sm"
+              width={400}
+            />
+          </figure>
+
+          <p>You can drag to connect nodes and form edges:</p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/add_edge.gif?raw=1"
+              alt="Add edge interaction"
+              className="rounded-md border shadow-sm"
+              width={400}
+            />
+          </figure>
+
+          <p>If a connection is invalid, a warning popup is shown and the edge is blocked:</p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/error-edge.gif?raw=1"
+              alt="Invalid edge warning"
+              className="rounded-md border shadow-sm"
+              width={200}
+            />
+          </figure>
         </section>
 
+        {/* --------------------------- */}
+        {/* Table */}
+        {/* --------------------------- */}
         <section id="table" className="mt-10">
-          <h2>Table (Check & Standard Matching)</h2>
-          <ul>
-            <li>Edits here write back to the underlying graph nodes (names, text, etc.).</li>
-            <li>Add deviations, causes, consequences, and requirements.</li>
-            <li>Use “Matching (AI)” or “Add Manually” to associate ISO standards.</li>
-            <li>
-              “Create FTA” is enabled only when a task is structurally complete
-              (functions → realizations → properties → interpretations).
-            </li>
-          </ul>
+          <h2>Table (Check &amp; Standard Matching)</h2>
+
+          <p>
+            After completing the diagram, navigate to the Table workspace via the stepper
+            or <strong>Go To → Table</strong>.
+          </p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/table.png?raw=1"
+              alt="Table workspace"
+              className="rounded-md border shadow-sm"
+              width={400}
+            />
+          </figure>
+
+          <p>
+            The Function–Requirement DMM helps confirm whether the functional reasoning
+            and requirement mapping are valid. You may also use the OpenAI API to quickly
+            filter safety standards relevant to each requirement.
+          </p>
         </section>
 
+        {/* --------------------------- */}
+        {/* FTA */}
+        {/* --------------------------- */}
         <section id="fta" className="mt-10">
           <h2>FTA</h2>
+
+          <p>
+            From the Table, selecting <strong>Create FTA</strong> for a task generates an
+            FTA whose:
+          </p>
           <ul>
-            <li>Creating an FTA from the Table seeds a Top Event for that task.</li>
-            <li>FTAs are stored per (zoneId, taskId) and selectable in the FTA page.</li>
-            <li>Gate type changes persist on the node (e.g., AND/OR/XOR/INHIBIT).</li>
-            <li>Optional right‑side handle shows only for specific gates (e.g., INHIBIT).</li>
+            <li>
+              <strong>Top Event</strong> → derived from the Task
+            </li>
+            <li>
+              <strong>Basic Events</strong> → derived from Causes
+            </li>
+            <li>
+              <strong>Checklist</strong> → ensures all causes are fully considered
+            </li>
           </ul>
+
+          <p>
+            Then go to <strong>Go To → FTA</strong> or use the stepper. The canvas
+            interaction works similarly to the F-CHIA diagram editor.
+          </p>
+
+          <figure className="my-4 flex justify-center">
+            <img
+              src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/fta.png?raw=1"
+              alt="FTA workspace"
+              className="rounded-md border shadow-sm"
+              width={400}
+            />
+          </figure>
         </section>
 
+        {/* --------------------------- */}
+        {/* Export */}
+        {/* --------------------------- */}
         <section id="export" className="mt-10">
           <h2>Export / Import</h2>
           <ul>
-            <li>Use <strong>File → Export JSON</strong> to download all zones & graphs.</li>
             <li>
-              Use <strong>File → Import JSON…</strong> to restore zones. The selected
-              zone will auto‑layout; Diagram listens and fits the view.
+              Use <strong>File → Export JSON</strong> to download your entire project.
             </li>
+            <li>
+              Use <strong>File → Import JSON…</strong> to restore a saved project.
+            </li>
+            <li>Diagrams automatically re-layout after import.</li>
           </ul>
         </section>
 
-        <section id="shortcuts" className="mt-10">
-          <h2>Shortcuts</h2>
-          <ul>
-            <li><kbd>Drag</kbd> to place nodes.</li>
-            <li><kbd>Connect</kbd> by dragging from a node’s handle.</li>
-            <li><kbd>Auto Layout</kbd> via the floating button in Diagram/FTA.</li>
-          </ul>
-        </section>
-
+        {/* --------------------------- */}
         {/* FAQ */}
+        {/* --------------------------- */}
         <section id="faq" className="mt-12">
           <h2 className="text-xl font-semibold mb-4">FAQ</h2>
 
@@ -205,12 +365,11 @@ export default function Docs() {
 
         {/* Footer note */}
         <footer className="mt-10 text-xs text-muted-foreground">
-          Last updated: this page reflects the current UI (zones, Diagram/Table/FTA,
-          export/import, and auto layout).
+          Last updated: reflects current UI for Diagram, Table, FTA, zones, and export.
         </footer>
       </article>
 
-      {/* Right: On This Page (sticky on large screens) */}
+      {/* Right: On This Page (sticky) */}
       <aside className="hidden lg:block">
         <OnThisPage className="sticky top-16" />
       </aside>

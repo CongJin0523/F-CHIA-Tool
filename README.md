@@ -23,12 +23,15 @@ You can access the tool online here:
 - **Examples** (Sample JSON data, analysis results pdf and fta):  
   👉 [`docs/example`](docs/example)
 
+- **Build & Deployment** (How to build and host the app):
+  👉 [`docs/md/build-and-deploy.md`](build-and-deploy)
 ---
 
 ## 📖 Table of Contents
 
 - [F-CHIA Tool](#f-chia-tool)
   - [📚 Documentation](#-documentation)
+  - [👉 `docs/md/build-and-deploy.md`](#-docsmdbuild-and-deploymd)
   - [📖 Table of Contents](#-table-of-contents)
   - [🚀 Features](#-features)
   - [🛠 Tech Stack](#-tech-stack)
@@ -38,6 +41,7 @@ You can access the tool online here:
     - [Visualization](#visualization)
     - [Routing \& Utilities](#routing--utilities)
   - [📸 Screenshots](#-screenshots)
+  - [💻 Run it locally](#-run-it-locally)
   - [📄 License](#-license)
 
 ---
@@ -46,11 +50,10 @@ You can access the tool online here:
 
 - Visual F-CHIA workflow using React Flow  
 - Auto-constrained node creation (enforces correct F-CHIA steps)  
+- Match safety standard by LLM or munnal
 - Function–Requirement DMM traceability  
-- Integrated Fault Tree Analysis (FTA) generation  
+- Integrated FTA generation  
 - Export to JSON, PDF
-- Tooltips, validation, and guided node creation  
-- Powered by Zustand + Immer for state management  
 
 ---
 
@@ -87,12 +90,26 @@ This project is implemented as a pure frontend **Single Page Application (SPA)**
 ---
 
 ## 📸 Screenshots
-<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/overall-layout.png" width="400"/>
+<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/overall-layout.png?raw=1" width="400"/>
 
-<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/table.png" width="400"/>
+<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/table.png?raw=1" width="400"/>
 
-<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/fta.png" width="400"/>
+<img src="https://github.com/CongJin0523/F-CHIA-Tool/blob/main/docs/image/fta.png?raw=1" width="400"/>
 
+---
+
+## 💻 Run it locally
+
+1. Install **Node.js 20+** (includes npm 10+).
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the dev server:
+   ```bash
+   npm run dev
+   ```
+4. Open the URL printed in the terminal (defaults to `http://localhost:5173`).
 ---
 
 ## 📄 License
