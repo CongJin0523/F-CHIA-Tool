@@ -42,6 +42,12 @@ You can access the tool online here:
     - [Routing \& Utilities](#routing--utilities)
   - [📸 Screenshots](#-screenshots)
   - [💻 Run it locally](#-run-it-locally)
+  - [💾 Data store](#-data-store)
+    - [Zone store](#zone-store)
+    - [Graph stores (one per zone)](#graph-stores-one-per-zone)
+    - [FTA stores (per zone + task)](#fta-stores-per-zone--task)
+    - [UI helpers](#ui-helpers)
+    - [Persistence notes](#persistence-notes)
   - [📄 License](#-license)
 
 ---
@@ -110,6 +116,37 @@ This project is implemented as a pure frontend **Single Page Application (SPA)**
    npm run dev
    ```
 4. Open the URL printed in the terminal (defaults to `http://localhost:5173`).
+---
+
+## 💾 Data store 
+The app keeps everything in the browser’s local storage; there is no server database.
+
+### Zone store
+- File: `src/store/zone-store.ts`
+- Tracks zones (`zones` array) plus the currently selected zone and FTA task.
+- Persists project name and zone list under the `zones-store` key.
+- Automatically creates or deletes a graph store when zones are added or removed.
+
+### Graph stores (one per zone)
+- Files: `src/store/graph-store.ts` and `src/store/graph-registry.ts`.
+- `createGraphStore(zoneId)` builds a persisted store keyed by `graph-<zoneId>`.
+- Holds nodes and edges for a zone, supports node text updates, edge connects, and layout via `onLayout`.
+- Access stores through `getGraphStoreHook(zoneId)`, which creates them on demand.
+
+### FTA stores (per zone + task)
+- Files: `src/store/fta-store.ts` and `src/store/fta-registry.ts`.
+- `createFtaStore(id, initial?)` returns a persisted store keyed by `fta-<zone>::<task>`.
+- Manages FTA-specific nodes/edges plus cause selection state (`causeChecks`).
+- Use `getFtaStoreHook(zoneId, taskId, initial?)` to reuse or create store instances; `deleteFtaStore` removes in-memory and persisted data for a task.
+
+### UI helpers
+- File: `src/store/fta-ui-store.ts` keeps preferred tasks per zone for UI selection.
+- `src/store/bridge.ts` wires hydration events and zone selection changes so the right graph store is active after persistence restores state.
+
+### Persistence notes
+- All persisted stores use `zustand/middleware/persist`, writing to `localStorage`.
+- Keys follow `graph-<zoneId>`, `fta-<zone>::<task>`, and `zones-store` to avoid collisions.
+- Clearing browser storage will reset saved graphs, FTAs, and project metadata.
 ---
 
 ## 📄 License
