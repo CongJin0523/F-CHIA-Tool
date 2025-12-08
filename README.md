@@ -10,14 +10,14 @@ The tool transforms the original document-based methodology into a structured, i
 
 You can access the tool online here:
 
-👉 **https://congjin0523.github.io**
+👉 **https://f-chia-tool.github.io/**
 
 ---
 
 ## 📚 Documentation
 
 - **User Guidance** (How to use the tool):  
-  👉 https://congjin0523.github.io/docs  
+  👉 https://f-chia-tool.github.io/docs
   👉 Or refer to: [`docs/md/guidance.md`](docs/md/guidance.md)
 
 - **Examples** (Sample JSON data, analysis results pdf and fta):  
