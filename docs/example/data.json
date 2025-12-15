@@ -1,0 +1,3535 @@
+{
+  "projectName": "Automatic agricultural Tracker",
+  "zones": [
+    {
+      "id": "zone-1",
+      "label": "Base Zone",
+      "nodes": [
+        {
+          "id": "a",
+          "type": "zone",
+          "data": {
+            "content": "The mobile base serves as the module responsible for driving the tractor to its target working position"
+          },
+          "position": {
+            "x": 1412,
+            "y": 12
+          },
+          "measured": {
+            "width": 160,
+            "height": 168
+          }
+        },
+        {
+          "id": "b-2",
+          "type": "task",
+          "data": {
+            "content": "switch between autonomous mode and manual mode"
+          },
+          "position": {
+            "x": 1412,
+            "y": 335.7142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "351YMzGLXzQaVG43XgbnoL",
+          "type": "function",
+          "data": {
+            "content": "Switch between autonomous mode and manual mode"
+          },
+          "position": {
+            "x": 1412,
+            "y": 595.1428571428571
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "uqbfp6GQXJD4mFMRc9bcHF",
+          "type": "realization",
+          "data": {
+            "content": "Manually select the mode option"
+          },
+          "position": {
+            "x": 1412,
+            "y": 886
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "2eeJc4zxKCwdJuVmHvrXQx",
+          "type": "property",
+          "data": {
+            "content": "Machine status"
+          },
+          "position": {
+            "x": 1412,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "94rc8HuWfKiaVjypeYxonC",
+          "type": "guideword",
+          "data": {
+            "content": "Other than",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 25119-1:2018",
+                "title": "Tractors and machinery for agriculture and forestry — Safety-related parts of control systems — Part 1: General principles for design and development",
+                "reason": "Provides general principles for safety-related parts of control systems (SRP/CS) in agricultural machinery, including categorization and design considerations for safety functions, which supports implementing redundant access to mode switching and safe system behavior.",
+                "links": [
+                  "https://www.iso.org/standard/69025.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 62061:2021+AMD1:2024 CSV",
+                "title": "IEC 62061 Consolidated version – Safety of machinery - Functional safety of safety-related control systems",
+                "reason": "Machinery functional safety standard specifying requirements for the design, integration and validation of safety-related electrical/electronic control systems, supporting high/continuous demand safety functions and redundancy considerations for mode switching.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/93654",
+                  "https://webstore.iec.ch/publication/59927"
+                ]
+              },
+              {
+                "iso_number": "ISO 12100:2010",
+                "title": "Safety of machinery — General principles for design — Risk assessment and risk reduction",
+                "reason": "Provides fundamental risk assessment and risk reduction framework and information for use, underpinning clear, multi-language user instructions and diagrammatic content in manuals.",
+                "links": [
+                  "https://www.iso.org/standard/51528.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 20607:2019",
+                "title": "Safety of machinery — Instruction handbook — General drafting principles",
+                "reason": "Specifies structure and presentation requirements for instruction handbooks, supporting the mandated two-format (diagrams and textual descriptions) and multilingual documentation.",
+                "links": [
+                  "https://www.iso.org/standard/68519.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 7010:2019",
+                "title": "Graphical symbols — Safety colours and safety signs — Registered safety signs",
+                "reason": "Provides standardized safety signs and symbols to support diagrams in manuals and multilingual communication, aiding clear identification of mode-access points across languages.",
+                "links": [
+                  "https://www.iso.org/standard/72424.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Defines methodology for design and integration of safety-related parts of control systems (SRP/CS), including architecture, fault tolerance, and performance levels, directly informing redundancy and safe operation of mode-switch access points.",
+                "links": [
+                  "https://www.iso.org/standard/73481.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 1612,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "bBMbJTAk9T42cHCLufqNAh",
+          "type": "deviation",
+          "data": {
+            "content": "Autonomous mode fails to start"
+          },
+          "position": {
+            "x": 1612,
+            "y": 1584.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "wN528NS934CzaAjsSWiMy5",
+          "type": "guideword",
+          "data": {
+            "content": "Other than",
+            "isoMatches": [
+              {
+                "iso_number": "IEC 60204-1:2016/AMD1:2021",
+                "title": "Safety of machinery - Electrical equipment of machines - Part 1: General requirements",
+                "reason": "Provides requirements for emergency stop (including stop categories) and how E‑stop overrides other functions, supports the mandated Stop Category choice (0 or 1) and non-restart behavior after resetting; clarifies interaction with electrical control systems for machines such as tractors.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/26037"
+                ]
+              },
+              {
+                "iso_number": "ISO 13850:2015",
+                "title": "Safety of machinery — Emergency stop function — Principles for design",
+                "reason": "Defines the fundamental design principles for emergency stop devices applicable to all machines; complements 60204-1 by detailing the E‑stop function itself and ensuring it is clearly identifiable and accessible.",
+                "links": [
+                  "https://www.iso.org/standard/59970.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 62061:2021",
+                "title": "Safety of machinery – Functional safety of safety-related electrical, electronic and programmable electronic control systems",
+                "reason": "Provides system‑level functional safety requirements for SRP/CS, including safety requirements, verification and validation, and performance criteria that underpin time‑to‑stop and safe restart considerations described in the safety requirement.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/59927"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Offers methodology for designing SRP/CS with performance levels (PLr) and architectures suitable for high-demand/continuous operations; supports justification of redundancy and multiple safety-related control paths in emergency stop systems.",
+                "links": [
+                  "https://www.iso.org/standard/73481.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 25119-1:2018",
+                "title": "Tractors and machinery for agriculture and forestry — Safety-related parts of control systems — Part 1: General principles for design and development",
+                "reason": "Industry-specific SRP/CS standard for agricultural machinery; addresses the safety lifecycle, system architecture and responsibilities for safety-related control systems in tractors and similar machines, including emergency stop and mode-switching behaviors.",
+                "links": [
+                  "https://www.iso.org/standard/69025.html"
+                ]
+              },
+              {
+                "iso_number": "IEC/IEEE 82079-1:2019",
+                "title": "Preparation of information for use (instructions for use) of products — Part 1: Principles and general requirements",
+                "reason": "Provides principles and requirements for information for use, enabling clear, diagrammatic and multilingual instructions; directly supports requirement 2 on multi-format, multilingual operator instructions with diagrams and textual descriptions.",
+                "links": [
+                  "https://www.iso.org/standard/71620.html",
+                  "https://www.webstore.iec.ch/en/publication/29075"
+                ]
+              },
+              {
+                "iso_number": "ISO 7010:2019",
+                "title": "Graphical symbols — Safety colours and safety signs — Registered safety signs",
+                "reason": "Establishes standardized safety signs for emergency stops and other warnings, ensuring consistent visual communication of E‑stop locations and meanings across jurisdictions.",
+                "links": [
+                  "https://www.iso.org/standard/72424.html",
+                  "https://webstore.ansi.org/standards/iso70102019"
+                ]
+              },
+              {
+                "iso_number": "ISO 14119:2024",
+                "title": "Safety of machinery — Interlocking devices associated with guards — Principles for design and selection",
+                "reason": "Addresses interlocking devices and guarding strategies, including how interlocks interact with safety functions and how multiple access points can be managed safely; relevant to design of multi-point access for mode switches and safe guard interactions.",
+                "links": [
+                  "https://www.iso.org/cms/render/live/en/sites/isoorg/contents/data/standard/07/59/75942.html",
+                  "https://www.iso.org/standard/45291.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 1412,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "fhqqrBTs6Hy5tYL446u4XV",
+          "type": "deviation",
+          "data": {
+            "content": "The autonomous mode starts before the operator leaves the tractor"
+          },
+          "position": {
+            "x": 1412,
+            "y": 1564.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "aY7KZv1By7jArtrxZT2pMk",
+          "type": "cause",
+          "data": {
+            "content": "Sofeware error"
+          },
+          "position": {
+            "x": 1412,
+            "y": 1845.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "mhmBV3xmGo6ZXNAqQL4TuA",
+          "type": "consequence",
+          "data": {
+            "content": "The tractor cannot move, causing time loss."
+          },
+          "position": {
+            "x": 1652,
+            "y": 2102.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "24whD2bdxaQgBYfoum53Y7",
+          "type": "consequence",
+          "data": {
+            "content": "Additional injury to the operator when a collision occurs"
+          },
+          "position": {
+            "x": 1452,
+            "y": 2102.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "i2F3CGH7YEGpzdis5xRVZF",
+          "type": "requirement",
+          "data": {
+            "content": "Provide at least two distinct means of access to the mode switch (for redundancy and safety, e.g., a mechanical button reachable when the operator is outside the tractor and an access on the control panel), while minimizing the complexity introduced by multiple access points"
+          },
+          "position": {
+            "x": 1412,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 248
+          }
+        },
+        {
+          "id": "eMKTxR7VqQGBDoGkc1YNxr",
+          "type": "requirement",
+          "data": {
+            "content": "Provide 100% knowable instructions in the user manual on how to switch modes (for good decision support when autonomous mode fails to start, to reduce possible human errors), considering the diverse educational levels of the intended users. Instructions shall be provided in at least two formats: (1) diagrams showing the appearance and location of the access points, and (2) textual descriptions explaining the operations in detail. Multiple languages and clear definitions of terminology shall be provided to meet the needs of users with different educational backgrounds"
+          },
+          "position": {
+            "x": 1692,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 448
+          }
+        },
+        {
+          "id": "pSUyPzYS3p7DkuHVYJCLJi",
+          "type": "requirement",
+          "data": {
+            "content": "Set up an independent emergency stop function that shall stop all hazardous motions and should be clearly marked and easily accessible. It shall only be reset by a deliberate manual action that does not cause a restart after resetting but shall only permit a restart to occur. The following information shall be provided: (a) stop category according to IEC 60204-1:2016 + AMD1: 2021. (b) span-of-control of the emergency stop; (c) maximum response time for the emergency stop, as measured from input state change until the termination of the hazardous function of the tractor. (d) maximum stopping time for the emergency stop, as measured from input state change until the termination of hazard function(s) of the tractor"
+          },
+          "position": {
+            "x": 2532,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 548
+          }
+        },
+        {
+          "id": "fqNdRdR4hFEYP3sdk7kmeQ",
+          "type": "cause",
+          "data": {
+            "content": "Sofeware error"
+          },
+          "position": {
+            "x": 1612,
+            "y": 1845.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "hGR5tgDRYC4Zs96LKKwqpm",
+          "type": "task",
+          "data": {
+            "content": "Autonomously navigate in the field, avoiding humans, machines, and environmental obstacles such as stones and vines"
+          },
+          "position": {
+            "x": 2212,
+            "y": 295.7142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 188
+          }
+        },
+        {
+          "id": "dcP3HykeLqTfnesDegpALM",
+          "type": "task",
+          "data": {
+            "content": "control the tractor mobile base in manual mode"
+          },
+          "position": {
+            "x": 812,
+            "y": 335.7142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "v9BG28jEC1VdYT7zEmKMmK",
+          "type": "function",
+          "data": {
+            "content": "Perceive surroundings, including dynamic objects, static obstacles, and drivable paths"
+          },
+          "position": {
+            "x": 2212,
+            "y": 565.1428571428571
+          },
+          "measured": {
+            "width": 160,
+            "height": 168
+          }
+        },
+        {
+          "id": "6b8vGfpoTu1rUa6AtJGbJD",
+          "type": "function",
+          "data": {
+            "content": "Plan a collision-free trajectory based on perception results"
+          },
+          "position": {
+            "x": 2412,
+            "y": 595.1428571428571
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "5YPEyL3krdKTr46JjH1CJR",
+          "type": "realization",
+          "data": {
+            "content": "Camera-based detection using image processing algorithms and machine learning approaches"
+          },
+          "position": {
+            "x": 2612,
+            "y": 846
+          },
+          "measured": {
+            "width": 160,
+            "height": 168
+          }
+        },
+        {
+          "id": "2mf77cVLYPrX7BcsXGzfrZ",
+          "type": "realization",
+          "data": {
+            "content": "LiDAR detection"
+          },
+          "position": {
+            "x": 2212,
+            "y": 896
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "wJYzm7y1ig8yfWVanD48Vw",
+          "type": "realization",
+          "data": {
+            "content": "Combination of sensors"
+          },
+          "position": {
+            "x": 2012,
+            "y": 886
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "up6quqNBLyjSqcmpoMDTgy",
+          "type": "property",
+          "data": {
+            "content": "Object type"
+          },
+          "position": {
+            "x": 3212,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "6pgPupPzM872a7hfmaqXtp",
+          "type": "guideword",
+          "data": {
+            "content": "No",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 21448:2022",
+                "title": "Road vehicles — Safety of the intended functionality",
+                "reason": "Addresses safety risks due to perception/functional insufficiencies in autonomous perception, providing design, design-validation and V&V guidance for perception modules (e.g., image quality under adverse conditions) to prevent unreasonable risk during autonomous operation.",
+                "links": [
+                  "https://www.iso.org/standard/77490.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 25119-2:2019",
+                "title": "Tractors and machinery for agriculture and forestry — Safety-related parts of control systems — Part 2: Concept phase",
+                "reason": "Defines the concept phase (hazard analysis and risk assessment) for SRP/CS in agricultural machinery, aligning with requirement to document test conditions and safety goals early in the lifecycle.",
+                "links": [
+                  "https://www.iso.org/standard/78306.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 25119-3:2018",
+                "title": "Tractors and machinery for agriculture and forestry — Safety-related parts of control systems — Part 3: Series development, hardware and software",
+                "reason": "Specifies principles for series development of SRP/CS hardware/software, enabling proper implementation and testing of perception and safety functions (including the image-quality modules) across the development lifecycle.",
+                "links": [
+                  "https://www.iso.org/standard/69027.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 25119-4:2018",
+                "title": "Tractors and machinery for agriculture and forestry — Safety-related parts of control systems — Part 4: Production, operation, modification and supporting processes",
+                "reason": "Covers production, operation, modification and supporting processes for SRP/CS, ensuring traceability, change control and validation of safety-related features in the field.",
+                "links": [
+                  "https://www.iso.org/standard/69028.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 60204-1:2016+AMD1:2021 CSV",
+                "title": "Safety of machinery — Electrical equipment of machines — Part 1: General requirements",
+                "reason": "Provides requirements for electrical equipment, including emergency stop implementation and safe restart considerations, essential to meet requirement 2.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/66124"
+                ]
+              },
+              {
+                "iso_number": "ISO 13850:2015",
+                "title": "Safety of machinery — Emergency stop function — Principles for design",
+                "reason": "Defines the design principles for emergency stop devices and restart conditions, complementing IEC 60204-1 for reliable stop/restart behavior.",
+                "links": [
+                  "https://www.iso.org/standard/59970.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 60598-1:2020",
+                "title": "Luminaires — Part 1: General requirements and tests",
+                "reason": "Covers safety requirements and testing for lighting equipment used in the machine, supporting requirement 3 testing of the lighting system.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/61414"
+                ]
+              },
+              {
+                "iso_number": "ISO 12233:2024",
+                "title": "Digital cameras — Resolution and spatial frequency responses",
+                "reason": "Defines standardized methods to measure camera resolution/SFR, enabling objective evaluation in the objective image-quality module.",
+                "links": [
+                  "https://www.iso.org/standard/88626.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 15739:2023",
+                "title": "Photography — Electronic still-picture imaging — Noise measurements",
+                "reason": "Specifies methods for measuring camera noise and dynamic range, supporting objective image-quality evaluation under adverse conditions.",
+                "links": [
+                  "https://www.iso.org/standard/82233.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 19056-1:2015",
+                "title": "Microscopes — Definition and measurement of illumination properties — Part 1: Image brightness and uniformity in bright field microscopy",
+                "reason": "Provides procedures to measure image brightness and uniformity, aiding brightness tests in imaging systems used for perception modules.",
+                "links": [
+                  "https://www.iso.org/standard/63834.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 3412,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "t2K7W4c3ynqztfmjShJET5",
+          "type": "deviation",
+          "data": {
+            "content": "The tractor fails to detect its surroundings, especially the road"
+          },
+          "position": {
+            "x": 3412,
+            "y": 1564.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "ujKdvZ6fp3nazoNiKx899a",
+          "type": "guideword",
+          "data": {
+            "content": "No",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 13855:2024",
+                "title": "Safety of machinery — Positioning of safeguards with respect to the approach of the human body",
+                "reason": "Maps to defining and limiting sensing/guarding zones (the safeguard space and detection zones) to reduce human-automation errors by specifying zone dimensions and safeguarding device positions for safe interaction.",
+                "links": [
+                  "https://www.iso.org/standard/80590.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Provides methodology for designing and validating safety-related parts of control systems (including sensors and software) and assigns Performance Levels (PL); supports establishing measurable criteria and validation procedures for sensor/software performance prior to deployment.",
+                "links": [
+                  "https://www.iso.org/cms/%20render/live/en/sites/isoorg/contents/data/standard/07/34/73481.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 60204-1:2016+AMD1:2021 CSV",
+                "title": "IEC 60204-1 Consolidated version — Safety of machinery - Electrical equipment of machines - Part 1: General requirements",
+                "reason": "Specifies stop categories (0, 1, 2) and Emergency Stop requirements, including reset behavior; provides data fields to document stop category, span-of-control, maximum response time and maximum stopping time for the emergency stop.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/71256"
+                ]
+              },
+              {
+                "iso_number": "ISO 12100:2010",
+                "title": "Safety of machinery — General principles for design — Risk assessment and risk reduction",
+                "reason": "Underpins safe operation and hazard/risk documentation in user manuals; supports the development of clear, knowable instructions for users with diverse educational levels; can be complemented by calibration-specific guidance.",
+                "links": [
+                  "https://www.iso.org/standard/51528.html",
+                  "https://www.iso.org/standard/64768.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 2612,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "1osFHwBVPT6AWfNDhrSqxM",
+          "type": "deviation",
+          "data": {
+            "content": "The distance between the tractor and the object is not available"
+          },
+          "position": {
+            "x": 2612,
+            "y": 1564.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "rQX62Bgg1eVjrNYfwHGGsP",
+          "type": "cause",
+          "data": {
+            "content": "Limited detection range of the camera"
+          },
+          "position": {
+            "x": 2412,
+            "y": 1835.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "nEZvPyxXdPjkTRFKfcLbpf",
+          "type": "cause",
+          "data": {
+            "content": "Blurry images due to tractor instability"
+          },
+          "position": {
+            "x": 3612,
+            "y": 1835.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "vPjCGJrSYRUWjtmp2FZhzh",
+          "type": "consequence",
+          "data": {
+            "content": "There is no valid input to the localization and navigation module "
+          },
+          "position": {
+            "x": 3412,
+            "y": 2092.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "abeT5yRKE8b93PPHVoQKsk",
+          "type": "consequence",
+          "data": {
+            "content": "The tractor is not aware of changes in its surroundings, which may cause collisions"
+          },
+          "position": {
+            "x": 2412,
+            "y": 2082.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 148
+          }
+        },
+        {
+          "id": "mVMVu3nd9GksFWPPk7qrYe",
+          "type": "property",
+          "data": {
+            "content": "Distance "
+          },
+          "position": {
+            "x": 2412,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "j5uCG2dYrDgbHqunmk8Tyg",
+          "type": "guideword",
+          "data": {
+            "content": "Part of",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 13855:2024",
+                "title": "Safety of machinery — Positioning of safeguards with respect to the approach of the human body",
+                "reason": "Maps to defining and limiting sensing/guarding zones (the safeguard space and detection zones) to reduce human-automation errors by specifying zone dimensions and safeguarding device positions for safe interaction.",
+                "links": [
+                  "https://www.iso.org/standard/80590.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Provides methodology for designing and validating safety-related parts of control systems (including sensors and software) and assigns Performance Levels (PL); supports establishing measurable criteria and validation procedures for sensor/software performance prior to deployment.",
+                "links": [
+                  "https://www.iso.org/cms/%20render/live/en/sites/isoorg/contents/data/standard/07/34/73481.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 60204-1:2016+AMD1:2021 CSV",
+                "title": "IEC 60204-1 Consolidated version — Safety of machinery - Electrical equipment of machines - Part 1: General requirements",
+                "reason": "Specifies stop categories (0, 1, 2) and Emergency Stop requirements, including reset behavior; provides data fields to document stop category, span-of-control, maximum response time and maximum stopping time for the emergency stop.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/71256"
+                ]
+              },
+              {
+                "iso_number": "ISO 12100:2010",
+                "title": "Safety of machinery — General principles for design — Risk assessment and risk reduction",
+                "reason": "Underpins safe operation and hazard/risk documentation in user manuals; supports the development of clear, knowable instructions for users with diverse educational levels; can be complemented by calibration-specific guidance.",
+                "links": [
+                  "https://www.iso.org/standard/51528.html",
+                  "https://www.iso.org/standard/64768.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 2212,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "rgyjhYCzMWPVUaU2mjJ9m2",
+          "type": "deviation",
+          "data": {
+            "content": "Not all obstacles are detected by LiDAR"
+          },
+          "position": {
+            "x": 2212,
+            "y": 1584.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "f1sJPYikXjHJBARSvWdN4B",
+          "type": "cause",
+          "data": {
+            "content": "The resolution of the LiDAR is too low."
+          },
+          "position": {
+            "x": 2212,
+            "y": 1835.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "3zZ7eFM4QXL2TrVKb4fQ98",
+          "type": "requirement",
+          "data": {
+            "content": "Specify limitations on maximum driving and turning speeds for different types of risky weather conditions in autonomous mode in the user manual, providing 100% fully clear instructions for manually selecting operating conditions or setting speed limits (for good decision support to reduce human errors), considering the diverse educational levels of the intended users"
+          },
+          "position": {
+            "x": 3092,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 308
+          }
+        },
+        {
+          "id": "u889JzDPeDFVoYrrcJPoKQ",
+          "type": "requirement",
+          "data": {
+            "content": "Set up two image quality assessment modules: a subjective test module where humans can access captured images and provide evaluations, and an objective test module where computational software enables comparison between reference and target images. Use images with rain droplets, snow particles, and dust to simulate extreme conditions. Compare the modules’ outputs with known benchmarks for images in similar conditions. The verification and validation methods are review of the documentation and information for use, practical tests, and simulation tests. Record the test conditions. Quality assessment is expected to start once autonomous mode starts. The captured images shall be tested for brightness, resolution, contrast, noise, and blur. The system shall provide instant feedback on whether the series of input images is valid for autonomous navigation. If not, autonomous mode shall be disabled"
+          },
+          "position": {
+            "x": 3652,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 688
+          }
+        },
+        {
+          "id": "ts9qcSFfW3qC9iEuw23HQe",
+          "type": "requirement",
+          "data": {
+            "content": "Test the lighting system. The verification and validation methods are visual inspection, observation during operation, review of specifications and information for use, and practical tests"
+          },
+          "position": {
+            "x": 3372,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 188
+          }
+        },
+        {
+          "id": "qP7YBw96B4wAYgAAKGXyAX",
+          "type": "requirement",
+          "data": {
+            "content": "Set limitations on sensing and automation-related zones in the user manual, providing 100% fully clear instructions (for good decision support to reduce human errors), considering the diverse educational levels of the intended users"
+          },
+          "position": {
+            "x": 2812,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 208
+          }
+        },
+        {
+          "id": "4nBYp3h4VRRCEMYyamLk74",
+          "type": "requirement",
+          "data": {
+            "content": "Analyze sensor performance classes and test the detection capabilities of the sensors and software before implementation in the real application. Set specific, measurable criteria to assess the performance of the sensors and software. Record the test conditions"
+          },
+          "position": {
+            "x": 1972,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 228
+          }
+        },
+        {
+          "id": "7Qi9L9oFU5Y2deNCXxthc1",
+          "type": "property",
+          "data": {
+            "content": "Reflective data"
+          },
+          "position": {
+            "x": 1612,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "x8uPNKe42nRW3kEWeBytkL",
+          "type": "guideword",
+          "data": {
+            "content": "Part of",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 13855:2024",
+                "title": "Safety of machinery — Positioning of safeguards with respect to the approach of the human body",
+                "reason": "Maps to defining and limiting sensing/guarding zones (the safeguard space and detection zones) to reduce human-automation errors by specifying zone dimensions and safeguarding device positions for safe interaction.",
+                "links": [
+                  "https://www.iso.org/standard/80590.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Provides methodology for designing and validating safety-related parts of control systems (including sensors and software) and assigns Performance Levels (PL); supports establishing measurable criteria and validation procedures for sensor/software performance prior to deployment.",
+                "links": [
+                  "https://www.iso.org/cms/%20render/live/en/sites/isoorg/contents/data/standard/07/34/73481.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 60204-1:2016+AMD1:2021 CSV",
+                "title": "IEC 60204-1 Consolidated version — Safety of machinery - Electrical equipment of machines - Part 1: General requirements",
+                "reason": "Specifies stop categories (0, 1, 2) and Emergency Stop requirements, including reset behavior; provides data fields to document stop category, span-of-control, maximum response time and maximum stopping time for the emergency stop.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/71256"
+                ]
+              },
+              {
+                "iso_number": "ISO 12100:2010",
+                "title": "Safety of machinery — General principles for design — Risk assessment and risk reduction",
+                "reason": "Underpins safe operation and hazard/risk documentation in user manuals; supports the development of clear, knowable instructions for users with diverse educational levels; can be complemented by calibration-specific guidance.",
+                "links": [
+                  "https://www.iso.org/standard/51528.html",
+                  "https://www.iso.org/standard/64768.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 1812,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "ox1yNqYFiLCUGdBK7JJkgg",
+          "type": "deviation",
+          "data": {
+            "content": "The detection is not as accurate as expected"
+          },
+          "position": {
+            "x": 1812,
+            "y": 1574.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "9iNTiSbA4QpmP2PRZnp91S",
+          "type": "cause",
+          "data": {
+            "content": "Calibration and data alignment between sensors are not conducted properly"
+          },
+          "position": {
+            "x": 1812,
+            "y": 1815.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "8vNmmxBDhZ5K5Gox92GZxu",
+          "type": "requirement",
+          "data": {
+            "content": "Provide 100% knowable instructions in the user manual on how to perform the calibration of onboard sensors (e.g., camera, depth camera, and LiDAR in this case study), for good decision support to reduce possible human errors, considering the diverse educational levels of the intended users"
+          },
+          "position": {
+            "x": 2252,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 268
+          }
+        },
+        {
+          "id": "sxR193cRdC1vY8XV465fEG",
+          "type": "property",
+          "data": {
+            "content": "Distance"
+          },
+          "position": {
+            "x": 2612,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "newNJ7u34F8KQNJMXZkaaD",
+          "type": "guideword",
+          "data": {
+            "content": "Part of",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 21448:2022",
+                "title": "Road vehicles — Safety of the intended functionality",
+                "reason": "Provides guidance on Safety of the Intended Functionality (SOTIF), including handling hazards due to functional insufficiencies under adverse weather and the concept of the operational design domain (ODD); supports explicit specification of weather-related operating limits and manual mode/condition selection in user guidance, addressing safety across users with varying education levels.",
+                "links": [
+                  "https://www.iso.org/standard/77490.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 26262-6:2018",
+                "title": "Road vehicles — Functional safety — Part 6: Product development at the software level",
+                "reason": "Defines the safety-focused software development lifecycle, enabling specification, implementation and verification of speed-control logic and mode-selection features used in autonomous driving; supports producing clear, testable software safety requirements (including user-facing operational guidance) accessible to users with diverse education levels.",
+                "links": [
+                  "https://www.iso.org/standard/68388.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 26262-5:2018",
+                "title": "Road vehicles — Functional safety — Part 5: Product development at the hardware level",
+                "reason": "Covers hardware safety requirements for safety-related E/E systems involved in speed control (e.g., sensors, actuators), ensuring reliable operation of speed-management features under degraded weather conditions and safe interaction with software controls.",
+                "links": [
+                  "https://www.iso.org/standard/68387.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 26262-7:2018",
+                "title": "Road vehicles — Functional safety — Part 7: Production, operation, service and decommissioning",
+                "reason": "Addresses production and operation safety aspects, ensuring that safety requirements and user guidance (such as manual speed-limit selection) are correctly implemented, maintained in operation, and supported by service and documentation.",
+                "links": [
+                  "https://www.iso.org/standard/68389.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 25119-1:2018",
+                "title": "Tractors and machinery for agriculture and forestry — Safety-related parts of control systems — Part 1: General principles for design and development",
+                "reason": "Provides general principles for designing and developing safety-related parts of control systems in agricultural machinery, which is directly relevant to implementing and documenting safe speed control under varying weather and operating conditions in the autonomous mode of an agricultural tracker.",
+                "links": [
+                  "https://www.iso.org/standard/69025.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Provides modern design principles for safety-related control systems (SRP/CS) applicable across machinery types, including autonomous agricultural trackers, to ensure robust safety functions such as speed control under adverse conditions.",
+                "links": [
+                  "https://www.iso.org/standard/73481.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 9241-11:2018",
+                "title": "Ergonomics of human-system interaction — Part 11: Usability: Definitions and concepts",
+                "reason": "Defines usability concepts essential for ensuring that manual and automated safety instructions are understandable across diverse educational levels, supporting clear, unambiguous speed-limit and operating-condition guidance in the user manual.",
+                "links": [
+                  "https://www.iso.org/standard/63500.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 9241-210:2019",
+                "title": "Ergonomics of human-system interaction — Part 210: Human-centred design for interactive systems",
+                "reason": "Promotes human-centred design processes for interactive systems, including consideration of user needs and contexts, to ensure safety-related information (e.g., speed limits under risky weather) is comprehensible and usable by operators with varying backgrounds.",
+                "links": [
+                  "https://www.iso.org/standard/77520.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 3212,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "vL4ffXrnSJzMwvGU3iQA6p",
+          "type": "deviation",
+          "data": {
+            "content": "Not all obstacles in the scene are detected"
+          },
+          "position": {
+            "x": 3212,
+            "y": 1574.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "oTzEnNxETYBYEuMbCYe4We",
+          "type": "cause",
+          "data": {
+            "content": "The resolution of the LiDAR is too low"
+          },
+          "position": {
+            "x": 3212,
+            "y": 1835.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "nvX37JV16SH4pG5JpZZebo",
+          "type": "cause",
+          "data": {
+            "content": "Severe weather conditions"
+          },
+          "position": {
+            "x": 3812,
+            "y": 1835.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "tTXwMkAU31mPXqKxuK2m4P",
+          "type": "cause",
+          "data": {
+            "content": "Insufficient brightness"
+          },
+          "position": {
+            "x": 3412,
+            "y": 1835.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "qPJtf2cCJEL5TBGzZbuSZA",
+          "type": "consequence",
+          "data": {
+            "content": "The tractor fails to start the autonomous mode or moves improperly"
+          },
+          "position": {
+            "x": 3132,
+            "y": 2092.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "qiT3xjohoyj9ELkEkUtKgs",
+          "type": "property",
+          "data": {
+            "content": "Distance"
+          },
+          "position": {
+            "x": 2012,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "criToyWy6idRrDrbBmnMv2",
+          "type": "property",
+          "data": {
+            "content": "Object type"
+          },
+          "position": {
+            "x": 1812,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "unRUBEguHQg9BedeUFxq7w",
+          "type": "realization",
+          "data": {
+            "content": "The route is generated according to predefined rules or traditional collision avoidance algorithms such as the potential field method"
+          },
+          "position": {
+            "x": 2812,
+            "y": 826
+          },
+          "measured": {
+            "width": 160,
+            "height": 208
+          }
+        },
+        {
+          "id": "e6ZPKaoL19wJ3TMzdqcC8h",
+          "type": "property",
+          "data": {
+            "content": "Trajectory generation algorithm(s); knowledge of the environment (perception results)"
+          },
+          "position": {
+            "x": 3812,
+            "y": 1161.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 168
+          }
+        },
+        {
+          "id": "25VJDGWDf7gGiaGuFHywUf",
+          "type": "guideword",
+          "data": {
+            "content": "No",
+            "isoMatches": [
+              {
+                "iso_number": "IEC 62061:2021",
+                "title": "Safety of machinery - Functional safety of safety-related control systems",
+                "reason": "Provides requirements for the design, integration, and validation of safety-related electrical/electronic/programmable electronic control systems (SRECS) for machines, including software components that implement safety functions (e.g., trajectory planning). Establishes a safety lifecycle with verification/validation activities and criteria for testing before deployment.",
+                "links": [
+                  "https://webstore.iec.ch/publication/59927"
+                ]
+              },
+              {
+                "iso_number": "ISO 10218-1:2025",
+                "title": "Robotics — Safety requirements — Part 1: Industrial robots",
+                "reason": "Covers safety requirements for industrial robots and the information for use to accompany them, including calibration and operation guidance. Supports clear, accessible documentation to accommodate diverse educational levels of users.",
+                "links": [
+                  "https://www.iso.org/standard/73933.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 4012,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "xwKtDtWz8VFThV1jZkKxda",
+          "type": "guideword",
+          "data": {
+            "content": "Part of",
+            "isoMatches": [
+              {
+                "iso_number": "ISO/IEC/IEEE 12207:2017",
+                "title": "ISO/IEC/IEEE 12207: Systems and software engineering — Software life cycle processes",
+                "reason": "Provides a structured framework for software life cycle activities including verification and validation, test planning, and documentation of test criteria and results. This supports defining measurable acceptance criteria and recording test conditions for trajectory planning algorithms in both simulation and real hardware.",
+                "links": [
+                  "https://www.iso.org/standard/63712.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 9283:1998",
+                "title": "Manipulating industrial robots — Performance criteria and related test methods",
+                "reason": "Defines performance criteria and test methods for robotic manipulators, enabling objective measurement of trajectory accuracy, repeatability, and path-following—useful for evaluating the trajectory planning algorithm in both simulation and real implementation.",
+                "links": [
+                  "https://www.iso.org/standard/22244.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 10218-2:2025",
+                "title": "Robotics — Safety requirements — Part 2: Industrial robot applications and robot cells",
+                "reason": "Safety requirements for the integration, commissioning, operation and testing of industrial robot systems. Supports safe on-machine testing and validation of robotic trajectory control within a production environment.",
+                "links": [
+                  "https://www.iso.org/standard/73934.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 10218-1:2025",
+                "title": "Robotics — Safety requirements — Part 1: Industrial robots",
+                "reason": "Safety requirements for industrial robots; provides baseline safety considerations that underpin safe testing and validation of robotic control software and calibration activities.",
+                "links": [
+                  "https://www.iso.org/standard/73933.html"
+                ]
+              },
+              {
+                "iso_number": "ISO/IEC 17025:2017",
+                "title": "ISO/IEC 17025: General requirements for the competence of testing and calibration laboratories",
+                "reason": "Addresses competence and impartiality of laboratories and requires documented calibration methods and traceability. Supports calibration activities and the assurance of measurement accuracy used during trajectory testing and validation.",
+                "links": [
+                  "https://www.iso.org/standard/66912.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 6385:2016",
+                "title": "Ergonomics principles in the design of work systems",
+                "reason": "Ergonomic principles for designing work systems, informing how calibration procedures and interfaces are organized to minimize human error and ensure safe, effective use by diverse users.",
+                "links": [
+                  "https://www.iso.org/standard/63785.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 9241-210:2019",
+                "title": "Ergonomics of human-system interaction — Part 210: Human-centred design for interactive systems",
+                "reason": "Guides human-centered design of interactive systems, including usability and accessibility of instructions. Supports creating calibration guidance and manuals that are understandable across different education levels.",
+                "links": [
+                  "https://www.iso.org/standard/77520.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 12100:2010",
+                "title": "Safety of machinery — General principles for design — Risk assessment and risk reduction",
+                "reason": "Provides a framework for risk assessment and reduction during machinery design and lifecycle, including how testing and calibration activities should consider hazards and safety requirements.",
+                "links": [
+                  "https://www.iso.org/standard/51528.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 3812,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "nGDfin7HWPjkyQPY3VaFJe",
+          "type": "deviation",
+          "data": {
+            "content": "No trajectory is generated"
+          },
+          "position": {
+            "x": 4012,
+            "y": 1584.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "ruAxh4pZcpVqqLcguQtbuu",
+          "type": "deviation",
+          "data": {
+            "content": "The generated trajectory does not meet the collision-free requirement"
+          },
+          "position": {
+            "x": 3812,
+            "y": 1564.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "kMT3ruYLrwTiaXzKgNXkQ1",
+          "type": "cause",
+          "data": {
+            "content": "The vertical detection range is limited"
+          },
+          "position": {
+            "x": 3012,
+            "y": 1825.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "7wFHEKNyB2Y2DvBiMgqHck",
+          "type": "cause",
+          "data": {
+            "content": "An inappropriate route planning algorithm is used"
+          },
+          "position": {
+            "x": 4012,
+            "y": 1825.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "4s8m7TbutiwnmZ4j3hj9EM",
+          "type": "consequence",
+          "data": {
+            "content": "The tractor cannot avoid obstacles in a timely manner"
+          },
+          "position": {
+            "x": 4172,
+            "y": 2102.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "9CnEmLDHRaC7xsqABtj9LZ",
+          "type": "consequence",
+          "data": {
+            "content": "The tractor cannot follow the expected path (i.e., the middle of the field trial)"
+          },
+          "position": {
+            "x": 3972,
+            "y": 2092.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "bCG74ojbR7v9YEaCUczPYV",
+          "type": "requirement",
+          "data": {
+            "content": "Test the trajectory planning algorithm before implementation on the machine. Set specific, measurable criteria to assess the performance of the trajectory planning algorithm in both simulation and real implementation. Record the test conditions"
+          },
+          "position": {
+            "x": 4212,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 228
+          }
+        },
+        {
+          "id": "arzUjdh4N9NRFrDZCkKUfj",
+          "type": "requirement",
+          "data": {
+            "content": "Calibrate the path at first use. Provide 100% knowable instructions in the user manual on how to perform the calibration (for good decision support to reduce possible human errors), considering the diverse educational levels of the intended users."
+          },
+          "position": {
+            "x": 3932,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 228
+          }
+        },
+        {
+          "id": "wtCStGFNjxJa6Bm1WbueLz",
+          "type": "function",
+          "data": {
+            "content": "The control system executes commands from the operator"
+          },
+          "position": {
+            "x": 612,
+            "y": 595.1428571428571
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "suenriW4YWZ2ABAAU1Z216",
+          "type": "function",
+          "data": {
+            "content": "The operator gives direct commands to the tractor"
+          },
+          "position": {
+            "x": 812,
+            "y": 595.1428571428571
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "iUAFo8mfLHHS1GGyTr6snv",
+          "type": "realization",
+          "data": {
+            "content": "The operator sits in the driver’s seat and controls the tractor through the control panel"
+          },
+          "position": {
+            "x": 812,
+            "y": 856
+          },
+          "measured": {
+            "width": 160,
+            "height": 148
+          }
+        },
+        {
+          "id": "xeBcU91VtzY1x18yj8XttD",
+          "type": "realization",
+          "data": {
+            "content": "Coordination between the electrical system, the engine, and the actuators"
+          },
+          "position": {
+            "x": 612,
+            "y": 856
+          },
+          "measured": {
+            "width": 160,
+            "height": 148
+          }
+        },
+        {
+          "id": "uwqEmpZs1NWPoenKDvb4JD",
+          "type": "property",
+          "data": {
+            "content": "Machine states"
+          },
+          "position": {
+            "x": 812,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "dUUPVdyEyWck4ZbxXoKWjE",
+          "type": "guideword",
+          "data": {
+            "content": "Part of",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 12100:2010",
+                "title": "Safety of machinery — General principles for design — Risk assessment and risk reduction",
+                "reason": "Provides the fundamental framework for identifying hazards, assessing risks, and applying risk reduction throughout the machine life cycle, enabling definition of operator limits, safe operating requirements, and protective measures in the cab.",
+                "links": [
+                  "https://www.iso.org/standard/51528.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 62061:2021+AMD1:2024 CSV",
+                "title": "IEC 62061: Safety of machinery - Functional safety of safety-related control systems",
+                "reason": "Specifies requirements for the design, integration and validation of safety-related control systems in machines, guiding the implementation of protective measures in the cab’s electrical/electronic control architecture and ensuring appropriate safety function performance.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/93654"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Provides the design framework and performance level concept for safety-related parts of control systems, supporting the specification of safety functions and robustness of control-system safety in the cab.",
+                "links": [
+                  "https://www.iso.org/cms/%20render/live/en/sites/isoorg/contents/data/standard/07/34/73481.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 14120:2015",
+                "title": "Safety of machinery — Guards — General requirements for the design and construction of fixed and movable guards",
+                "reason": "Defines requirements for fixed/movable guards to protect operators from mechanical hazards, informing cab guarding and enclosure design.",
+                "links": [
+                  "https://www.iso.org/standard/59545.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 13857:2019",
+                "title": "Safety of machinery — Safety distances to prevent hazard zones being reached by upper and lower limbs",
+                "reason": "Establishes safety distances to prevent access to hazard zones, guiding the layout of cab openings, guard gaps and reach zones.",
+                "links": [
+                  "https://www.iso.org/standard/69569.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 6385:2016",
+                "title": "Ergonomics principles in the design of work systems",
+                "reason": "Sets fundamental ergonomic principles for designing work systems, including operator interactions with seats and control panels, to support human factors in the cab.",
+                "links": [
+                  "https://www.iso.org/standard/63785.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 9241-210:2019",
+                "title": "Ergonomics of human-system interaction — Part 210: Human-centred design for interactive systems",
+                "reason": "Provides requirements and guidance for human-centred design of interactive controls and displays, ensuring the cab’s control panel and seating support diverse user needs and education levels.",
+                "links": [
+                  "https://www.iso.org/standard/77520.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 7250-1:2017",
+                "title": "Basic human body measurements for technological design — Part 1: Body measurement definitions and landmarks",
+                "reason": "Offers anthropometric data definitions for designing seating, pedals/controls, and cockpit layout to fit a diverse user population.",
+                "links": [
+                  "https://www.iso.org/standard/65246.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 15535:2023",
+                "title": "General requirements for establishing anthropometric databases",
+                "reason": "Supports the collection and reporting of population anthropometric data to inform seat and control-panel design for diverse users.",
+                "links": [
+                  "https://www.iso.org/standard/84823.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 2631-1:1997",
+                "title": "Mechanical vibration and shock — Evaluation of human exposure to whole-body vibration — Part 1: General requirements",
+                "reason": "Provides methods to evaluate and limit whole-body vibration exposure, informing seat design and cab mounting to protect operators.",
+                "links": [
+                  "https://www.iso.org/standard/7612.html"
+                ]
+              },
+              {
+                "iso_number": "ISO/IEC/IEEE 26514:2022",
+                "title": "Systems and software engineering — Design and development of information for users",
+                "reason": "Defines requirements for the structure, content, and format of information for users, supporting clear, usable control-system instructions in the user manual for diverse education levels.",
+                "links": [
+                  "https://www.iso.org/standard/77451.html"
+                ]
+              },
+              {
+                "iso_number": "ISO/IEC/IEEE 26513:2017",
+                "title": "Systems and software engineering — Requirements for testers and reviewers of information for users",
+                "reason": "Specifies processes for testing and reviewing user information, ensuring that manuals and instructions are accurate and accessible to users with varying levels of education.",
+                "links": [
+                  "https://www.iso.org/standard/67417.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 812,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "mqdggMLvvsSUfaPSFn8V7d",
+          "type": "deviation",
+          "data": {
+            "content": "The human operator can control the tractor but fails to do so safely"
+          },
+          "position": {
+            "x": 812,
+            "y": 1564.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "wbKhzdt8qQyxUx7cvZ2Tr4",
+          "type": "property",
+          "data": {
+            "content": "Machine states"
+          },
+          "position": {
+            "x": 612,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "eT7Xg4G53wRTuFUjZ3mGth",
+          "type": "cause",
+          "data": {
+            "content": "The operator’s clothing, hair, or body parts get caught or entangled in mechanical parts, causing injury or entrapment"
+          },
+          "position": {
+            "x": 812,
+            "y": 1785.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 188
+          }
+        },
+        {
+          "id": "owJCCNrepgK9T4mADECQXi",
+          "type": "cause",
+          "data": {
+            "content": "Operator’s inadequate awareness and understanding of the control system."
+          },
+          "position": {
+            "x": 1012,
+            "y": 1805.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 148
+          }
+        },
+        {
+          "id": "wuns6iLyu3bjEurRShTtmt",
+          "type": "cause",
+          "data": {
+            "content": "The operator is injured due to poor ergonomics"
+          },
+          "position": {
+            "x": 612,
+            "y": 1825.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "wFeh9W7AcpNyHatVEL4FHp",
+          "type": "consequence",
+          "data": {
+            "content": "Operator injury due to long-term work"
+          },
+          "position": {
+            "x": 612,
+            "y": 2112.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        },
+        {
+          "id": "p8ptEpvdQGcDXMFkXM8EHJ",
+          "type": "consequence",
+          "data": {
+            "content": "Collisions, rollovers, and other accidents due to human failures"
+          },
+          "position": {
+            "x": 892,
+            "y": 2092.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "2YYAYDxMLru2kzKKs7Dnsq",
+          "type": "requirement",
+          "data": {
+            "content": "Define limits and requirements for operators"
+          },
+          "position": {
+            "x": 292,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 88
+          }
+        },
+        {
+          "id": "177J7yanx3ZSs5UyfGqpmY",
+          "type": "requirement",
+          "data": {
+            "content": "Design the seat and the control panel in accordance with relevant standards to fully meet human factors engineering requirements"
+          },
+          "position": {
+            "x": 1132,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 148
+          }
+        },
+        {
+          "id": "jZ4gdaRws7pcBuYjvX7iRj",
+          "type": "requirement",
+          "data": {
+            "content": "Provide 100% knowable instructions on the control systems in the user manual (for good decision support to reduce possible human errors), considering the diverse educational levels of the intended users"
+          },
+          "position": {
+            "x": 852,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 208
+          }
+        },
+        {
+          "id": "cweSrC64F74iNHPoVGHfYY",
+          "type": "requirement",
+          "data": {
+            "content": "Provide protective measures in the cab"
+          },
+          "position": {
+            "x": 572,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 88
+          }
+        },
+        {
+          "id": "o74GToEoAZP2cMZXTLpguJ",
+          "type": "guideword",
+          "data": {
+            "content": "Part of",
+            "isoMatches": [
+              {
+                "iso_number": "ISO 26262-4:2018",
+                "title": "Road vehicles — Functional safety — Part 4: Product development at the system level",
+                "reason": "System-level product development requires verification/validation activities including item integration, testing and safety validation; testing in defined operating modes (including manual modes) and recording results are part of the safety validation work products.",
+                "links": [
+                  "https://www.iso.org/standard/68386.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 26262-8:2018",
+                "title": "Road vehicles — Functional safety — Part 8: Supporting processes",
+                "reason": "Part 8 covers supporting processes such as verification planning and documentation management, enabling recording of test results and independent verification as part of the safety lifecycle.",
+                "links": [
+                  "https://www.iso.org/standard/68390.html"
+                ]
+              },
+              {
+                "iso_number": "IEC 62061:2021",
+                "title": "Safety of machinery — Functional safety of safety-related electrical, electronic and programmable electronic control systems",
+                "reason": "IEC 62061 specifies design, integration and validation of safety-related control systems, including verification/validation and test evidence; applicable to safety-critical control systems operating in various modes.",
+                "links": [
+                  "https://webstore.iec.ch/en/publication/59927"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-2:2012",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 2: Validation",
+                "reason": "Part 2 defines validation procedures including testing and documentation to demonstrate safety function performance; can cover validation tests performed in manual mode.",
+                "links": [
+                  "https://www.iso.org/standard/53640.html"
+                ]
+              },
+              {
+                "iso_number": "ISO 13849-1:2023",
+                "title": "Safety of machinery — Safety-related parts of control systems — Part 1: General principles for design",
+                "reason": "Part 1 provides design principles for SRP/CS and informs validation/verification planning and test evidence as part of achieving the required performance level; current edition.",
+                "links": [
+                  "https://www.iso.org/standard/73481.html"
+                ]
+              }
+            ]
+          },
+          "position": {
+            "x": 612,
+            "y": 1410.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 84
+          }
+        },
+        {
+          "id": "wUp3b9AnNQeaAxFfbCMBmw",
+          "type": "deviation",
+          "data": {
+            "content": "The control system cannot react to commands in time"
+          },
+          "position": {
+            "x": 612,
+            "y": 1574.5714285714284
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "rY334bipsmuodhtYNEBLiw",
+          "type": "cause",
+          "data": {
+            "content": "Malfunctions in the electrical and mechanical control systems"
+          },
+          "position": {
+            "x": 412,
+            "y": 1815.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 128
+          }
+        },
+        {
+          "id": "eZyTRjTQBU6bxD4PsWypY8",
+          "type": "consequence",
+          "data": {
+            "content": "Collisions, rollovers, and other accidents due to malfunctions"
+          },
+          "position": {
+            "x": 412,
+            "y": 2102.285714285714
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "4LvoFX7rFx8yTEnF39tphj",
+          "type": "requirement",
+          "data": {
+            "content": "Test the control system in manual mode before implementation and record the tests"
+          },
+          "position": {
+            "x": 12,
+            "y": 2364.285714285714
+          },
+          "measured": {
+            "width": 240,
+            "height": 128
+          }
+        },
+        {
+          "id": "iujqQFK5eFeg477LU4dvmf",
+          "type": "property",
+          "data": {
+            "content": "Reflective data"
+          },
+          "position": {
+            "x": 2212,
+            "y": 1211.142857142857
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "5VHCPRUpKcWjqq8zd5V88M",
+          "type": "cause",
+          "data": {
+            "content": " The vertical detection range is limited"
+          },
+          "position": {
+            "x": 2012,
+            "y": 1825.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 108
+          }
+        },
+        {
+          "id": "1g148JVKiBvgAyi93wu7qj",
+          "type": "cause",
+          "data": {
+            "content": "Low-quality images"
+          },
+          "position": {
+            "x": 2812,
+            "y": 1845.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 68
+          }
+        },
+        {
+          "id": "emCZKhqh6h1PNyL5LwXJp2",
+          "type": "cause",
+          "data": {
+            "content": "Unreliable detection algorithms"
+          },
+          "position": {
+            "x": 2612,
+            "y": 1835.4285714285713
+          },
+          "measured": {
+            "width": 160,
+            "height": 88
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "a-b2",
+          "target": "b-2",
+          "source": "a",
+          "type": "default"
+        },
+        {
+          "id": "b-2-351YMzGLXzQaVG43XgbnoL",
+          "target": "351YMzGLXzQaVG43XgbnoL",
+          "source": "b-2",
+          "type": "default"
+        },
+        {
+          "id": "351YMzGLXzQaVG43XgbnoL-uqbfp6GQXJD4mFMRc9bcHF",
+          "target": "uqbfp6GQXJD4mFMRc9bcHF",
+          "source": "351YMzGLXzQaVG43XgbnoL",
+          "type": "default"
+        },
+        {
+          "id": "uqbfp6GQXJD4mFMRc9bcHF-2eeJc4zxKCwdJuVmHvrXQx",
+          "target": "2eeJc4zxKCwdJuVmHvrXQx",
+          "source": "uqbfp6GQXJD4mFMRc9bcHF",
+          "type": "default"
+        },
+        {
+          "id": "2eeJc4zxKCwdJuVmHvrXQx-94rc8HuWfKiaVjypeYxonC",
+          "target": "94rc8HuWfKiaVjypeYxonC",
+          "source": "2eeJc4zxKCwdJuVmHvrXQx",
+          "type": "default"
+        },
+        {
+          "id": "94rc8HuWfKiaVjypeYxonC-bBMbJTAk9T42cHCLufqNAh",
+          "target": "bBMbJTAk9T42cHCLufqNAh",
+          "source": "94rc8HuWfKiaVjypeYxonC",
+          "type": "default"
+        },
+        {
+          "id": "2eeJc4zxKCwdJuVmHvrXQx-wN528NS934CzaAjsSWiMy5",
+          "target": "wN528NS934CzaAjsSWiMy5",
+          "source": "2eeJc4zxKCwdJuVmHvrXQx",
+          "type": "default"
+        },
+        {
+          "id": "wN528NS934CzaAjsSWiMy5-fhqqrBTs6Hy5tYL446u4XV",
+          "target": "fhqqrBTs6Hy5tYL446u4XV",
+          "source": "wN528NS934CzaAjsSWiMy5",
+          "type": "default"
+        },
+        {
+          "id": "mhmBV3xmGo6ZXNAqQL4TuA-i2F3CGH7YEGpzdis5xRVZF",
+          "target": "i2F3CGH7YEGpzdis5xRVZF",
+          "source": "mhmBV3xmGo6ZXNAqQL4TuA",
+          "type": "default"
+        },
+        {
+          "id": "mhmBV3xmGo6ZXNAqQL4TuA-eMKTxR7VqQGBDoGkc1YNxr",
+          "target": "eMKTxR7VqQGBDoGkc1YNxr",
+          "source": "mhmBV3xmGo6ZXNAqQL4TuA",
+          "type": "default"
+        },
+        {
+          "id": "24whD2bdxaQgBYfoum53Y7-pSUyPzYS3p7DkuHVYJCLJi",
+          "target": "pSUyPzYS3p7DkuHVYJCLJi",
+          "source": "24whD2bdxaQgBYfoum53Y7",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__24whD2bdxaQgBYfoum53Y724whD2bdxaQgBYfoum53Y7-source-eMKTxR7VqQGBDoGkc1YNxreMKTxR7VqQGBDoGkc1YNxr-target",
+          "target": "eMKTxR7VqQGBDoGkc1YNxr",
+          "source": "24whD2bdxaQgBYfoum53Y7",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__24whD2bdxaQgBYfoum53Y724whD2bdxaQgBYfoum53Y7-source-i2F3CGH7YEGpzdis5xRVZFi2F3CGH7YEGpzdis5xRVZF-target",
+          "target": "i2F3CGH7YEGpzdis5xRVZF",
+          "source": "24whD2bdxaQgBYfoum53Y7",
+          "type": "default"
+        },
+        {
+          "id": "bBMbJTAk9T42cHCLufqNAh-fqNdRdR4hFEYP3sdk7kmeQ",
+          "target": "fqNdRdR4hFEYP3sdk7kmeQ",
+          "source": "bBMbJTAk9T42cHCLufqNAh",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__fhqqrBTs6Hy5tYL446u4XVfhqqrBTs6Hy5tYL446u4XV-source-aY7KZv1By7jArtrxZT2pMkaY7KZv1By7jArtrxZT2pMk-target",
+          "target": "aY7KZv1By7jArtrxZT2pMk",
+          "source": "fhqqrBTs6Hy5tYL446u4XV",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__aY7KZv1By7jArtrxZT2pMkaY7KZv1By7jArtrxZT2pMk-source-24whD2bdxaQgBYfoum53Y724whD2bdxaQgBYfoum53Y7-target",
+          "target": "24whD2bdxaQgBYfoum53Y7",
+          "source": "aY7KZv1By7jArtrxZT2pMk",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__fqNdRdR4hFEYP3sdk7kmeQfqNdRdR4hFEYP3sdk7kmeQ-source-mhmBV3xmGo6ZXNAqQL4TuAmhmBV3xmGo6ZXNAqQL4TuA-target",
+          "target": "mhmBV3xmGo6ZXNAqQL4TuA",
+          "source": "fqNdRdR4hFEYP3sdk7kmeQ",
+          "type": "default"
+        },
+        {
+          "id": "a-hGR5tgDRYC4Zs96LKKwqpm",
+          "target": "hGR5tgDRYC4Zs96LKKwqpm",
+          "source": "a",
+          "type": "default"
+        },
+        {
+          "id": "a-dcP3HykeLqTfnesDegpALM",
+          "target": "dcP3HykeLqTfnesDegpALM",
+          "source": "a",
+          "type": "default"
+        },
+        {
+          "id": "hGR5tgDRYC4Zs96LKKwqpm-v9BG28jEC1VdYT7zEmKMmK",
+          "target": "v9BG28jEC1VdYT7zEmKMmK",
+          "source": "hGR5tgDRYC4Zs96LKKwqpm",
+          "type": "default"
+        },
+        {
+          "id": "hGR5tgDRYC4Zs96LKKwqpm-6b8vGfpoTu1rUa6AtJGbJD",
+          "target": "6b8vGfpoTu1rUa6AtJGbJD",
+          "source": "hGR5tgDRYC4Zs96LKKwqpm",
+          "type": "default"
+        },
+        {
+          "id": "v9BG28jEC1VdYT7zEmKMmK-5YPEyL3krdKTr46JjH1CJR",
+          "target": "5YPEyL3krdKTr46JjH1CJR",
+          "source": "v9BG28jEC1VdYT7zEmKMmK",
+          "type": "default"
+        },
+        {
+          "id": "v9BG28jEC1VdYT7zEmKMmK-2mf77cVLYPrX7BcsXGzfrZ",
+          "target": "2mf77cVLYPrX7BcsXGzfrZ",
+          "source": "v9BG28jEC1VdYT7zEmKMmK",
+          "type": "default"
+        },
+        {
+          "id": "v9BG28jEC1VdYT7zEmKMmK-wJYzm7y1ig8yfWVanD48Vw",
+          "target": "wJYzm7y1ig8yfWVanD48Vw",
+          "source": "v9BG28jEC1VdYT7zEmKMmK",
+          "type": "default"
+        },
+        {
+          "id": "5YPEyL3krdKTr46JjH1CJR-up6quqNBLyjSqcmpoMDTgy",
+          "target": "up6quqNBLyjSqcmpoMDTgy",
+          "source": "5YPEyL3krdKTr46JjH1CJR",
+          "type": "default"
+        },
+        {
+          "id": "up6quqNBLyjSqcmpoMDTgy-6pgPupPzM872a7hfmaqXtp",
+          "target": "6pgPupPzM872a7hfmaqXtp",
+          "source": "up6quqNBLyjSqcmpoMDTgy",
+          "type": "default"
+        },
+        {
+          "id": "6pgPupPzM872a7hfmaqXtp-t2K7W4c3ynqztfmjShJET5",
+          "target": "t2K7W4c3ynqztfmjShJET5",
+          "source": "6pgPupPzM872a7hfmaqXtp",
+          "type": "default"
+        },
+        {
+          "id": "ujKdvZ6fp3nazoNiKx899a-1osFHwBVPT6AWfNDhrSqxM",
+          "target": "1osFHwBVPT6AWfNDhrSqxM",
+          "source": "ujKdvZ6fp3nazoNiKx899a",
+          "type": "default"
+        },
+        {
+          "id": "1osFHwBVPT6AWfNDhrSqxM-rQX62Bgg1eVjrNYfwHGGsP",
+          "target": "rQX62Bgg1eVjrNYfwHGGsP",
+          "source": "1osFHwBVPT6AWfNDhrSqxM",
+          "type": "default"
+        },
+        {
+          "id": "t2K7W4c3ynqztfmjShJET5-nEZvPyxXdPjkTRFKfcLbpf",
+          "target": "nEZvPyxXdPjkTRFKfcLbpf",
+          "source": "t2K7W4c3ynqztfmjShJET5",
+          "type": "default"
+        },
+        {
+          "id": "nEZvPyxXdPjkTRFKfcLbpf-vPjCGJrSYRUWjtmp2FZhzh",
+          "target": "vPjCGJrSYRUWjtmp2FZhzh",
+          "source": "nEZvPyxXdPjkTRFKfcLbpf",
+          "type": "default"
+        },
+        {
+          "id": "rQX62Bgg1eVjrNYfwHGGsP-abeT5yRKE8b93PPHVoQKsk",
+          "target": "abeT5yRKE8b93PPHVoQKsk",
+          "source": "rQX62Bgg1eVjrNYfwHGGsP",
+          "type": "default"
+        },
+        {
+          "id": "2mf77cVLYPrX7BcsXGzfrZ-mVMVu3nd9GksFWPPk7qrYe",
+          "target": "mVMVu3nd9GksFWPPk7qrYe",
+          "source": "2mf77cVLYPrX7BcsXGzfrZ",
+          "type": "default"
+        },
+        {
+          "id": "mVMVu3nd9GksFWPPk7qrYe-j5uCG2dYrDgbHqunmk8Tyg",
+          "target": "j5uCG2dYrDgbHqunmk8Tyg",
+          "source": "mVMVu3nd9GksFWPPk7qrYe",
+          "type": "default"
+        },
+        {
+          "id": "j5uCG2dYrDgbHqunmk8Tyg-rgyjhYCzMWPVUaU2mjJ9m2",
+          "target": "rgyjhYCzMWPVUaU2mjJ9m2",
+          "source": "j5uCG2dYrDgbHqunmk8Tyg",
+          "type": "default"
+        },
+        {
+          "id": "rgyjhYCzMWPVUaU2mjJ9m2-f1sJPYikXjHJBARSvWdN4B",
+          "target": "f1sJPYikXjHJBARSvWdN4B",
+          "source": "rgyjhYCzMWPVUaU2mjJ9m2",
+          "type": "default"
+        },
+        {
+          "id": "vPjCGJrSYRUWjtmp2FZhzh-u889JzDPeDFVoYrrcJPoKQ",
+          "target": "u889JzDPeDFVoYrrcJPoKQ",
+          "source": "vPjCGJrSYRUWjtmp2FZhzh",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__vPjCGJrSYRUWjtmp2FZhzhvPjCGJrSYRUWjtmp2FZhzh-source-pSUyPzYS3p7DkuHVYJCLJipSUyPzYS3p7DkuHVYJCLJi-target",
+          "target": "pSUyPzYS3p7DkuHVYJCLJi",
+          "targetHandle": "pSUyPzYS3p7DkuHVYJCLJi-target",
+          "source": "vPjCGJrSYRUWjtmp2FZhzh",
+          "sourceHandle": "vPjCGJrSYRUWjtmp2FZhzh-source",
+          "type": "default"
+        },
+        {
+          "id": "vPjCGJrSYRUWjtmp2FZhzh-ts9qcSFfW3qC9iEuw23HQe",
+          "target": "ts9qcSFfW3qC9iEuw23HQe",
+          "source": "vPjCGJrSYRUWjtmp2FZhzh",
+          "type": "default"
+        },
+        {
+          "id": "abeT5yRKE8b93PPHVoQKsk-qP7YBw96B4wAYgAAKGXyAX",
+          "target": "qP7YBw96B4wAYgAAKGXyAX",
+          "source": "abeT5yRKE8b93PPHVoQKsk",
+          "type": "default"
+        },
+        {
+          "id": "abeT5yRKE8b93PPHVoQKsk-4nBYp3h4VRRCEMYyamLk74",
+          "target": "4nBYp3h4VRRCEMYyamLk74",
+          "source": "abeT5yRKE8b93PPHVoQKsk",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__abeT5yRKE8b93PPHVoQKskabeT5yRKE8b93PPHVoQKsk-source-pSUyPzYS3p7DkuHVYJCLJipSUyPzYS3p7DkuHVYJCLJi-target",
+          "target": "pSUyPzYS3p7DkuHVYJCLJi",
+          "targetHandle": "pSUyPzYS3p7DkuHVYJCLJi-target",
+          "source": "abeT5yRKE8b93PPHVoQKsk",
+          "sourceHandle": "abeT5yRKE8b93PPHVoQKsk-source",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__f1sJPYikXjHJBARSvWdN4Bf1sJPYikXjHJBARSvWdN4B-source-abeT5yRKE8b93PPHVoQKskabeT5yRKE8b93PPHVoQKsk-target",
+          "target": "abeT5yRKE8b93PPHVoQKsk",
+          "targetHandle": "abeT5yRKE8b93PPHVoQKsk-target",
+          "source": "f1sJPYikXjHJBARSvWdN4B",
+          "sourceHandle": "f1sJPYikXjHJBARSvWdN4B-source",
+          "type": "default"
+        },
+        {
+          "id": "wJYzm7y1ig8yfWVanD48Vw-7Qi9L9oFU5Y2deNCXxthc1",
+          "target": "7Qi9L9oFU5Y2deNCXxthc1",
+          "source": "wJYzm7y1ig8yfWVanD48Vw",
+          "type": "default"
+        },
+        {
+          "id": "7Qi9L9oFU5Y2deNCXxthc1-x8uPNKe42nRW3kEWeBytkL",
+          "target": "x8uPNKe42nRW3kEWeBytkL",
+          "source": "7Qi9L9oFU5Y2deNCXxthc1",
+          "type": "default"
+        },
+        {
+          "id": "x8uPNKe42nRW3kEWeBytkL-ox1yNqYFiLCUGdBK7JJkgg",
+          "target": "ox1yNqYFiLCUGdBK7JJkgg",
+          "source": "x8uPNKe42nRW3kEWeBytkL",
+          "type": "default"
+        },
+        {
+          "id": "ox1yNqYFiLCUGdBK7JJkgg-9iNTiSbA4QpmP2PRZnp91S",
+          "target": "9iNTiSbA4QpmP2PRZnp91S",
+          "source": "ox1yNqYFiLCUGdBK7JJkgg",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__9iNTiSbA4QpmP2PRZnp91S9iNTiSbA4QpmP2PRZnp91S-source-abeT5yRKE8b93PPHVoQKskabeT5yRKE8b93PPHVoQKsk-target",
+          "target": "abeT5yRKE8b93PPHVoQKsk",
+          "targetHandle": "abeT5yRKE8b93PPHVoQKsk-target",
+          "source": "9iNTiSbA4QpmP2PRZnp91S",
+          "sourceHandle": "9iNTiSbA4QpmP2PRZnp91S-source",
+          "type": "default"
+        },
+        {
+          "id": "abeT5yRKE8b93PPHVoQKsk-8vNmmxBDhZ5K5Gox92GZxu",
+          "target": "8vNmmxBDhZ5K5Gox92GZxu",
+          "source": "abeT5yRKE8b93PPHVoQKsk",
+          "type": "default"
+        },
+        {
+          "id": "5YPEyL3krdKTr46JjH1CJR-sxR193cRdC1vY8XV465fEG",
+          "target": "sxR193cRdC1vY8XV465fEG",
+          "source": "5YPEyL3krdKTr46JjH1CJR",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__sxR193cRdC1vY8XV465fEGsxR193cRdC1vY8XV465fEG-source-ujKdvZ6fp3nazoNiKx899aujKdvZ6fp3nazoNiKx899a-target",
+          "target": "ujKdvZ6fp3nazoNiKx899a",
+          "targetHandle": "ujKdvZ6fp3nazoNiKx899a-target",
+          "source": "sxR193cRdC1vY8XV465fEG",
+          "sourceHandle": "sxR193cRdC1vY8XV465fEG-source",
+          "type": "default"
+        },
+        {
+          "id": "up6quqNBLyjSqcmpoMDTgy-newNJ7u34F8KQNJMXZkaaD",
+          "target": "newNJ7u34F8KQNJMXZkaaD",
+          "source": "up6quqNBLyjSqcmpoMDTgy",
+          "type": "default"
+        },
+        {
+          "id": "newNJ7u34F8KQNJMXZkaaD-vL4ffXrnSJzMwvGU3iQA6p",
+          "target": "vL4ffXrnSJzMwvGU3iQA6p",
+          "source": "newNJ7u34F8KQNJMXZkaaD",
+          "type": "default"
+        },
+        {
+          "id": "vL4ffXrnSJzMwvGU3iQA6p-oTzEnNxETYBYEuMbCYe4We",
+          "target": "oTzEnNxETYBYEuMbCYe4We",
+          "source": "vL4ffXrnSJzMwvGU3iQA6p",
+          "type": "default"
+        },
+        {
+          "id": "t2K7W4c3ynqztfmjShJET5-nvX37JV16SH4pG5JpZZebo",
+          "target": "nvX37JV16SH4pG5JpZZebo",
+          "source": "t2K7W4c3ynqztfmjShJET5",
+          "type": "default"
+        },
+        {
+          "id": "t2K7W4c3ynqztfmjShJET5-tTXwMkAU31mPXqKxuK2m4P",
+          "target": "tTXwMkAU31mPXqKxuK2m4P",
+          "source": "t2K7W4c3ynqztfmjShJET5",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__tTXwMkAU31mPXqKxuK2m4PtTXwMkAU31mPXqKxuK2m4P-source-vPjCGJrSYRUWjtmp2FZhzhvPjCGJrSYRUWjtmp2FZhzh-target",
+          "target": "vPjCGJrSYRUWjtmp2FZhzh",
+          "targetHandle": "vPjCGJrSYRUWjtmp2FZhzh-target",
+          "source": "tTXwMkAU31mPXqKxuK2m4P",
+          "sourceHandle": "tTXwMkAU31mPXqKxuK2m4P-source",
+          "type": "default"
+        },
+        {
+          "id": "nvX37JV16SH4pG5JpZZebo-qPJtf2cCJEL5TBGzZbuSZA",
+          "target": "qPJtf2cCJEL5TBGzZbuSZA",
+          "source": "nvX37JV16SH4pG5JpZZebo",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__qPJtf2cCJEL5TBGzZbuSZAqPJtf2cCJEL5TBGzZbuSZA-source-3zZ7eFM4QXL2TrVKb4fQ983zZ7eFM4QXL2TrVKb4fQ98-target",
+          "target": "3zZ7eFM4QXL2TrVKb4fQ98",
+          "targetHandle": "3zZ7eFM4QXL2TrVKb4fQ98-target",
+          "source": "qPJtf2cCJEL5TBGzZbuSZA",
+          "sourceHandle": "qPJtf2cCJEL5TBGzZbuSZA-source",
+          "type": "default"
+        },
+        {
+          "id": "wJYzm7y1ig8yfWVanD48Vw-qiT3xjohoyj9ELkEkUtKgs",
+          "target": "qiT3xjohoyj9ELkEkUtKgs",
+          "source": "wJYzm7y1ig8yfWVanD48Vw",
+          "type": "default"
+        },
+        {
+          "id": "wJYzm7y1ig8yfWVanD48Vw-criToyWy6idRrDrbBmnMv2",
+          "target": "criToyWy6idRrDrbBmnMv2",
+          "source": "wJYzm7y1ig8yfWVanD48Vw",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__criToyWy6idRrDrbBmnMv2criToyWy6idRrDrbBmnMv2-source-x8uPNKe42nRW3kEWeBytkLx8uPNKe42nRW3kEWeBytkL-target",
+          "target": "x8uPNKe42nRW3kEWeBytkL",
+          "targetHandle": "x8uPNKe42nRW3kEWeBytkL-target",
+          "source": "criToyWy6idRrDrbBmnMv2",
+          "sourceHandle": "criToyWy6idRrDrbBmnMv2-source",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__qiT3xjohoyj9ELkEkUtKgsqiT3xjohoyj9ELkEkUtKgs-source-x8uPNKe42nRW3kEWeBytkLx8uPNKe42nRW3kEWeBytkL-target",
+          "target": "x8uPNKe42nRW3kEWeBytkL",
+          "targetHandle": "x8uPNKe42nRW3kEWeBytkL-target",
+          "source": "qiT3xjohoyj9ELkEkUtKgs",
+          "sourceHandle": "qiT3xjohoyj9ELkEkUtKgs-source",
+          "type": "default"
+        },
+        {
+          "id": "6b8vGfpoTu1rUa6AtJGbJD-unRUBEguHQg9BedeUFxq7w",
+          "target": "unRUBEguHQg9BedeUFxq7w",
+          "source": "6b8vGfpoTu1rUa6AtJGbJD",
+          "type": "default"
+        },
+        {
+          "id": "unRUBEguHQg9BedeUFxq7w-e6ZPKaoL19wJ3TMzdqcC8h",
+          "target": "e6ZPKaoL19wJ3TMzdqcC8h",
+          "source": "unRUBEguHQg9BedeUFxq7w",
+          "type": "default"
+        },
+        {
+          "id": "e6ZPKaoL19wJ3TMzdqcC8h-25VJDGWDf7gGiaGuFHywUf",
+          "target": "25VJDGWDf7gGiaGuFHywUf",
+          "source": "e6ZPKaoL19wJ3TMzdqcC8h",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__e6ZPKaoL19wJ3TMzdqcC8he6ZPKaoL19wJ3TMzdqcC8h-source-xwKtDtWz8VFThV1jZkKxdaxwKtDtWz8VFThV1jZkKxda-target",
+          "target": "xwKtDtWz8VFThV1jZkKxda",
+          "targetHandle": "xwKtDtWz8VFThV1jZkKxda-target",
+          "source": "e6ZPKaoL19wJ3TMzdqcC8h",
+          "sourceHandle": "e6ZPKaoL19wJ3TMzdqcC8h-source",
+          "type": "default"
+        },
+        {
+          "id": "25VJDGWDf7gGiaGuFHywUf-nGDfin7HWPjkyQPY3VaFJe",
+          "target": "nGDfin7HWPjkyQPY3VaFJe",
+          "source": "25VJDGWDf7gGiaGuFHywUf",
+          "type": "default"
+        },
+        {
+          "id": "xwKtDtWz8VFThV1jZkKxda-ruAxh4pZcpVqqLcguQtbuu",
+          "target": "ruAxh4pZcpVqqLcguQtbuu",
+          "source": "xwKtDtWz8VFThV1jZkKxda",
+          "type": "default"
+        },
+        {
+          "id": "vL4ffXrnSJzMwvGU3iQA6p-kMT3ruYLrwTiaXzKgNXkQ1",
+          "target": "kMT3ruYLrwTiaXzKgNXkQ1",
+          "source": "vL4ffXrnSJzMwvGU3iQA6p",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__oTzEnNxETYBYEuMbCYe4WeoTzEnNxETYBYEuMbCYe4We-source-qPJtf2cCJEL5TBGzZbuSZAqPJtf2cCJEL5TBGzZbuSZA-target",
+          "target": "qPJtf2cCJEL5TBGzZbuSZA",
+          "targetHandle": "qPJtf2cCJEL5TBGzZbuSZA-target",
+          "source": "oTzEnNxETYBYEuMbCYe4We",
+          "sourceHandle": "oTzEnNxETYBYEuMbCYe4We-source",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__kMT3ruYLrwTiaXzKgNXkQ1kMT3ruYLrwTiaXzKgNXkQ1-source-qPJtf2cCJEL5TBGzZbuSZAqPJtf2cCJEL5TBGzZbuSZA-target",
+          "target": "qPJtf2cCJEL5TBGzZbuSZA",
+          "targetHandle": "qPJtf2cCJEL5TBGzZbuSZA-target",
+          "source": "kMT3ruYLrwTiaXzKgNXkQ1",
+          "sourceHandle": "kMT3ruYLrwTiaXzKgNXkQ1-source",
+          "type": "default"
+        },
+        {
+          "id": "nGDfin7HWPjkyQPY3VaFJe-7wFHEKNyB2Y2DvBiMgqHck",
+          "target": "7wFHEKNyB2Y2DvBiMgqHck",
+          "source": "nGDfin7HWPjkyQPY3VaFJe",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__ruAxh4pZcpVqqLcguQtbuuruAxh4pZcpVqqLcguQtbuu-source-7wFHEKNyB2Y2DvBiMgqHck7wFHEKNyB2Y2DvBiMgqHck-target",
+          "target": "7wFHEKNyB2Y2DvBiMgqHck",
+          "targetHandle": "7wFHEKNyB2Y2DvBiMgqHck-target",
+          "source": "ruAxh4pZcpVqqLcguQtbuu",
+          "sourceHandle": "ruAxh4pZcpVqqLcguQtbuu-source",
+          "type": "default"
+        },
+        {
+          "id": "7wFHEKNyB2Y2DvBiMgqHck-4s8m7TbutiwnmZ4j3hj9EM",
+          "target": "4s8m7TbutiwnmZ4j3hj9EM",
+          "source": "7wFHEKNyB2Y2DvBiMgqHck",
+          "type": "default"
+        },
+        {
+          "id": "7wFHEKNyB2Y2DvBiMgqHck-9CnEmLDHRaC7xsqABtj9LZ",
+          "target": "9CnEmLDHRaC7xsqABtj9LZ",
+          "source": "7wFHEKNyB2Y2DvBiMgqHck",
+          "type": "default"
+        },
+        {
+          "id": "4s8m7TbutiwnmZ4j3hj9EM-bCG74ojbR7v9YEaCUczPYV",
+          "target": "bCG74ojbR7v9YEaCUczPYV",
+          "source": "4s8m7TbutiwnmZ4j3hj9EM",
+          "type": "default"
+        },
+        {
+          "id": "4s8m7TbutiwnmZ4j3hj9EM-arzUjdh4N9NRFrDZCkKUfj",
+          "target": "arzUjdh4N9NRFrDZCkKUfj",
+          "source": "4s8m7TbutiwnmZ4j3hj9EM",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__9CnEmLDHRaC7xsqABtj9LZ9CnEmLDHRaC7xsqABtj9LZ-source-bCG74ojbR7v9YEaCUczPYVbCG74ojbR7v9YEaCUczPYV-target",
+          "target": "bCG74ojbR7v9YEaCUczPYV",
+          "targetHandle": "bCG74ojbR7v9YEaCUczPYV-target",
+          "source": "9CnEmLDHRaC7xsqABtj9LZ",
+          "sourceHandle": "9CnEmLDHRaC7xsqABtj9LZ-source",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__9CnEmLDHRaC7xsqABtj9LZ9CnEmLDHRaC7xsqABtj9LZ-source-arzUjdh4N9NRFrDZCkKUfjarzUjdh4N9NRFrDZCkKUfj-target",
+          "target": "arzUjdh4N9NRFrDZCkKUfj",
+          "targetHandle": "arzUjdh4N9NRFrDZCkKUfj-target",
+          "source": "9CnEmLDHRaC7xsqABtj9LZ",
+          "sourceHandle": "9CnEmLDHRaC7xsqABtj9LZ-source",
+          "type": "default"
+        },
+        {
+          "id": "dcP3HykeLqTfnesDegpALM-wtCStGFNjxJa6Bm1WbueLz",
+          "target": "wtCStGFNjxJa6Bm1WbueLz",
+          "source": "dcP3HykeLqTfnesDegpALM",
+          "type": "default"
+        },
+        {
+          "id": "dcP3HykeLqTfnesDegpALM-suenriW4YWZ2ABAAU1Z216",
+          "target": "suenriW4YWZ2ABAAU1Z216",
+          "source": "dcP3HykeLqTfnesDegpALM",
+          "type": "default"
+        },
+        {
+          "id": "suenriW4YWZ2ABAAU1Z216-iUAFo8mfLHHS1GGyTr6snv",
+          "target": "iUAFo8mfLHHS1GGyTr6snv",
+          "source": "suenriW4YWZ2ABAAU1Z216",
+          "type": "default"
+        },
+        {
+          "id": "wtCStGFNjxJa6Bm1WbueLz-xeBcU91VtzY1x18yj8XttD",
+          "target": "xeBcU91VtzY1x18yj8XttD",
+          "source": "wtCStGFNjxJa6Bm1WbueLz",
+          "type": "default"
+        },
+        {
+          "id": "iUAFo8mfLHHS1GGyTr6snv-uwqEmpZs1NWPoenKDvb4JD",
+          "target": "uwqEmpZs1NWPoenKDvb4JD",
+          "source": "iUAFo8mfLHHS1GGyTr6snv",
+          "type": "default"
+        },
+        {
+          "id": "uwqEmpZs1NWPoenKDvb4JD-dUUPVdyEyWck4ZbxXoKWjE",
+          "target": "dUUPVdyEyWck4ZbxXoKWjE",
+          "source": "uwqEmpZs1NWPoenKDvb4JD",
+          "type": "default"
+        },
+        {
+          "id": "dUUPVdyEyWck4ZbxXoKWjE-mqdggMLvvsSUfaPSFn8V7d",
+          "target": "mqdggMLvvsSUfaPSFn8V7d",
+          "source": "dUUPVdyEyWck4ZbxXoKWjE",
+          "type": "default"
+        },
+        {
+          "id": "xeBcU91VtzY1x18yj8XttD-wbKhzdt8qQyxUx7cvZ2Tr4",
+          "target": "wbKhzdt8qQyxUx7cvZ2Tr4",
+          "source": "xeBcU91VtzY1x18yj8XttD",
+          "type": "default"
+        },
+        {
+          "id": "mqdggMLvvsSUfaPSFn8V7d-eT7Xg4G53wRTuFUjZ3mGth",
+          "target": "eT7Xg4G53wRTuFUjZ3mGth",
+          "source": "mqdggMLvvsSUfaPSFn8V7d",
+          "type": "default"
+        },
+        {
+          "id": "mqdggMLvvsSUfaPSFn8V7d-owJCCNrepgK9T4mADECQXi",
+          "target": "owJCCNrepgK9T4mADECQXi",
+          "source": "mqdggMLvvsSUfaPSFn8V7d",
+          "type": "default"
+        },
+        {
+          "id": "mqdggMLvvsSUfaPSFn8V7d-wuns6iLyu3bjEurRShTtmt",
+          "target": "wuns6iLyu3bjEurRShTtmt",
+          "source": "mqdggMLvvsSUfaPSFn8V7d",
+          "type": "default"
+        },
+        {
+          "id": "wuns6iLyu3bjEurRShTtmt-wFeh9W7AcpNyHatVEL4FHp",
+          "target": "wFeh9W7AcpNyHatVEL4FHp",
+          "source": "wuns6iLyu3bjEurRShTtmt",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__eT7Xg4G53wRTuFUjZ3mGtheT7Xg4G53wRTuFUjZ3mGth-source-wFeh9W7AcpNyHatVEL4FHpwFeh9W7AcpNyHatVEL4FHp-target",
+          "target": "wFeh9W7AcpNyHatVEL4FHp",
+          "targetHandle": "wFeh9W7AcpNyHatVEL4FHp-target",
+          "source": "eT7Xg4G53wRTuFUjZ3mGth",
+          "sourceHandle": "eT7Xg4G53wRTuFUjZ3mGth-source",
+          "type": "default"
+        },
+        {
+          "id": "owJCCNrepgK9T4mADECQXi-p8ptEpvdQGcDXMFkXM8EHJ",
+          "target": "p8ptEpvdQGcDXMFkXM8EHJ",
+          "source": "owJCCNrepgK9T4mADECQXi",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__wuns6iLyu3bjEurRShTtmtwuns6iLyu3bjEurRShTtmt-source-p8ptEpvdQGcDXMFkXM8EHJp8ptEpvdQGcDXMFkXM8EHJ-target",
+          "target": "p8ptEpvdQGcDXMFkXM8EHJ",
+          "targetHandle": "p8ptEpvdQGcDXMFkXM8EHJ-target",
+          "source": "wuns6iLyu3bjEurRShTtmt",
+          "sourceHandle": "wuns6iLyu3bjEurRShTtmt-source",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__eT7Xg4G53wRTuFUjZ3mGtheT7Xg4G53wRTuFUjZ3mGth-source-p8ptEpvdQGcDXMFkXM8EHJp8ptEpvdQGcDXMFkXM8EHJ-target",
+          "target": "p8ptEpvdQGcDXMFkXM8EHJ",
+          "targetHandle": "p8ptEpvdQGcDXMFkXM8EHJ-target",
+          "source": "eT7Xg4G53wRTuFUjZ3mGth",
+          "sourceHandle": "eT7Xg4G53wRTuFUjZ3mGth-source",
+          "type": "default"
+        },
+        {
+          "id": "wFeh9W7AcpNyHatVEL4FHp-2YYAYDxMLru2kzKKs7Dnsq",
+          "target": "2YYAYDxMLru2kzKKs7Dnsq",
+          "source": "wFeh9W7AcpNyHatVEL4FHp",
+          "type": "default"
+        },
+        {
+          "id": "p8ptEpvdQGcDXMFkXM8EHJ-177J7yanx3ZSs5UyfGqpmY",
+          "target": "177J7yanx3ZSs5UyfGqpmY",
+          "source": "p8ptEpvdQGcDXMFkXM8EHJ",
+          "type": "default"
+        },
+        {
+          "id": "p8ptEpvdQGcDXMFkXM8EHJ-jZ4gdaRws7pcBuYjvX7iRj",
+          "target": "jZ4gdaRws7pcBuYjvX7iRj",
+          "source": "p8ptEpvdQGcDXMFkXM8EHJ",
+          "type": "default"
+        },
+        {
+          "id": "wFeh9W7AcpNyHatVEL4FHp-cweSrC64F74iNHPoVGHfYY",
+          "target": "cweSrC64F74iNHPoVGHfYY",
+          "source": "wFeh9W7AcpNyHatVEL4FHp",
+          "type": "default"
+        },
+        {
+          "id": "wbKhzdt8qQyxUx7cvZ2Tr4-o74GToEoAZP2cMZXTLpguJ",
+          "target": "o74GToEoAZP2cMZXTLpguJ",
+          "source": "wbKhzdt8qQyxUx7cvZ2Tr4",
+          "type": "default"
+        },
+        {
+          "id": "o74GToEoAZP2cMZXTLpguJ-wUp3b9AnNQeaAxFfbCMBmw",
+          "target": "wUp3b9AnNQeaAxFfbCMBmw",
+          "source": "o74GToEoAZP2cMZXTLpguJ",
+          "type": "default"
+        },
+        {
+          "id": "wUp3b9AnNQeaAxFfbCMBmw-rY334bipsmuodhtYNEBLiw",
+          "target": "rY334bipsmuodhtYNEBLiw",
+          "source": "wUp3b9AnNQeaAxFfbCMBmw",
+          "type": "default"
+        },
+        {
+          "id": "rY334bipsmuodhtYNEBLiw-eZyTRjTQBU6bxD4PsWypY8",
+          "target": "eZyTRjTQBU6bxD4PsWypY8",
+          "source": "rY334bipsmuodhtYNEBLiw",
+          "type": "default"
+        },
+        {
+          "id": "eZyTRjTQBU6bxD4PsWypY8-4LvoFX7rFx8yTEnF39tphj",
+          "target": "4LvoFX7rFx8yTEnF39tphj",
+          "source": "eZyTRjTQBU6bxD4PsWypY8",
+          "type": "default"
+        },
+        {
+          "id": "2mf77cVLYPrX7BcsXGzfrZ-iujqQFK5eFeg477LU4dvmf",
+          "target": "iujqQFK5eFeg477LU4dvmf",
+          "source": "2mf77cVLYPrX7BcsXGzfrZ",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__iujqQFK5eFeg477LU4dvmfiujqQFK5eFeg477LU4dvmf-source-j5uCG2dYrDgbHqunmk8Tygj5uCG2dYrDgbHqunmk8Tyg-target",
+          "target": "j5uCG2dYrDgbHqunmk8Tyg",
+          "targetHandle": "j5uCG2dYrDgbHqunmk8Tyg-target",
+          "source": "iujqQFK5eFeg477LU4dvmf",
+          "sourceHandle": "iujqQFK5eFeg477LU4dvmf-source",
+          "type": "default"
+        },
+        {
+          "id": "rgyjhYCzMWPVUaU2mjJ9m2-5VHCPRUpKcWjqq8zd5V88M",
+          "target": "5VHCPRUpKcWjqq8zd5V88M",
+          "source": "rgyjhYCzMWPVUaU2mjJ9m2",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__5VHCPRUpKcWjqq8zd5V88M5VHCPRUpKcWjqq8zd5V88M-source-abeT5yRKE8b93PPHVoQKskabeT5yRKE8b93PPHVoQKsk-target",
+          "target": "abeT5yRKE8b93PPHVoQKsk",
+          "targetHandle": "abeT5yRKE8b93PPHVoQKsk-target",
+          "source": "5VHCPRUpKcWjqq8zd5V88M",
+          "sourceHandle": "5VHCPRUpKcWjqq8zd5V88M-source",
+          "type": "default"
+        },
+        {
+          "id": "1osFHwBVPT6AWfNDhrSqxM-1g148JVKiBvgAyi93wu7qj",
+          "target": "1g148JVKiBvgAyi93wu7qj",
+          "source": "1osFHwBVPT6AWfNDhrSqxM",
+          "type": "default"
+        },
+        {
+          "id": "1osFHwBVPT6AWfNDhrSqxM-emCZKhqh6h1PNyL5LwXJp2",
+          "target": "emCZKhqh6h1PNyL5LwXJp2",
+          "source": "1osFHwBVPT6AWfNDhrSqxM",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__emCZKhqh6h1PNyL5LwXJp2emCZKhqh6h1PNyL5LwXJp2-source-abeT5yRKE8b93PPHVoQKskabeT5yRKE8b93PPHVoQKsk-target",
+          "target": "abeT5yRKE8b93PPHVoQKsk",
+          "targetHandle": "abeT5yRKE8b93PPHVoQKsk-target",
+          "source": "emCZKhqh6h1PNyL5LwXJp2",
+          "sourceHandle": "emCZKhqh6h1PNyL5LwXJp2-source",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__1g148JVKiBvgAyi93wu7qj1g148JVKiBvgAyi93wu7qj-source-abeT5yRKE8b93PPHVoQKskabeT5yRKE8b93PPHVoQKsk-target",
+          "target": "abeT5yRKE8b93PPHVoQKsk",
+          "targetHandle": "abeT5yRKE8b93PPHVoQKsk-target",
+          "source": "1g148JVKiBvgAyi93wu7qj",
+          "sourceHandle": "1g148JVKiBvgAyi93wu7qj-source",
+          "type": "default"
+        }
+      ]
+    },
+    {
+      "id": "zone4",
+      "label": "Electrical System Zone",
+      "nodes": [
+        {
+          "id": "zone",
+          "type": "zone",
+          "data": {
+            "content": "Double-click to describe the zone"
+          },
+          "position": {
+            "x": 52,
+            "y": 12
+          }
+        },
+        {
+          "id": "task-1",
+          "type": "task",
+          "data": {
+            "content": "Double-click to name the task…"
+          },
+          "position": {
+            "x": 52,
+            "y": 170
+          }
+        },
+        {
+          "id": "fn-1",
+          "type": "function",
+          "data": {
+            "content": "Add a function that supports the task…"
+          },
+          "position": {
+            "x": 52,
+            "y": 328
+          }
+        },
+        {
+          "id": "real-1",
+          "type": "realization",
+          "data": {
+            "content": "What realization implements the function?"
+          },
+          "position": {
+            "x": 52,
+            "y": 486
+          }
+        },
+        {
+          "id": "prop-1",
+          "type": "property",
+          "data": {
+            "content": "List a key property to check…"
+          },
+          "position": {
+            "x": 52,
+            "y": 664
+          }
+        },
+        {
+          "id": "gw-1",
+          "type": "guideword",
+          "data": {
+            "content": "Part of",
+            "isoMatches": []
+          },
+          "position": {
+            "x": 52,
+            "y": 822
+          }
+        },
+        {
+          "id": "45v3co2CV9mQ8S2XbYL6mY",
+          "type": "deviation",
+          "data": {
+            "content": "D1"
+          },
+          "position": {
+            "x": 52,
+            "y": 976
+          }
+        },
+        {
+          "id": "ot8Bs51WzhsDXEPfpvEBZg",
+          "type": "cause",
+          "data": {
+            "content": "CA2"
+          },
+          "position": {
+            "x": 252,
+            "y": 1125.4285714285716
+          }
+        },
+        {
+          "id": "hAEC3qhFHGiQXZshmhgV7P",
+          "type": "cause",
+          "data": {
+            "content": "CA1"
+          },
+          "position": {
+            "x": 52,
+            "y": 1125.4285714285716
+          }
+        },
+        {
+          "id": "aD4BCTCAfoizPudbvavkZV",
+          "type": "consequence",
+          "data": {
+            "content": "CO2"
+          },
+          "position": {
+            "x": 252,
+            "y": 1274.8571428571431
+          }
+        },
+        {
+          "id": "r78Y7ibXcQWJxDmAFMMqb6",
+          "type": "consequence",
+          "data": {
+            "content": "CO1"
+          },
+          "position": {
+            "x": 52,
+            "y": 1274.8571428571431
+          }
+        },
+        {
+          "id": "dPaDaYqXKsdr7Vp2FSS2X1",
+          "type": "requirement",
+          "data": {
+            "content": "R1"
+          },
+          "position": {
+            "x": 12,
+            "y": 1417.4285714285716
+          }
+        },
+        {
+          "id": "pXwWpSEbTaamqaa7X9T5Yx",
+          "type": "requirement",
+          "data": {
+            "content": "R2"
+          },
+          "position": {
+            "x": 292,
+            "y": 1417.4285714285716
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "e1",
+          "target": "task-1",
+          "source": "zone",
+          "type": "default"
+        },
+        {
+          "id": "e2",
+          "target": "fn-1",
+          "source": "task-1",
+          "type": "default"
+        },
+        {
+          "id": "e3",
+          "target": "real-1",
+          "source": "fn-1",
+          "type": "default"
+        },
+        {
+          "id": "e4",
+          "target": "prop-1",
+          "source": "real-1",
+          "type": "default"
+        },
+        {
+          "id": "e5",
+          "target": "gw-1",
+          "source": "prop-1",
+          "type": "default"
+        },
+        {
+          "id": "gw-1-45v3co2CV9mQ8S2XbYL6mY",
+          "target": "45v3co2CV9mQ8S2XbYL6mY",
+          "source": "gw-1",
+          "type": "default"
+        },
+        {
+          "id": "45v3co2CV9mQ8S2XbYL6mY-ot8Bs51WzhsDXEPfpvEBZg",
+          "target": "ot8Bs51WzhsDXEPfpvEBZg",
+          "source": "45v3co2CV9mQ8S2XbYL6mY",
+          "type": "default"
+        },
+        {
+          "id": "45v3co2CV9mQ8S2XbYL6mY-hAEC3qhFHGiQXZshmhgV7P",
+          "target": "hAEC3qhFHGiQXZshmhgV7P",
+          "source": "45v3co2CV9mQ8S2XbYL6mY",
+          "type": "default"
+        },
+        {
+          "id": "ot8Bs51WzhsDXEPfpvEBZg-aD4BCTCAfoizPudbvavkZV",
+          "target": "aD4BCTCAfoizPudbvavkZV",
+          "source": "ot8Bs51WzhsDXEPfpvEBZg",
+          "type": "default"
+        },
+        {
+          "id": "xy-edge__hAEC3qhFHGiQXZshmhgV7PhAEC3qhFHGiQXZshmhgV7P-source-aD4BCTCAfoizPudbvavkZVaD4BCTCAfoizPudbvavkZV-target",
+          "target": "aD4BCTCAfoizPudbvavkZV",
+          "targetHandle": "aD4BCTCAfoizPudbvavkZV-target",
+          "source": "hAEC3qhFHGiQXZshmhgV7P",
+          "sourceHandle": "hAEC3qhFHGiQXZshmhgV7P-source",
+          "type": "default"
+        },
+        {
+          "id": "hAEC3qhFHGiQXZshmhgV7P-r78Y7ibXcQWJxDmAFMMqb6",
+          "target": "r78Y7ibXcQWJxDmAFMMqb6",
+          "source": "hAEC3qhFHGiQXZshmhgV7P",
+          "type": "default"
+        },
+        {
+          "id": "r78Y7ibXcQWJxDmAFMMqb6-dPaDaYqXKsdr7Vp2FSS2X1",
+          "target": "dPaDaYqXKsdr7Vp2FSS2X1",
+          "source": "r78Y7ibXcQWJxDmAFMMqb6",
+          "type": "default"
+        },
+        {
+          "id": "aD4BCTCAfoizPudbvavkZV-pXwWpSEbTaamqaa7X9T5Yx",
+          "target": "pXwWpSEbTaamqaa7X9T5Yx",
+          "source": "aD4BCTCAfoizPudbvavkZV",
+          "type": "default"
+        }
+      ]
+    }
+  ],
+  "selectedId": "zone-1",
+  "selectedFta": {
+    "zoneId": "zone-1",
+    "taskId": "hGR5tgDRYC4Zs96LKKwqpm"
+  },
+  "fta": {
+    "items": [
+      {
+        "zoneId": "zone-1",
+        "taskId": "hGR5tgDRYC4Zs96LKKwqpm",
+        "nodes": [
+          {
+            "id": "top-hGR5tgDRYC4Zs96LKKwqpm",
+            "type": "topEvent",
+            "data": {
+              "content": "navigate systme failure"
+            },
+            "position": {
+              "x": 872,
+              "y": 12
+            },
+            "measured": {
+              "width": 160,
+              "height": 66
+            }
+          },
+          {
+            "id": "912m356YJrXvJnoKd227yU",
+            "type": "interEvent",
+            "data": {
+              "content": "Control failure"
+            },
+            "position": {
+              "x": 872,
+              "y": 196.42857142857144
+            },
+            "measured": {
+              "width": 160,
+              "height": 46
+            }
+          },
+          {
+            "id": "sqvrLAdA4eszwEmjb7Wbog",
+            "type": "basicEvent",
+            "data": {
+              "content": "Improper router planing algorithem"
+            },
+            "position": {
+              "x": 1052,
+              "y": 491.8571428571429
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "6rXxqwRwmjuuwE9kYBuuUn",
+            "type": "interEvent",
+            "data": {
+              "content": "Lidar detection failure"
+            },
+            "position": {
+              "x": 672,
+              "y": 518.8571428571429
+            },
+            "measured": {
+              "width": 160,
+              "height": 66
+            }
+          },
+          {
+            "id": "quDrGBSckNwBXTJ2PiJxn7",
+            "type": "logic",
+            "data": {
+              "content": "logic node"
+            },
+            "position": {
+              "x": 512,
+              "y": 681.8571428571429
+            },
+            "measured": {
+              "width": 80,
+              "height": 61
+            }
+          },
+          {
+            "id": "tUpGmnrhZUtAb2cHs8wihD",
+            "type": "logic",
+            "data": {
+              "content": "logic node"
+            },
+            "position": {
+              "x": 712,
+              "y": 681.8571428571429
+            },
+            "measured": {
+              "width": 80,
+              "height": 61
+            }
+          },
+          {
+            "id": "ekVZNKfCue6Ezz3DB4vYB3",
+            "type": "logic",
+            "data": {
+              "content": "logic node"
+            },
+            "position": {
+              "x": 712,
+              "y": 349.42857142857144
+            },
+            "measured": {
+              "width": 80,
+              "height": 61
+            }
+          },
+          {
+            "id": "mqivVCfVkX1FPJAt2jdTDT",
+            "type": "logic",
+            "data": {
+              "content": "logic node"
+            },
+            "position": {
+              "x": 912,
+              "y": 349.42857142857144
+            },
+            "measured": {
+              "width": 80,
+              "height": 61
+            }
+          },
+          {
+            "id": "kPCxi1o6epK6QShsZCHLXu",
+            "type": "interEvent",
+            "data": {
+              "content": "Detection failure"
+            },
+            "position": {
+              "x": 672,
+              "y": 196.42857142857144
+            },
+            "measured": {
+              "width": 160,
+              "height": 46
+            }
+          },
+          {
+            "id": "n2ANecEkaXNhhcHD8ZQRsn",
+            "type": "interEvent",
+            "data": {
+              "content": "Vision-based detection failure"
+            },
+            "position": {
+              "x": 472,
+              "y": 518.8571428571429
+            },
+            "measured": {
+              "width": 160,
+              "height": 66
+            }
+          },
+          {
+            "id": "tYGZfT1rKGgxR4edZ1xieV",
+            "type": "basicEvent",
+            "data": {
+              "content": "The resolution of the Lidar is low"
+            },
+            "position": {
+              "x": 992,
+              "y": 830
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "iCx3kqT62xBJXUPEGx6D3W",
+            "type": "basicEvent",
+            "data": {
+              "content": "Power failure"
+            },
+            "position": {
+              "x": 1072,
+              "y": 159.42857142857144
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "8dRXESbMgFN49rQp7WG6ZB",
+            "type": "basicEvent",
+            "data": {
+              "content": "Limited vertical detecting range"
+            },
+            "position": {
+              "x": 832,
+              "y": 830
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "9aeQHANGqV3Q8Bo5tLNVJe",
+            "type": "basicEvent",
+            "data": {
+              "content": "Motor physical control failure"
+            },
+            "position": {
+              "x": 892,
+              "y": 491.8571428571429
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "qRwdhoAV6V8cNHxoMb9ycR",
+            "type": "basicEvent",
+            "data": {
+              "content": "Calibration error"
+            },
+            "position": {
+              "x": 672,
+              "y": 830
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "87R2iVVQYUiFn4SjZwW7R4",
+            "type": "basicEvent",
+            "data": {
+              "content": "Fast speed"
+            },
+            "position": {
+              "x": 332,
+              "y": 1167
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "nGbCMVwWL2uacYaoV3T4KY",
+            "type": "basicEvent",
+            "data": {
+              "content": "Colibration error"
+            },
+            "position": {
+              "x": 12,
+              "y": 1167
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "s5YGCXT3YEukhGd7fQ3BNx",
+            "type": "basicEvent",
+            "data": {
+              "content": "Limited detecting range of the camera"
+            },
+            "position": {
+              "x": 172,
+              "y": 1167
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "iucsmaSnDsGf7W6nJxHuxv",
+            "type": "interEvent",
+            "data": {
+              "content": "Vision-based detection systme failure"
+            },
+            "position": {
+              "x": 272,
+              "y": 847
+            },
+            "measured": {
+              "width": 160,
+              "height": 86
+            }
+          },
+          {
+            "id": "5ZuZL44ha9GEHNVXMKbuhp",
+            "type": "interEvent",
+            "data": {
+              "content": "Bad surrounding conditions"
+            },
+            "position": {
+              "x": 472,
+              "y": 857
+            },
+            "measured": {
+              "width": 160,
+              "height": 66
+            }
+          },
+          {
+            "id": "aLn4rDpjxgP5aedYxpMmRe",
+            "type": "logic",
+            "data": {
+              "content": "logic node"
+            },
+            "position": {
+              "x": 192,
+              "y": 1026.857142857143
+            },
+            "measured": {
+              "width": 80,
+              "height": 61
+            }
+          },
+          {
+            "id": "4EJmXMw9ir2eTMWNfN7Q1z",
+            "type": "logic",
+            "data": {
+              "content": "logic node"
+            },
+            "position": {
+              "x": 512,
+              "y": 1026.857142857143
+            },
+            "measured": {
+              "width": 80,
+              "height": 61
+            }
+          },
+          {
+            "id": "4DXSAagdCZRKc6ZJ7m9Evj",
+            "type": "basicEvent",
+            "data": {
+              "content": "Severe weather conditions"
+            },
+            "position": {
+              "x": 492,
+              "y": 1167
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            }
+          },
+          {
+            "id": "dbSP6sjxj4ytb71q2Loz73",
+            "type": "basicEvent",
+            "data": {
+              "content": "Abnormal brightness"
+            },
+            "position": {
+              "x": 652,
+              "y": 1167
+            },
+            "measured": {
+              "width": 120,
+              "height": 120
+            },
+            "selected": true
+          }
+        ],
+        "edges": [
+          {
+            "id": "xy-edge__top-hGR5tgDRYC4Zs96LKKwqpmtop-hGR5tgDRYC4Zs96LKKwqpm-source-kPCxi1o6epK6QShsZCHLXukPCxi1o6epK6QShsZCHLXu-target",
+            "target": "kPCxi1o6epK6QShsZCHLXu",
+            "targetHandle": "kPCxi1o6epK6QShsZCHLXu-target",
+            "source": "top-hGR5tgDRYC4Zs96LKKwqpm",
+            "sourceHandle": "top-hGR5tgDRYC4Zs96LKKwqpm-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__top-hGR5tgDRYC4Zs96LKKwqpmtop-hGR5tgDRYC4Zs96LKKwqpm-source-iCx3kqT62xBJXUPEGx6D3WiCx3kqT62xBJXUPEGx6D3W-target",
+            "target": "iCx3kqT62xBJXUPEGx6D3W",
+            "targetHandle": "iCx3kqT62xBJXUPEGx6D3W-target",
+            "source": "top-hGR5tgDRYC4Zs96LKKwqpm",
+            "sourceHandle": "top-hGR5tgDRYC4Zs96LKKwqpm-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__top-hGR5tgDRYC4Zs96LKKwqpmtop-hGR5tgDRYC4Zs96LKKwqpm-source-912m356YJrXvJnoKd227yU912m356YJrXvJnoKd227yU-target",
+            "target": "912m356YJrXvJnoKd227yU",
+            "targetHandle": "912m356YJrXvJnoKd227yU-target",
+            "source": "top-hGR5tgDRYC4Zs96LKKwqpm",
+            "sourceHandle": "top-hGR5tgDRYC4Zs96LKKwqpm-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__kPCxi1o6epK6QShsZCHLXukPCxi1o6epK6QShsZCHLXu-source-ekVZNKfCue6Ezz3DB4vYB3ekVZNKfCue6Ezz3DB4vYB3-target",
+            "target": "ekVZNKfCue6Ezz3DB4vYB3",
+            "targetHandle": "ekVZNKfCue6Ezz3DB4vYB3-target",
+            "source": "kPCxi1o6epK6QShsZCHLXu",
+            "sourceHandle": "kPCxi1o6epK6QShsZCHLXu-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__912m356YJrXvJnoKd227yU912m356YJrXvJnoKd227yU-source-mqivVCfVkX1FPJAt2jdTDTmqivVCfVkX1FPJAt2jdTDT-target",
+            "target": "mqivVCfVkX1FPJAt2jdTDT",
+            "targetHandle": "mqivVCfVkX1FPJAt2jdTDT-target",
+            "source": "912m356YJrXvJnoKd227yU",
+            "sourceHandle": "912m356YJrXvJnoKd227yU-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__mqivVCfVkX1FPJAt2jdTDTmqivVCfVkX1FPJAt2jdTDT-source-sqvrLAdA4eszwEmjb7WbogsqvrLAdA4eszwEmjb7Wbog-target",
+            "target": "sqvrLAdA4eszwEmjb7Wbog",
+            "targetHandle": "sqvrLAdA4eszwEmjb7Wbog-target",
+            "source": "mqivVCfVkX1FPJAt2jdTDT",
+            "sourceHandle": "mqivVCfVkX1FPJAt2jdTDT-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__mqivVCfVkX1FPJAt2jdTDTmqivVCfVkX1FPJAt2jdTDT-source-9aeQHANGqV3Q8Bo5tLNVJe9aeQHANGqV3Q8Bo5tLNVJe-target",
+            "target": "9aeQHANGqV3Q8Bo5tLNVJe",
+            "targetHandle": "9aeQHANGqV3Q8Bo5tLNVJe-target",
+            "source": "mqivVCfVkX1FPJAt2jdTDT",
+            "sourceHandle": "mqivVCfVkX1FPJAt2jdTDT-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__ekVZNKfCue6Ezz3DB4vYB3ekVZNKfCue6Ezz3DB4vYB3-source-6rXxqwRwmjuuwE9kYBuuUn6rXxqwRwmjuuwE9kYBuuUn-target",
+            "target": "6rXxqwRwmjuuwE9kYBuuUn",
+            "targetHandle": "6rXxqwRwmjuuwE9kYBuuUn-target",
+            "source": "ekVZNKfCue6Ezz3DB4vYB3",
+            "sourceHandle": "ekVZNKfCue6Ezz3DB4vYB3-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__ekVZNKfCue6Ezz3DB4vYB3ekVZNKfCue6Ezz3DB4vYB3-source-n2ANecEkaXNhhcHD8ZQRsnn2ANecEkaXNhhcHD8ZQRsn-target",
+            "target": "n2ANecEkaXNhhcHD8ZQRsn",
+            "targetHandle": "n2ANecEkaXNhhcHD8ZQRsn-target",
+            "source": "ekVZNKfCue6Ezz3DB4vYB3",
+            "sourceHandle": "ekVZNKfCue6Ezz3DB4vYB3-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__n2ANecEkaXNhhcHD8ZQRsnn2ANecEkaXNhhcHD8ZQRsn-source-quDrGBSckNwBXTJ2PiJxn7quDrGBSckNwBXTJ2PiJxn7-target",
+            "target": "quDrGBSckNwBXTJ2PiJxn7",
+            "targetHandle": "quDrGBSckNwBXTJ2PiJxn7-target",
+            "source": "n2ANecEkaXNhhcHD8ZQRsn",
+            "sourceHandle": "n2ANecEkaXNhhcHD8ZQRsn-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__6rXxqwRwmjuuwE9kYBuuUn6rXxqwRwmjuuwE9kYBuuUn-source-tUpGmnrhZUtAb2cHs8wihDtUpGmnrhZUtAb2cHs8wihD-target",
+            "target": "tUpGmnrhZUtAb2cHs8wihD",
+            "targetHandle": "tUpGmnrhZUtAb2cHs8wihD-target",
+            "source": "6rXxqwRwmjuuwE9kYBuuUn",
+            "sourceHandle": "6rXxqwRwmjuuwE9kYBuuUn-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__quDrGBSckNwBXTJ2PiJxn7quDrGBSckNwBXTJ2PiJxn7-source-iucsmaSnDsGf7W6nJxHuxviucsmaSnDsGf7W6nJxHuxv-target",
+            "target": "iucsmaSnDsGf7W6nJxHuxv",
+            "targetHandle": "iucsmaSnDsGf7W6nJxHuxv-target",
+            "source": "quDrGBSckNwBXTJ2PiJxn7",
+            "sourceHandle": "quDrGBSckNwBXTJ2PiJxn7-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__quDrGBSckNwBXTJ2PiJxn7quDrGBSckNwBXTJ2PiJxn7-source-5ZuZL44ha9GEHNVXMKbuhp5ZuZL44ha9GEHNVXMKbuhp-target",
+            "target": "5ZuZL44ha9GEHNVXMKbuhp",
+            "targetHandle": "5ZuZL44ha9GEHNVXMKbuhp-target",
+            "source": "quDrGBSckNwBXTJ2PiJxn7",
+            "sourceHandle": "quDrGBSckNwBXTJ2PiJxn7-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__tUpGmnrhZUtAb2cHs8wihDtUpGmnrhZUtAb2cHs8wihD-source-tYGZfT1rKGgxR4edZ1xieVtYGZfT1rKGgxR4edZ1xieV-target",
+            "target": "tYGZfT1rKGgxR4edZ1xieV",
+            "targetHandle": "tYGZfT1rKGgxR4edZ1xieV-target",
+            "source": "tUpGmnrhZUtAb2cHs8wihD",
+            "sourceHandle": "tUpGmnrhZUtAb2cHs8wihD-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__tUpGmnrhZUtAb2cHs8wihDtUpGmnrhZUtAb2cHs8wihD-source-8dRXESbMgFN49rQp7WG6ZB8dRXESbMgFN49rQp7WG6ZB-target",
+            "target": "8dRXESbMgFN49rQp7WG6ZB",
+            "targetHandle": "8dRXESbMgFN49rQp7WG6ZB-target",
+            "source": "tUpGmnrhZUtAb2cHs8wihD",
+            "sourceHandle": "tUpGmnrhZUtAb2cHs8wihD-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__tUpGmnrhZUtAb2cHs8wihDtUpGmnrhZUtAb2cHs8wihD-source-qRwdhoAV6V8cNHxoMb9ycRqRwdhoAV6V8cNHxoMb9ycR-target",
+            "target": "qRwdhoAV6V8cNHxoMb9ycR",
+            "targetHandle": "qRwdhoAV6V8cNHxoMb9ycR-target",
+            "source": "tUpGmnrhZUtAb2cHs8wihD",
+            "sourceHandle": "tUpGmnrhZUtAb2cHs8wihD-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__iucsmaSnDsGf7W6nJxHuxviucsmaSnDsGf7W6nJxHuxv-source-aLn4rDpjxgP5aedYxpMmReaLn4rDpjxgP5aedYxpMmRe-target",
+            "target": "aLn4rDpjxgP5aedYxpMmRe",
+            "targetHandle": "aLn4rDpjxgP5aedYxpMmRe-target",
+            "source": "iucsmaSnDsGf7W6nJxHuxv",
+            "sourceHandle": "iucsmaSnDsGf7W6nJxHuxv-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__aLn4rDpjxgP5aedYxpMmReaLn4rDpjxgP5aedYxpMmRe-source-s5YGCXT3YEukhGd7fQ3BNxs5YGCXT3YEukhGd7fQ3BNx-target",
+            "target": "s5YGCXT3YEukhGd7fQ3BNx",
+            "targetHandle": "s5YGCXT3YEukhGd7fQ3BNx-target",
+            "source": "aLn4rDpjxgP5aedYxpMmRe",
+            "sourceHandle": "aLn4rDpjxgP5aedYxpMmRe-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__aLn4rDpjxgP5aedYxpMmReaLn4rDpjxgP5aedYxpMmRe-source-87R2iVVQYUiFn4SjZwW7R487R2iVVQYUiFn4SjZwW7R4-target",
+            "target": "87R2iVVQYUiFn4SjZwW7R4",
+            "targetHandle": "87R2iVVQYUiFn4SjZwW7R4-target",
+            "source": "aLn4rDpjxgP5aedYxpMmRe",
+            "sourceHandle": "aLn4rDpjxgP5aedYxpMmRe-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__aLn4rDpjxgP5aedYxpMmReaLn4rDpjxgP5aedYxpMmRe-source-nGbCMVwWL2uacYaoV3T4KYnGbCMVwWL2uacYaoV3T4KY-target",
+            "target": "nGbCMVwWL2uacYaoV3T4KY",
+            "targetHandle": "nGbCMVwWL2uacYaoV3T4KY-target",
+            "source": "aLn4rDpjxgP5aedYxpMmRe",
+            "sourceHandle": "aLn4rDpjxgP5aedYxpMmRe-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__5ZuZL44ha9GEHNVXMKbuhp5ZuZL44ha9GEHNVXMKbuhp-source-4EJmXMw9ir2eTMWNfN7Q1z4EJmXMw9ir2eTMWNfN7Q1z-target",
+            "target": "4EJmXMw9ir2eTMWNfN7Q1z",
+            "targetHandle": "4EJmXMw9ir2eTMWNfN7Q1z-target",
+            "source": "5ZuZL44ha9GEHNVXMKbuhp",
+            "sourceHandle": "5ZuZL44ha9GEHNVXMKbuhp-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__4EJmXMw9ir2eTMWNfN7Q1z4EJmXMw9ir2eTMWNfN7Q1z-source-4DXSAagdCZRKc6ZJ7m9Evj4DXSAagdCZRKc6ZJ7m9Evj-target",
+            "target": "4DXSAagdCZRKc6ZJ7m9Evj",
+            "targetHandle": "4DXSAagdCZRKc6ZJ7m9Evj-target",
+            "source": "4EJmXMw9ir2eTMWNfN7Q1z",
+            "sourceHandle": "4EJmXMw9ir2eTMWNfN7Q1z-source",
+            "type": "default"
+          },
+          {
+            "id": "xy-edge__4EJmXMw9ir2eTMWNfN7Q1z4EJmXMw9ir2eTMWNfN7Q1z-source-dbSP6sjxj4ytb71q2Loz73dbSP6sjxj4ytb71q2Loz73-target",
+            "target": "dbSP6sjxj4ytb71q2Loz73",
+            "targetHandle": "dbSP6sjxj4ytb71q2Loz73-target",
+            "source": "4EJmXMw9ir2eTMWNfN7Q1z",
+            "sourceHandle": "4EJmXMw9ir2eTMWNfN7Q1z-source",
+            "type": "default"
+          }
+        ],
+        "causeChecks": {
+          "nEZvPyxXdPjkTRFKfcLbpf": true,
+          "nvX37JV16SH4pG5JpZZebo": false,
+          "7wFHEKNyB2Y2DvBiMgqHck": true,
+          "9iNTiSbA4QpmP2PRZnp91S": true,
+          "f1sJPYikXjHJBARSvWdN4B": true,
+          "tTXwMkAU31mPXqKxuK2m4P": true,
+          "oTzEnNxETYBYEuMbCYe4We": true,
+          "kMT3ruYLrwTiaXzKgNXkQ1": true,
+          "5VHCPRUpKcWjqq8zd5V88M": true,
+          "rQX62Bgg1eVjrNYfwHGGsP": false,
+          "1g148JVKiBvgAyi93wu7qj": true,
+          "emCZKhqh6h1PNyL5LwXJp2": false
+        }
+      }
+    ]
+  }
+}

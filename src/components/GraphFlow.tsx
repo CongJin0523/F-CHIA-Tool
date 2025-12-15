@@ -1,4 +1,4 @@
-// GraphFlow.tsx（你的 LayoutFlow 拆成可复用子组件）
+// GraphFlow.tsx: Reusable subcomponent extracted from LayoutFlow for graph editing and visualization
 import { ReactFlow, Panel, Background, useReactFlow } from '@xyflow/react';
 import { useStore } from 'zustand';
 import { useShallow } from 'zustand/react/shallow';
@@ -27,7 +27,7 @@ const nodeOrigin: [number, number] = [0.5, 0];
 export default function GraphFlow(storeHook) {
   const { fitView, screenToFlowPosition, getEdges, getNodes } = useReactFlow();
 
-  // ✅ 关键：这里用“当前的 hook store”
+  // ✅ Key: use the current hook store instance for state management
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, setNodes, setEdges } =
     useStore(storeHook, useShallow(selector));
 
@@ -44,13 +44,17 @@ export default function GraphFlow(storeHook) {
     [getNodes, getEdges, setNodes, setEdges, fitView]
   );
 
-  // 若用 persist：在 rehydrate 后也跑一次布局（可选）
+  // If using persist: re-run layout after rehydration to ensure correct node positions (optional)
   useEffect(() => {
-    // @ts-expect-error: persist is attached by middleware
+  // @ts-expect-error: persist is attached by Zustand middleware if enabled
     storeHook.persist?.onFinishHydration?.(() => onLayout({ direction: 'DOWN' }));
     onLayout({ direction: 'DOWN' });
   }, [storeHook, onLayout]);
 
+  /**
+   * Handler for when a connection is attempted but not valid (e.g., dropped on empty space).
+   * Creates a new node at the drop position and connects it to the source node.
+   */
   const onConnectEnd = useCallback(
     (event: MouseEvent | TouchEvent, connectionState: any) => {
       if (!connectionState.isValid) {
@@ -67,6 +71,7 @@ export default function GraphFlow(storeHook) {
         };
         setNodes(nodes.concat(newNode));
         setEdges(edges.concat({ id, source: connectionState.fromNode.id, target: id, type: 'smoothstep' }));
+        // Re-layout the graph after adding the new node and edge
         requestAnimationFrame(() => onLayout({ direction: 'DOWN' }));
       }
     },

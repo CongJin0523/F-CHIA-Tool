@@ -19,7 +19,7 @@ type ZoneState = {
   setSelectedFta: (sel?: { zoneId: string; taskId: string }) => void;
 };
 
-// 简单 slug
+// Simple slug function to generate a URL-friendly and unique zone id from a label
 const slug = (s: string) =>
   s.trim().toLowerCase()
     .replace(/[\s_]+/g, "-")
@@ -38,6 +38,7 @@ export const useZoneStore = create<ZoneState>()(
         selectedFta: undefined,
         projectName: "Untitled Project",
         setProjectName: (name) => set({ projectName: name || "Untitled Project"}),
+        // Add a new zone with a unique id and label, and create its corresponding GraphStore
         addZone: (label) => {
           const base = slug(label);
           const ids = new Set(get().zones.map(z => z.id));
@@ -45,31 +46,35 @@ export const useZoneStore = create<ZoneState>()(
           while (ids.has(id)) id = `${base}-${i++}`;
 
           const zone = { id, label };
-          getGraphStoreHook(id); // 确保创建对应的 GraphStore
+          getGraphStoreHook(id); // Ensure the corresponding GraphStore is created
           set(state => ({ zones: [...state.zones, zone], selectedId: id }));
           return zone;
         },
 
+        // Remove a zone by id and clean up its associated GraphStore
         removeZone: (id) => {
           set(state => {
             const zones = state.zones.filter(z => z.id !== id);
             const selectedId = state.selectedId === id ? undefined : state.selectedId;
-            deleteGraphStore(id); // 清理对应的 GraphStore
+            deleteGraphStore(id); // Clean up the corresponding GraphStore
             return { zones, selectedId };
           });
         },
 
+        // Rename a zone by id
         renameZone: (id, nextLabel) => {
           set(state => ({
             zones: state.zones.map(z => z.id === id ? { ...z, label: nextLabel } : z),
           }));
         },
 
+        // Set the currently selected zone by id
         setSelected: (id) => set({ selectedId: id }),
+        // Set the currently selected FTA (Fault Tree Analysis) by zone and task id
         setSelectedFta: (sel?: { zoneId: string; taskId: string }) =>
           set({ selectedFta: sel }),
       }),
-      { name: "zones-store" } // 本地持久化 key
+      { name: "zones-store" } // Local persistence key for storing zones state
     )
   )
 );
