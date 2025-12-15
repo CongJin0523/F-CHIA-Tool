@@ -64,7 +64,7 @@ function extractResults(respData: any) {
   return parsed.results as ResultItem[];
 }
 
-// ---- 表单 schema（选择匹配项用） ----
+// ---- Form schema for selecting matched standards ----
 const SelectSchema = z.object({
   selected: z.array(z.string()).min(1, "Select at least one standard."),
 });
@@ -72,11 +72,11 @@ const SelectSchema = z.object({
 type SelectFormValues = z.infer<typeof SelectSchema>;
 
 export interface IsoMatchingDialogProps {
-  /** 触发器：放一个按钮进来即可（通常是“Matching”） */
+  /** Trigger element: pass in a button or similar (usually a "Matching" button) */
   trigger: React.ReactNode;
-  /** 默认的 Safety Requirement（可选） */
+  /** Default Safety Requirement (optional) */
   defaultRequirement?: string;
-  /** 匹配确认回调（把勾选的 items 传回父组件） */
+  /** Callback when matching is confirmed (returns selected items to parent component) */
   onConfirm?: (items: ResultItem[]) => void;
 
   mockResponse?: any;
@@ -119,7 +119,7 @@ export default function IsoMatchingDialog({
       let respData: any;
       console.log(mockResponse);
       if (mockResponse) {
-        // 测试用的 Mock 数据
+        // Use mock data for testing
         respData = mockResponse;
       } else {
       const system = `
@@ -194,7 +194,7 @@ STRICT RULES:
 
       const results = extractResults(respData);
 
-      // 过滤掉非白名单链接的项；并清洗 links
+  // Filter out items with non-whitelisted links and clean up links
       const filtered = results
         .map((r) => ({
           ...r,
@@ -203,7 +203,7 @@ STRICT RULES:
         .filter((r) => r.links.length > 0);
 
       setItems(filtered);
-      setSelected([]); // 每次匹配后清空选择
+  setSelected([]); // Clear selection after each match
       setRaw(JSON.stringify(results, null, 2));
     } catch (err) {
       const axErr = err as AxiosError<any>;
@@ -226,7 +226,7 @@ STRICT RULES:
     setOpen(false);
   }, [items, selected, onConfirm]);
 
-  // 为每个 item 生成唯一 key
+  // Generate a unique key for each item
   const keyOf = (it: ResultItem) =>
     `${it.iso_number}::${it.title}`;
 
@@ -241,7 +241,6 @@ STRICT RULES:
           </DialogDescription>
         </DialogHeader>
 
-        {/* 输入区 */}
         <div className="space-y-3">
           <div>
             <Label>OpenAI API Key</Label>
@@ -271,14 +270,14 @@ STRICT RULES:
           </div>
         </div>
 
-        {/* 结果选择区 */}
+  {/* Results selection area */}
         <div className="mt-4">
           <Form
             {...form}
           >
             <form
               className="space-y-4"
-              // 这里不强制提交；Confirm 走外部按钮
+              // No forced submit here; confirmation handled by external button
               onSubmit={(e) => e.preventDefault()}
             >
               <FormField
@@ -360,7 +359,7 @@ STRICT RULES:
           </Form>
         </div>
 
-        {/* 底部操作 */}
+  {/* Bottom action buttons */}
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
@@ -373,7 +372,7 @@ STRICT RULES:
           </Button>
         </div>
 
-        {/* Debug 区域（可选）
+  {/* Debug area (optional)
         <div className="mt-3">
           <div className="text-xs text-muted-foreground font-medium">
             Raw Response (Debug)

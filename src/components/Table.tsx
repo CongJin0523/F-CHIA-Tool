@@ -47,15 +47,15 @@ function collectGraphUpdatesFromForm(data: FormValues): Update[] {
         if (real.id) updates.push({ id: real.id, content: real.realizationName ?? "" });
 
         for (const prop of real.properties ?? []) {
-          // 属性标题：仍然从 properties[0]
+          // Property title: we keep using the first item in `properties[]` as the displayed/edited title.
           if (prop.id) updates.push({ id: prop.id, content: prop.properties?.[0] ?? "" });
 
           for (const inter of prop.interpretations ?? []) {
-            // guideword 节点：如果允许编辑并需要回写（内容为枚举）
+            // Guide word node: if this value is editable, write the selected enum value back to the graph node.
             if (inter.guideWordId) {
               updates.push({ id: inter.guideWordId, content: inter.guideWord });
             }
-            // deviations / causes / consequences / requirements 都是 {id, text}
+            // Deviations / causes / consequences / requirements are arrays of `{ id, text }` objects.
             for (const d of inter.deviations ?? []) {
               if (d.id) updates.push({ id: d.id, content: d.text ?? "" });
             }
@@ -117,6 +117,8 @@ function collectIsoMatchesFromForm(data: FormValues) {
 
   return map;
 }
+// Ensure the FTA store for (zoneId, taskId) has an initial Top Event node.
+// We only create it when the store is empty, so existing FTAs are not overwritten.
 function ensureTopEvent(zoneId: string, taskId: string, taskName: string) {
   const hook = getFtaStoreHook(zoneId, taskId);
   const st = hook.getState();
@@ -125,7 +127,7 @@ function ensureTopEvent(zoneId: string, taskId: string, taskName: string) {
     const nodes: FtaNodeTypes[] = [
       {
         id: topId,
-        type: 'topEvent',               // 你在 fta-node-type 里定义的类型
+        type: 'topEvent',               // Node type defined in `fta-node-type`
         position: { x: 0, y: 0 },
         data: { content: taskName || `Top of ${taskId}` },
       },
@@ -133,8 +135,7 @@ function ensureTopEvent(zoneId: string, taskId: string, taskName: string) {
     const edges: Edge[] = [];
     st.setNodes(nodes);
     st.setEdges(edges);
-    // 可选：立即跑一次布局；也可放到 FTA 画布 onInit 时 fitView + layout
-    // st.onLayout?.('DOWN');
+
   }
 }
 
@@ -170,6 +171,8 @@ export default function EditableNestedTable() {
   } else {
     zoneDescription = zoneNode[0].data.content;
   }
+  // Build table form default values from the current graph (nodes/edges).
+  // We derive an IR, then compute row-spans for a nested table rendering.
   const defaultValues = useMemo(() => {
     const ir: IR = graphToIR(nodes, edges);
     console.log("Derived IR:", ir);
@@ -179,7 +182,7 @@ export default function EditableNestedTable() {
     const out = JSON.parse(JSON.stringify(dv));
 
     try {
-      // Walk and dedupe `requirements` & `consequences` by id
+      // Walk the derived IR and dedupe `requirements` and `consequences` by `id` (prevents duplicated rows in the UI).
       out?.tasks?.forEach((task: any) => {
         task?.functions?.forEach((fn: any) => {
           fn?.realizations?.forEach((real: any) => {
@@ -222,24 +225,24 @@ export default function EditableNestedTable() {
 
   function taskHasWarnings(task: any): boolean {
     const fns = task?.functions ?? [];
-    if (!fns.length) return true; // 无 functions
+    if (!fns.length) return true; // Missing functions
 
     for (const fn of fns) {
       const reals = fn?.realizations ?? [];
-      if (!reals.length) return true; // 无 realizations
+      if (!reals.length) return true; // Missing realizations
 
       for (const real of reals) {
         const props = real?.properties ?? [];
-        if (!props.length) return true; // 无 properties
+        if (!props.length) return true; // Missing properties
 
         for (const prop of props) {
           const inters = prop?.interpretations ?? [];
-          if (!inters.length) return true; // 无 interpretations
+          if (!inters.length) return true; // Missing interpretations
         }
       }
     }
 
-    return false; // 全部完整，没有告警
+    return false; // All required parts exist; no warnings
   }
 
   // --- Merge helpers: if all guide words in a realization's properties are the same, merge property cell ---
@@ -277,7 +280,7 @@ export default function EditableNestedTable() {
         any = true;
         const k = (typeof it?.guideWordId === 'string' && it.guideWordId)
           ? it.guideWordId
-          : `__noid__${(it?.guideWord ?? '').trim()}::${Math.random()}`; // fallback to avoid collapse
+          : `__noid__${(it?.guideWord ?? '').trim()}::${Math.random()}`; // Fallback key: keep rows distinct even without a guideWordId
         seen.add(k);
       }
     }
@@ -289,6 +292,8 @@ export default function EditableNestedTable() {
     if (propsArr.length === 0) return 1;
 
     const mergeCheck = canMergeAllPropsByGuideWord(propsArr);
+    // If all properties share the same guide word set, we render a merged Property cell.
+    // In that case, row-span equals the number of unique interpretations across all properties.
     if (mergeCheck.ok) {
       return countUniqueInterpretationsByGuideWordIdAcrossProps(propsArr);
     }
@@ -346,8 +351,8 @@ export default function EditableNestedTable() {
                 : "All good! You can proceed."
             }
             onClick={() => {
-              const taskName = getTaskName(); // <-- 当前表单里的任务名
-              // zoneId 也要可用
+              const taskName = getTaskName(); // Current task name from the form state
+              // zoneId must be available to create / open the correct FTA store.
               if (!zoneId) {
                 console.warn("No zone selected.");
                 return;
@@ -363,6 +368,9 @@ export default function EditableNestedTable() {
       </TableCell>
     );
   }
+  // Persist table edits back into the graph store:
+  // 1) text content updates (task/function/realization/property/deviation/cause/consequence/requirement)
+  // 2) ISO matches stored on guideWord nodes
   const onSubmit = (data: FormValues) => {
     try {
       const updates = collectGraphUpdatesFromForm(data);
@@ -375,17 +383,17 @@ export default function EditableNestedTable() {
 
       const mapContent = new Map<string, string>(updates.map(u => [u.id, u.content]));
 
-      // 读取当前 zone 的节点，并构造写回后的 nodes
-      const graphState = storeHook.getState(); // Zustand getState
+      // Read current zone nodes and build the updated node list to write back.
+      const graphState = storeHook.getState(); // Zustand store snapshot
       const nextNodes = graphState.nodes.map(n => {
         let next = n;
 
-        // 写回 content
+        // Write back content
         if (mapContent.has(n.id)) {
           next = { ...next, data: { ...next.data, content: mapContent.get(n.id)! } };
         }
 
-        // 写回 isoMatches 到 guideWord 节点
+        // Write back isoMatches to guideWord node
         if (isoMap.has(n.id)) {
           const isoMatches = isoMap.get(n.id)!;
           next = { ...next, data: { ...next.data, isoMatches } };
@@ -394,7 +402,7 @@ export default function EditableNestedTable() {
         return next;
       });
 
-      // 一次性写回
+      // Write back in one shot to avoid partial updates.
       graphState.setNodes(nextNodes);
 
       const textCount = updates.length;
@@ -483,11 +491,11 @@ export default function EditableNestedTable() {
                     let functionRendered = false;
                     const functionRowSpanDyn = calcFunctionRowSpan(fn);
 
-                    // ① Function 没有 realizations：渲染一行告警
+                    // Case 1: Function has no realizations -> render a single warning row.
                     if (!fn.realizations || fn.realizations.length === 0) {
                       return (
                         <TableRow key={`${task.fieldId}-${functionIndex}-no-real`}>
-                          {/* Task */}
+                          {/* Task (row-spanned) */}
                           {!taskRendered && (
                             <TaskCell
                               control={control}
@@ -498,7 +506,7 @@ export default function EditableNestedTable() {
                               getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                             />
                           )}
-                          {/* Function */}
+                          {/* Function (row-spanned) */}
                           {!functionRendered && (
                             <TableCell rowSpan={functionRowSpanDyn}>
                               <Controller
@@ -508,7 +516,7 @@ export default function EditableNestedTable() {
                               />
                             </TableCell>
                           )}
-                          {/* 告警占 8 列 */}
+                          {/* Warning takes the remaining 8 columns */}
                           <TableCell colSpan={8} className="text-amber-600">
                             No realization found, please complete in the graph editor.
                           </TableCell>
@@ -528,11 +536,11 @@ export default function EditableNestedTable() {
                           ? countUniqueInterpretationsByGuideWordIdAcrossProps(propsArr)
                           : Math.max(1, propsArr.reduce((sum: number, p: any) => sum + calcPropRowSpan(p), 0));
 
-                      // ② Realization 没有 properties：渲染一行告警
+                      // Case 2: Realization has no properties -> render a single warning row.
                       if (!realization.properties || realization.properties.length === 0) {
                         return (
                           <TableRow key={`${task.fieldId}-${functionIndex}-${realizationIndex}-no-prop`}>
-                            {/* Task */}
+                            {/* Task (row-spanned) */}
                             {!taskRendered && (
                               <TaskCell
                                 control={control}
@@ -543,7 +551,7 @@ export default function EditableNestedTable() {
                                 getTaskName={() => getValues(`tasks.${taskIndex}.taskName`)}
                               />
                             )}
-                            {/* Function */}
+                            {/* Function (row-spanned) */}
                             {!functionRendered && (
                               <TableCell rowSpan={functionRowSpanDyn}>
                                 <Controller
@@ -553,7 +561,7 @@ export default function EditableNestedTable() {
                                 />
                               </TableCell>
                             )}
-                            {/* Realization */}
+                            {/* Realization (row-spanned) */}
                             {!realizationRendered && (
                               <TableCell rowSpan={realizationRowSpanDyn}>
                                 <Controller
@@ -563,7 +571,7 @@ export default function EditableNestedTable() {
                                 />
                               </TableCell>
                             )}
-                            {/* 告警占 7 列 */}
+                            {/* Warning takes the remaining 7 columns */}
                             <TableCell colSpan={7} className="text-amber-600">
                               No property found, please complete in the graph editor.
                             </TableCell>
@@ -580,7 +588,7 @@ export default function EditableNestedTable() {
                         return propsArr.map((property, propertyIndex) => {
                           let propertyRendered = false;
 
-                          // ③ Property 没有 interpretations：渲染一行告警
+                          // Case 3: Property has no interpretations -> render a single warning row.
                           if (!property.interpretations || property.interpretations.length === 0) {
                             return (
                               <TableRow key={`${task.fieldId}-${functionIndex}-${realizationIndex}-${propertyIndex}-no-inter`}>
@@ -640,7 +648,7 @@ export default function EditableNestedTable() {
                                     />
                                   </TableCell>
                                 )}
-                                {/* 告警占 6 列（GuideWord + 4 列数组 + ISO） */}
+                                {/* Warning takes the remaining 6 columns (GuideWord + 4 text-array columns + ISO) */}
                                 <TableCell colSpan={6} className="text-amber-600">
                                   No interpretation found, please complete in the graph editor.
                                 </TableCell>
@@ -653,7 +661,7 @@ export default function EditableNestedTable() {
                             );
                           }
 
-                          // ④ 正常渲染 interpretations（移除所有 Add 按钮）
+                          // Case 4: Normal interpretation rendering (no inline “Add …” buttons; editing only).
                           return property.interpretations.map((interpretation, interpretationIndex) => {
                             const hasRequirements = Array.isArray(interpretation.requirements) && interpretation.requirements.length > 0;
                             return (
@@ -881,7 +889,7 @@ export default function EditableNestedTable() {
                                                       className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700 border border-blue-200 cursor-pointer"
                                                       title={it.title}
                                                       onDoubleClick={(e) => {
-                                                        // 让 double-click 触发 DialogTrigger
+                                                        // Let double-click open the edit dialog (DialogTrigger).
                                                         e.preventDefault();
                                                         (e.currentTarget as HTMLElement).click();
                                                       }}
@@ -892,7 +900,7 @@ export default function EditableNestedTable() {
                                                         aria-label="Remove"
                                                         className="rounded-full px-1.5 py-0.5 text-blue-700 hover:bg-blue-100"
                                                         onClick={(event) => {
-                                                          event.stopPropagation(); // 防止删的时候也触发 dialog
+                                                          event.stopPropagation(); // Prevent delete-click from also opening the dialog
                                                           removeAt(idx);
                                                         }}
                                                         title="remove this ISO"
@@ -916,8 +924,7 @@ export default function EditableNestedTable() {
                                             }
                                             defaultRequirement={(interpretation.requirements ?? []).map((r, i) => `${i + 1}. ${r.text}`).join("\n")}
                                             onConfirm={addFromAI}
-                                          // test
-                                          // mockResponse={jsonTest}
+                                         
                                           />
 
                                           <AddIsoDialog
@@ -951,7 +958,7 @@ export default function EditableNestedTable() {
                         let localFunctionRendered = functionRendered;
                         let localRealizationRendered = realizationRendered;
 
-                        // Build unique interpretation rows by guideWordId (stable order)
+                        // Build unique interpretation rows by guideWordId (stable order). We render one row per unique guide word.
                         type KeyRec = { key: string; pIdx: number; iIdx: number };
                         const uniqRows: KeyRec[] = [];
                         const seenKeys = new Set<string>();
@@ -967,10 +974,10 @@ export default function EditableNestedTable() {
                           });
                         });
 
-                        // Merged property cell should span exactly the number of unique interpretation rows
+                        // The merged Property cell should span exactly the number of unique interpretation rows.
                         const propertyRowSpan = Math.max(1, uniqRows.length);
 
-                        // Build a flattened list so numbering is continuous across merged properties
+                        // Flatten all property text items so numbering stays continuous across merged properties.
                         const flatPropItems: { pIdx: number; idx: number }[] = [];
                         propsArr.forEach((p, pIdx) => {
                           const items = Array.isArray(p?.properties) ? p.properties : [];
@@ -1004,7 +1011,7 @@ export default function EditableNestedTable() {
                         const rows: JSX.Element[] = [];
 
                         if (uniqRows.length === 0) {
-                          // safety fallback: no interpretations after merge
+                          // Safety fallback: after merging, no interpretations exist (graph is incomplete).
                           const rowKey = `${task.fieldId}-${functionIndex}-${realizationIndex}-merged-empty-fallback`;
                           rows.push(
                             <TableRow key={rowKey}>
@@ -1047,7 +1054,7 @@ export default function EditableNestedTable() {
                         } else {
                           uniqRows.forEach(({ pIdx, iIdx }) => {
                             const pathBase = `tasks.${taskIndex}.functions.${functionIndex}.realizations.${realizationIndex}.properties.${pIdx}.interpretations.${iIdx}`;
-                            // compute hasRequirements for this representative interpretation
+                            // Determine whether this row has any requirements (used to enable/disable ISO matching buttons).
                             const repInterp: any = Array.isArray(propsArr[pIdx]?.interpretations)
                               ? (propsArr[pIdx] as any).interpretations?.[iIdx]
                               : undefined;
@@ -1314,7 +1321,7 @@ export default function EditableNestedTable() {
                           });
                         }
 
-                        // sync outer flags so后续 function/realization 不重复渲染
+                        // Sync outer render flags so later rows don't re-render Task/Function/Realization cells.
                         taskRendered = localTaskRendered;
                         functionRendered = localFunctionRendered;
                         realizationRendered = localRealizationRendered;
@@ -1333,6 +1340,7 @@ export default function EditableNestedTable() {
         <Button type="submit">Save Changes</Button>
       </div>
       <div className="mt-4">
+        {/* DMM visualization for debugging or cross-reference */}
         <DMM data={defaultValues} />
       </div>
       <ExportTextPDFButton

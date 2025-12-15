@@ -178,7 +178,6 @@ export function EditIsoDialog({
     setWarning("");
     setError("");
 
-    // links 依然是可选
     const rawList = linksRaw
       .split(/[\n,;]/)
       .map((s) => s.trim())

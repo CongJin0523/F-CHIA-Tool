@@ -101,9 +101,11 @@ function ListItem({
 
 
 
-// ---- Shared helpers (module-scope) to mirror ExportStructuredPDFButton ----
-// NOTE: we intentionally use `any` for jsPDF autotable row/cell typings here to avoid extra imports.
+// ---- Shared helpers (module-scope), aligned with ExportStructuredPDFButton ----
+// NOTE: We intentionally use `any` for jsPDF AutoTable row/cell typings here to keep imports minimal.
 
+// Convert the nested table form data into AutoTable rows.
+// This mirrors the UI row-span logic so the PDF export matches what users see.
 function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
   const rows: any[] = [];
 
@@ -213,7 +215,7 @@ function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
     const functions = task.functions ?? [];
     const taskRowSpanDyn = calcTaskRowSpan(task);
 
-    // ① Task 没有 functions
+    // Case 1: Task has no functions -> emit a single warning row.
     if (!functions.length) {
       rows.push([
         { content: taskName, rowSpan: 1 } as any,
@@ -229,7 +231,7 @@ function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
       const realizations = fn.realizations ?? [];
       const fnRowSpanDyn = calcFunctionRowSpan(fn);
 
-      // ② Function 没有 realizations
+      // Case 2: Function has no realizations -> emit a single warning row.
       if (!realizations.length) {
         const row: any[] = [];
         if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as any);
@@ -251,7 +253,7 @@ function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
             ? countUniqueInterpretationsByGuideWordIdAcrossProps(propsArr)
             : Math.max(1, propsArr.reduce((sum: number, p: any) => sum + calcPropRowSpan(p), 0));
 
-        // ③ Realization 没有 properties
+        // Case 3: Realization has no properties -> emit a single warning row.
         if (!propsArr.length) {
           const row: any[] = [];
           if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as any);
@@ -277,7 +279,7 @@ function buildRowsWithRowSpanFromForm(data: FormValues): any[] {
 
             const interpretations = prop.interpretations ?? [];
 
-            // ④ Property 没有 interpretations
+            // Case 4: Property has no interpretations -> emit a single warning row.
             if (!interpretations.length) {
               const row: any[] = [];
               if (!taskPrinted) row.push({ content: taskName, rowSpan: taskRowSpanDyn } as any);
@@ -505,7 +507,8 @@ function buildDSMMatrixFromForm(data: FormValues) {
   return { fnOrder, reqOrder, hit };
 }
 
-// Read *all* FTA entries saved by your app (same shape you’ve been using)
+// Read all FTA entries saved by this app from localStorage.
+// Keys are expected as: `fta-${zoneId}::${taskId}` and values are Zustand persist payloads.
 function readAllFtasFromLocalStorage(): { items: FtaDumpItem[]; } {
   const items: FtaDumpItem[] = [];
   let selectedFta: { zoneId: string; taskId: string } | undefined;
@@ -545,7 +548,7 @@ export default function Header() {
   const [exportStep, setExportStep] = useState<string>("");
 
   const flush = () => new Promise<void>((r) => setTimeout(r, 0));
-  // 让 input 持久存在于 Header 根部
+  // Keep the file input mounted at the Header root so `onChange` reliably fires.
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [confirmImportOpen, setConfirmImportOpen] = useState(false);
@@ -579,7 +582,7 @@ export default function Header() {
       setNewProjectOpen(false);
     }
   };
-  // 导出
+  // Export project JSON (zones + graphs + selected state + FTAs)
   const onExport = () => {
     const { zones, selectedId, selectedFta, projectName } = useZoneStore.getState();
     const payload = {
@@ -602,7 +605,7 @@ export default function Header() {
     downloadJSON(payload, fileName);
   };
 
-  // Export PDF (Flow + Tables)
+  // Export a single-zone report PDF: 1) diagram screenshot, 2) F-CHIA table, 3) DSM (DMM) matrix.
   const handleExportCombinedPDF = () => {
     if (location.pathname !== "/diagram") {
       toast.error("The export only works on the F-CHIA page.");
@@ -637,7 +640,7 @@ export default function Header() {
     const rfNodes: any[] = (nodes || []).map((n: any) => ({
       id: n.id,
       position: n.position || { x: 0, y: 0 },
-      width: (n.measured?.width ?? n.width ?? 250),   // ✅ 优先 measured
+      width: (n.measured?.width ?? n.width ?? 250),   // Prefer measured size when available
       height: (n.measured?.height ?? n.height ?? 80),
       data: n.data,
       type: n.type,
@@ -1025,8 +1028,8 @@ export default function Header() {
         }, 300);
       });
   };
-  // All Zones
-
+  // Export a multi-zone report PDF by navigating through zones and capturing each diagram + tables.
+  // This is an on-the-fly export, so we wait for the diagram page to signal readiness before capture.
   const handleExportAllZonesOnTheFly = async () => {
     const { zones, projectName } = useZoneStore.getState();
     if (!zones.length) {
@@ -1051,7 +1054,7 @@ export default function Header() {
     await flush();
 
     try {
-      // ✅ Use the same paper size/orientation as handleExportCombinedPDF
+      // Use the same paper size/orientation as `handleExportCombinedPDF`
       const doc = new jsPDF({ unit: "mm", format: "a3", orientation: "landscape" });
 
       // Shared layout constants (mirror handleExportCombinedPDF)
@@ -1473,10 +1476,10 @@ export default function Header() {
       setTimeout(() => setExporting(false), 600);
     }
   };
-  // 导入回调（这里一定会触发）
+  // Import callback (fires from the persistent hidden input)
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    // 允许连续导入同一个文件
+    // Allow importing the same file repeatedly by clearing the input value
     e.currentTarget.value = "";
     if (!file) return;
 
@@ -1506,6 +1509,7 @@ export default function Header() {
         }
 
         // 2) Now it’s safe to CLEAR current app data
+        // Important: we only clear existing data after the import file has been parsed and validated.
         const currentZones = useZoneStore.getState().zones;
         // clear in-memory graph stores (optional but tidy)
         for (const z of currentZones) {
@@ -1587,6 +1591,7 @@ export default function Header() {
       }
     });
   };
+  // Export all FTAs as a PDF by navigating to each FTA and using the in-page FlowCapture hook.
   const handleExportAllFTAsOnTheFly = async () => {
     const { zones, projectName } = useZoneStore.getState();
     const zoneLabelOf = (zid: string) => zones.find((z) => z.id === zid)?.label || zid;
@@ -1661,8 +1666,8 @@ export default function Header() {
         setExportPct(Math.round((i / total) * 100));
         await flush();
 
-        // Make FTA active + navigate to /fta. If your app uses a dedicated
-        // “selectedFta” in ZoneStore, set it here:
+        // Activate the target FTA and navigate to /fta. We also set `selectedFta` in ZoneStore
+        // so the FTA page knows which (zoneId, taskId) store to render.
         useZoneStore.setState({ selectedId: zoneId, selectedFta: { zoneId, taskId } });
         navigate("/fta", {
           replace: true,
@@ -1775,7 +1780,7 @@ export default function Header() {
           )}
         </div>
 
-        {/* 右侧菜单 */}
+        {/* Right-side menu */}
         <div className="ml-auto flex items-center gap-3">
           {/* <HeaderExportActions /> */}
           <NavigationMenu>
@@ -1868,7 +1873,7 @@ export default function Header() {
           </a>
         </div>
 
-        {/* ✅ 持久化的隐藏 input，菜单外层：onChange 一定能触发 */}
+        {/* Persistent hidden input (outside the menu): ensures `onChange` always triggers */}
         <input
           ref={fileInputRef}
           type="file"

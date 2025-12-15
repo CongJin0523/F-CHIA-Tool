@@ -20,7 +20,7 @@ export default function TaskSelectorLocal() {
   const currentZone = params.get('zone');
   const currentTask = params.get('task');
 
-  // ✅ 取/设 selectedFta
+  // Get and set the selected FTA (Fault Tree Analysis) in the store
   const setSelectedFta = useZoneStore(s => s.setSelectedFta);
   const selectedFta = useZoneStore(s => s.selectedFta);
 
@@ -32,7 +32,7 @@ export default function TaskSelectorLocal() {
   useEffect(() => {
     load();
 
-    // 如果别的 Tab 删除了，也能同步
+  // Listen for changes in localStorage from other tabs to keep the list in sync
     const onStorage = (e: StorageEvent) => {
       if (!e.key) return;
       if (e.key.startsWith('fta-')) load();
@@ -43,7 +43,7 @@ export default function TaskSelectorLocal() {
 
   const onSelect = (zoneId: string, taskId: string) => {
     setParams({ zone: zoneId, task: taskId });
-    // 同步 store 里的 selectedFta
+  // Also update the selectedFta in the store for cross-component sync
     setSelectedFta?.({ zoneId, taskId });
   };
 
@@ -56,22 +56,22 @@ export default function TaskSelectorLocal() {
       deleteFtaStore(zoneId, taskId);
       localStorage.removeItem(`fta-${zoneId}::${taskId}`);
     } finally {
-      // 🔑 if the deleted one is the current selection, clear it in the store
+  // If the deleted FTA is currently selected, clear the selection in the store
       const sel = useZoneStore.getState().selectedFta;
       if (sel && sel.zoneId === zoneId && sel.taskId === taskId) {
         useZoneStore.getState().setSelectedFta(undefined);
       }
 
-      // Refresh list
+  // Refresh the FTA task list after deletion
       const next = listAllFtaTasksWithTitles();
       setItems(next);
 
-      // Fix URL:
+  // Update the URL to reflect the new selection or clear it if no items remain
       if (currentZone === zoneId && currentTask === taskId) {
         if (next.length > 0) {
           setParams({ zone: next[0].zoneId, task: next[0].taskId });
         } else {
-          // no items left: clear URL
+          // No items left: clear the URL
           setParams({});
         }
       }
@@ -93,7 +93,7 @@ export default function TaskSelectorLocal() {
           const active = currentZone === zoneId && currentTask === taskId;
           return (
             <li key={`${zoneId}::${taskId}`} className="group flex items-center gap-1 max-w-[280px]">
-              {/* 选择按钮 */}
+              {/* Select button for this FTA task */}
               <button
                 type="button"
                 onClick={() => onSelect(zoneId, taskId)}
@@ -105,7 +105,7 @@ export default function TaskSelectorLocal() {
                 <div className="text-[10px] text-neutral-500 truncate">{zoneId} · {taskId}</div>
               </button>
 
-              {/* 删除按钮 */}
+              {/* Delete button for this FTA task */}
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onDelete(zoneId, taskId); }}

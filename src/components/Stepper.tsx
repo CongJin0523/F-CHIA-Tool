@@ -66,12 +66,12 @@ export default function NonLinearStepper() {
     setCompleted({});
   };
 
-  // sidebar constants
+  // Sidebar width in pixels
   const SIDEBAR_WIDTH = 240;
 
   return (
     <>
-      {/* Mini floating action button (only when closed) */}
+  {/* Mini floating action button to open the workflow sidebar (only visible when closed) */}
       {!open && (
         <Tooltip title="Workflow Steps">
           <Fab
@@ -89,7 +89,7 @@ export default function NonLinearStepper() {
         </Tooltip>
       )}
 
-      {/* Fixed, non-modal sidebar */}
+  {/* Fixed, non-modal sidebar for workflow steps */}
       <Paper
         elevation={0}
         role="complementary"
@@ -106,13 +106,13 @@ export default function NonLinearStepper() {
           transform: open ? "translateX(0)" : `translateX(${SIDEBAR_WIDTH + 16}px)`,
           transition: "transform 220ms ease",
           pointerEvents: open ? "auto" : "none", // when closed, ignore pointer
-          backgroundColor: "rgba(255, 255, 255, 0.1)", // 半透明白
+          backgroundColor: "rgba(255, 255, 255, 0.1)", 
           backdropFilter: "blur(10px)",
-          border: "1px solid rgba(255, 255, 255, 0.2)", // 可选边框增强玻璃感
+          border: "1px solid rgba(255, 255, 255, 0.2)", 
           borderRadius: 2,
         }}
       >
-        {/* Header */}
+  {/* Sidebar header with close button and title */}
         <Box
           sx={{
             px: 2,
@@ -143,7 +143,7 @@ export default function NonLinearStepper() {
 
         </Box>
 
-        {/* Content */}
+  {/* Stepper content: vertical stepper with navigation and completion controls */}
         <Box sx={{ p: 2, flex: 1, overflowY: "auto" }}>
           <Stepper nonLinear activeStep={activeStep} orientation="vertical">
             {steps.map((step, index) => (

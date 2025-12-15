@@ -10,11 +10,11 @@ type HeadingItem = {
 };
 
 export interface OnThisPageProps extends React.HTMLAttributes<HTMLDivElement> {
-  /** 包裹正文内容的容器 id，用它来查找 h2/h3（默认 'docs-content'） */
+  /** The container id that wraps the main content, used to find h2/h3 headings (default 'docs-content') */
   containerId?: string;
-  /** 查找标题的选择器（默认 'h2, h3'） */
+  /** Selector for finding headings (default 'h2, h3') */
   headingsSelector?: string;
-  /** 激活线的 top 偏移（负值越早高亮，默认 80） */
+  /** Top offset for the active highlight line (lower values highlight earlier, default 80) */
   activeOffsetTop?: number;
 }
 
@@ -28,7 +28,7 @@ export function OnThisPage({
   const [headings, setHeadings] = React.useState<HeadingItem[]>([]);
   const [activeId, setActiveId] = React.useState<string>("");
 
-  // 简单 slugify：将标题文本变成 id
+  // Simple slugify: convert heading text to a valid id
   const slugify = (s: string) =>
     s
       .toLowerCase()
@@ -36,7 +36,7 @@ export function OnThisPage({
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-");
 
-  // 收集 headings
+  // Collect all headings from the content container
   React.useEffect(() => {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -46,7 +46,7 @@ export function OnThisPage({
     const items: HeadingItem[] = nodes
       .filter((el) => /H2|H3/.test(el.tagName))
       .map((el) => {
-        // 确保每个标题都有 id
+  // Ensure each heading has an id
         if (!el.id) {
           el.id = slugify(el.textContent || "section");
         }
@@ -60,13 +60,13 @@ export function OnThisPage({
     setHeadings(items);
   }, [containerId, headingsSelector]);
 
-  // 观察并高亮当前可视标题
+  // Observe and highlight the currently visible heading
   React.useEffect(() => {
     if (headings.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // 找到最靠上的可见标题
+  // Find the topmost visible heading
         const visible = entries
           .filter((e) => e.isIntersecting)
           .sort((a, b) => (a.boundingClientRect.top - b.boundingClientRect.top));
@@ -77,14 +77,14 @@ export function OnThisPage({
         }
       },
       {
-        // 用 rootMargin 把“视口顶部”往下推一点，这样更符合阅读习惯
+  // Use rootMargin to push the viewport top down for a more natural reading experience
         root: null,
         rootMargin: `-${activeOffsetTop}px 0px -60% 0px`,
         threshold: [0, 1.0],
       }
     );
 
-    // 订阅所有标题
+  // Observe all heading elements
     headings.forEach((h) => {
       const el = document.getElementById(h.id);
       if (el) observer.observe(el);
