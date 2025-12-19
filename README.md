@@ -23,15 +23,12 @@ You can access the tool online here:
 - **Examples** (Sample JSON data, analysis results pdf and fta):  
   👉 [`docs/example`](docs/example)
 
-- **Build & Deployment** (How to build and host the app):
-  👉 [`docs/md/build-and-deploy.md`](build-and-deploy)
 ---
 
 ## 📖 Table of Contents
 
 - [F-CHIA Tool](#f-chia-tool)
   - [📚 Documentation](#-documentation)
-  - [👉 `docs/md/build-and-deploy.md`](#-docsmdbuild-and-deploymd)
   - [📖 Table of Contents](#-table-of-contents)
   - [🚀 Features](#-features)
   - [🛠 Tech Stack](#-tech-stack)
