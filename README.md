@@ -46,7 +46,6 @@ You can access the tool online here:
     - [Zone store](#zone-store)
     - [Graph stores (one per zone)](#graph-stores-one-per-zone)
     - [FTA stores (per zone + task)](#fta-stores-per-zone--task)
-    - [UI helpers](#ui-helpers)
     - [Persistence notes](#persistence-notes)
   - [📄 License](#-license)
 
@@ -138,10 +137,6 @@ The app keeps everything in the browser’s local storage; there is no server da
 - `createFtaStore(id, initial?)` returns a persisted store keyed by `fta-<zone>::<task>`.
 - Manages FTA-specific nodes/edges plus cause selection state (`causeChecks`).
 - Use `getFtaStoreHook(zoneId, taskId, initial?)` to reuse or create store instances; `deleteFtaStore` removes in-memory and persisted data for a task.
-
-### UI helpers
-- File: `src/store/fta-ui-store.ts` keeps preferred tasks per zone for UI selection.
-- `src/store/bridge.ts` wires hydration events and zone selection changes so the right graph store is active after persistence restores state.
 
 ### Persistence notes
 - All persisted stores use `zustand/middleware/persist`, writing to `localStorage`.
